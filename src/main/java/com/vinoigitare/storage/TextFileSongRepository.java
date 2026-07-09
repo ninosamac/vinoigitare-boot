@@ -51,9 +51,12 @@ public class TextFileSongRepository implements SongRepository {
         this(Paths.get(properties.songsDir()));
     }
 
-    // Package-private, test-only: lets tests construct against a @TempDir
-    // Path directly without going through VinoigitareProperties.
-    TextFileSongRepository(Path songsDir) {
+    // Public: constructs against an explicit directory without going
+    // through VinoigitareProperties/Spring config -- used by tests
+    // (@TempDir Path) and by SongbookPdfImporter, which writes .tab files
+    // to a directory the user chose on the command line, not the app's
+    // configured songs-dir.
+    public TextFileSongRepository(Path songsDir) {
         this.songsDir = Objects.requireNonNull(songsDir, "songsDir must not be null");
         try {
             Files.createDirectories(songsDir);

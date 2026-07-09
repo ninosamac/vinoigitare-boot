@@ -102,6 +102,15 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+
+			<!-- Runs standalone CLI tools (com.vinoigitare.tools package) that
+			     aren't part of the web app. See SongbookPdfImporter's Javadoc
+			     for the exec:java invocation. -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.5.0</version>
+			</plugin>
 		</plugins>
 	</build>
 

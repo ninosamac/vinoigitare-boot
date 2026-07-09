@@ -64,6 +64,39 @@ convention.
 not real song data) so there's something to browse locally out of the box —
 one of them is diacritics-heavy (š, đ, č, ć, ž) as a UTF-8 sanity check.
 
+## Tooling: songbook PDF importer
+
+`com.vinoigitare.tools.SongbookPdfImporter` is a standalone CLI (not part
+of the running web app) that splits a songbook-style PDF into individual
+`.tab` files, reusing the same file-naming/encoding convention as
+`TextFileSongRepository`. It was built and tested only against a synthetic
+fixture PDF containing fictional made-up songs (see
+`SongbookPdfImporterTest`) — point it at material you actually have the
+rights to use.
+
+```
+./mvnw compile exec:java -Dexec.mainClass=com.vinoigitare.tools.SongbookPdfImporter \
+    -Dexec.args="--pdf /path/to/your/songbook.pdf --dry-run"
+```
+
+Always start with `--dry-run`: it reports how many songs it detected and
+their page ranges/body lengths, without writing anything or printing any
+extracted lyric text, so you can sanity-check the split before committing
+to it. Once it looks right, drop `--dry-run` and add `--output-dir` — it
+deliberately defaults to `./imported` rather than the app's live
+`vinoigitare.songs-dir`, so a first attempt can't clobber real data.
+`--mode page` (one song per PDF page) and `--artist-first` (swap the
+default title-then-artist line order) are available for songbooks laid
+out differently than the defaults assume. Run with `--help` for the full
+option list.
+
+Song-boundary detection is a heuristic, not a real parser — real
+songbook layouts vary, and this tool has only ever been validated against
+its own synthetic test fixture. Text extracted from old/scanned PDFs can
+also have mis-mapped font encodings that garble diacritics even though the
+PDF looks fine on screen: **spot-check a sample of the output files for
+mangled š/đ/č/ć/ž before trusting the whole batch.**
+
 ## Project status
 
 This is a phased rewrite in progress. **Done so far:** project skeleton,
