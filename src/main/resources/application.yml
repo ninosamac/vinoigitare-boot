@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: vinoigitare-boot
+
+vinoigitare:
+  # Directory containing song files. Overridable via the VINOIGITARE_HOME
+  # env var, mirroring the old app's VINOIGITARE_HOME/vinoigitare.properties
+  # convention. Defaults to a local folder under the project for dev use --
+  # no real song data ships with this repo (Phase 1+ territory).
+  songs-dir: ${VINOIGITARE_HOME:./data/songs}
