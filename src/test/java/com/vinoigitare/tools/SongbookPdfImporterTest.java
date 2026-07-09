@@ -176,6 +176,46 @@ class SongbookPdfImporterTest {
     }
 
     @Test
+    void stripsLeadingSongIndexNumberBeforeTitle() {
+        SongbookPdfImporter.PageText page = new SongbookPdfImporter.PageText(1,
+                "13\nReal Fictional Title\nReal Fictional Artist\nC G\nfake body line one\nC G\nfake body line two");
+
+        List<SongbookPdfImporter.ParsedSong> songs = SongbookPdfImporter.splitByBlankLines(List.of(page));
+
+        assertEquals(1, songs.size());
+        assertEquals("Real Fictional Title", songs.get(0).firstLine());
+        assertEquals("Real Fictional Artist", songs.get(0).secondLine());
+        assertTrue(songs.get(0).body().contains("fake body line one"));
+    }
+
+    @Test
+    void stripsLeadingSongIndexNumberWithTrailingPeriod() {
+        SongbookPdfImporter.PageText page = new SongbookPdfImporter.PageText(1,
+                "31.\nAnother Fictional Title\nAnother Fictional Artist\nC G\nfake body");
+
+        List<SongbookPdfImporter.ParsedSong> songs = SongbookPdfImporter.splitByBlankLines(List.of(page));
+
+        assertEquals(1, songs.size());
+        assertEquals("Another Fictional Title", songs.get(0).firstLine());
+        assertEquals("Another Fictional Artist", songs.get(0).secondLine());
+    }
+
+    @Test
+    void doesNotStripATitleThatIsNotPurelyNumeric() {
+        // A title that merely starts with a digit (e.g. "13 razloga" --
+        // a real style of ex-Yu song title) must not be mistaken for a
+        // bare index number and stripped.
+        SongbookPdfImporter.PageText page = new SongbookPdfImporter.PageText(1,
+                "13 Fictional Reasons\nFictional Artist Name\nC G\nfake body");
+
+        List<SongbookPdfImporter.ParsedSong> songs = SongbookPdfImporter.splitByBlankLines(List.of(page));
+
+        assertEquals(1, songs.size());
+        assertEquals("13 Fictional Reasons", songs.get(0).firstLine());
+        assertEquals("Fictional Artist Name", songs.get(0).secondLine());
+    }
+
+    @Test
     void expandHomeReplacesLeadingTildeWithGivenHomeDir() {
         assertEquals(Path.of("/home/fake-user/Downloads/x.pdf"),
                 SongbookPdfImporter.expandHome("~/Downloads/x.pdf", "/home/fake-user"));

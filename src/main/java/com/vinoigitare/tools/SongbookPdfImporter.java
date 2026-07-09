@@ -75,6 +75,12 @@ public final class SongbookPdfImporter {
     // -- its callers so far have always been trusted in-app data).
     private static final Pattern FILENAME_UNSAFE = Pattern.compile("[\\\\/:*?\"<>|\\p{Cntrl}]");
 
+    // A line that is purely a number, optionally with a trailing period
+    // (e.g. "13" or "13.") -- a sequential song-index label some
+    // songbooks print ahead of the title, not part of the title/artist
+    // themselves. See toParsedSong().
+    private static final Pattern NUMERIC_LINE = Pattern.compile("\\d+\\.?");
+
     private SongbookPdfImporter() {
     }
 
@@ -226,6 +232,14 @@ public final class SongbookPdfImporter {
         }
         // Drop leading blank lines collected before the title was found.
         while (!lines.isEmpty() && lines.get(0).isEmpty()) {
+            lines.remove(0);
+        }
+        // Some songbooks print a sequential song-index number ("13." or
+        // "13") as its own line ahead of the title -- strip it so it
+        // doesn't get mistaken for the title or artist. Only strips a
+        // single leading numeric-only line, since a real title/artist is
+        // never purely digits.
+        if (!lines.isEmpty() && NUMERIC_LINE.matcher(lines.get(0)).matches()) {
             lines.remove(0);
         }
         if (lines.size() < 3) {
