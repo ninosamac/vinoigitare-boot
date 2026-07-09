@@ -115,6 +115,18 @@ public class TextFileSongRepository implements SongRepository {
         return Files.exists(fileFor(id));
     }
 
+    /**
+     * No-op: flat {@code .tab} files have nowhere to persist a view
+     * counter (the file content *is* the chords blob, nothing else), and
+     * this repository isn't the active one from Phase 4a onward anyway
+     * (see the class Javadoc) -- {@link DatabaseSongRepository} is what
+     * actually implements view counting.
+     */
+    @Override
+    public void incrementViews(String id) {
+        Objects.requireNonNull(id, "id must not be null");
+    }
+
     private static boolean isSongFile(Path path) {
         return path.getFileName().toString().endsWith("." + FILE_EXTENSION);
     }

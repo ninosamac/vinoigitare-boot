@@ -54,6 +54,12 @@ class SongImporterTest {
         public boolean existsById(String id) {
             return songs.containsKey(id);
         }
+
+        @Override
+        public void incrementViews(String id) {
+            // Not exercised by SongImporterTest -- see SongServiceTest for
+            // an in-memory fake that actually implements this.
+        }
     }
 
     @Test

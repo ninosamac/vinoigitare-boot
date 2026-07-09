@@ -24,4 +24,15 @@ public interface SongRepository {
     void delete(String id);
 
     boolean existsById(String id);
+
+    /**
+     * Atomically increments the view counter for the song with the given
+     * id (Phase 4e), silently doing nothing if no such song exists. A
+     * dedicated atomic operation rather than "load, add 1 in Java, {@link
+     * #save(Song)} the result" deliberately -- the latter has a
+     * read-then-write race: two concurrent page loads could both read the
+     * same starting count and both write back the same incremented value,
+     * losing one view.
+     */
+    void incrementViews(String id);
 }

@@ -29,9 +29,15 @@ import com.vinoigitare.service.SongService;
  * decorative for readability/SEO and isn't validated against the song's
  * canonical slug -- the lookup is by id alone, same lenient approach
  * pesmarica.rs itself appears to take.
+ *
+ * <p>Phase 4e: the homepage also shows "newest" and "popular" lists, and
+ * every successful song-page load (not the PDF download, not admin) counts
+ * as one view.
  */
 @Controller
 public class SongBrowseController {
+
+    private static final int HOMEPAGE_LIST_SIZE = 5;
 
     private final SongService songService;
 
@@ -43,6 +49,8 @@ public class SongBrowseController {
     public String index(Model model) {
         Map<String, List<Song>> songsByArtist = songService.loadAllGroupedByArtist();
         model.addAttribute("artists", songsByArtist);
+        model.addAttribute("newestSongs", songService.loadNewest(HOMEPAGE_LIST_SIZE));
+        model.addAttribute("popularSongs", songService.loadMostViewed(HOMEPAGE_LIST_SIZE));
         return "index";
     }
 
@@ -58,6 +66,7 @@ public class SongBrowseController {
     public String song(@PathVariable String id, @PathVariable String slug, Model model) {
         Song song = songService.load(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Song not found: " + id));
+        songService.recordView(id);
         model.addAttribute("song", song);
         return "song";
     }

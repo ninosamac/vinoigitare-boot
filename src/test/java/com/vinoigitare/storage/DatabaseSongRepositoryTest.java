@@ -148,4 +148,46 @@ class DatabaseSongRepositoryTest extends AbstractSpringBootTest {
         assertThat(loaded.chords()).isEqualTo("š đ č ć ž tekst pesme");
         assertThat(loaded.slug()).isEqualTo("dorde-dokic--sasava-prica");
     }
+
+    @Test
+    void incrementViewsAddsOneEachCall() {
+        DatabaseSongRepository repository = newRepository();
+        Song saved = repository.save(new Song("Artist", "Title", "chords"));
+        assertThat(saved.views()).isZero();
+
+        repository.incrementViews(saved.id());
+        repository.incrementViews(saved.id());
+        repository.incrementViews(saved.id());
+
+        assertThat(repository.findById(saved.id()).orElseThrow().views()).isEqualTo(3L);
+    }
+
+    @Test
+    void incrementViewsOnUnknownIdDoesNothing() {
+        DatabaseSongRepository repository = newRepository();
+
+        // Must not throw for a non-existent or non-numeric id.
+        repository.incrementViews("999999");
+        repository.incrementViews("not-a-number");
+
+        assertThat(repository.findAll()).isEmpty();
+    }
+
+    @Test
+    void saveNowPersistsViewsRatherThanSilentlyDroppingThem() {
+        // Regression test for the bug fixed alongside adding
+        // incrementViews(): the UPDATE statement used to omit the views
+        // column entirely.
+        DatabaseSongRepository repository = newRepository();
+        Song saved = repository.save(new Song("Artist", "Title", "chords"));
+        repository.incrementViews(saved.id());
+        Song withViews = repository.findById(saved.id()).orElseThrow();
+        assertThat(withViews.views()).isEqualTo(1L);
+
+        Song updated = new Song(withViews.id(), withViews.artist(), withViews.title(), withViews.slug(),
+                withViews.genre(), "changed chords", withViews.createdAt(), withViews.views());
+        repository.save(updated);
+
+        assertThat(repository.findById(saved.id()).orElseThrow().views()).isEqualTo(1L);
+    }
 }

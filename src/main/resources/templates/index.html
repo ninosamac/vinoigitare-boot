@@ -4,6 +4,33 @@
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 <main class="container">
+    <!-- Phase 4e: newest/popular, mirroring pesmarica.rs's homepage lists. -->
+    <div class="row mb-4" th:if="${!newestSongs.isEmpty() or !popularSongs.isEmpty()}">
+        <div class="col-md-6 mb-3 mb-md-0" th:if="${!newestSongs.isEmpty()}">
+            <h2 class="h6 text-muted">Najnovije</h2>
+            <ul class="list-unstyled">
+                <li th:each="song : ${newestSongs}" class="mb-1">
+                    <a th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}">
+                        <span th:text="${song.artist()}">Artist</span> &ndash;
+                        <span th:text="${song.title()}">Title</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-md-6" th:if="${!popularSongs.isEmpty()}">
+            <h2 class="h6 text-muted">Najpopularnije</h2>
+            <ul class="list-unstyled">
+                <li th:each="song : ${popularSongs}" class="mb-1">
+                    <a th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}">
+                        <span th:text="${song.artist()}">Artist</span> &ndash;
+                        <span th:text="${song.title()}">Title</span>
+                    </a>
+                    <span class="text-muted">(<span th:text="${song.views()}">0</span>)</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
     <h1 class="h4 mb-3">Izvođači</h1>
     <div th:if="${artists.isEmpty()}" class="text-muted">
         Nema pesama. Dodajte prvu u <a th:href="@{/admin/new}">admin panelu</a>.

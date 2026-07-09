@@ -88,9 +88,16 @@ public class DatabaseSongRepository implements SongRepository {
         Instant createdAt = song.createdAt() != null ? song.createdAt() : Instant.now();
 
         if (numericId != null && existsById(song.id())) {
+            // views is included here (fixed alongside adding
+            // incrementViews() below): the UPDATE previously silently
+            // dropped it, so any future caller relying on save() to
+            // persist a views change would have lost that write with no
+            // error. incrementViews() is still the correct way to record
+            // an actual view (see its Javadoc for why), but save() should
+            // not silently ignore fields it claims to accept either way.
             jdbcTemplate.update(
-                    "UPDATE song SET artist = ?, title = ?, slug = ?, genre = ?, chords = ? WHERE id = ?",
-                    song.artist(), song.title(), song.slug(), song.genre(), song.chords(), numericId);
+                    "UPDATE song SET artist = ?, title = ?, slug = ?, genre = ?, chords = ?, views = ? WHERE id = ?",
+                    song.artist(), song.title(), song.slug(), song.genre(), song.chords(), song.views(), numericId);
             return new Song(song.id(), song.artist(), song.title(), song.slug(), song.genre(), song.chords(),
                     createdAt, song.views());
         }
@@ -135,6 +142,15 @@ public class DatabaseSongRepository implements SongRepository {
         Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM song WHERE id = ?", Integer.class,
                 numericId);
         return count != null && count > 0;
+    }
+
+    @Override
+    public void incrementViews(String id) {
+        Objects.requireNonNull(id, "id must not be null");
+        Long numericId = parseId(id);
+        if (numericId != null) {
+            jdbcTemplate.update("UPDATE song SET views = views + 1 WHERE id = ?", numericId);
+        }
     }
 
     private static Long parseId(String id) {
