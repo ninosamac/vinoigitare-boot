@@ -61,4 +61,29 @@ class SongPdfRendererTest extends AbstractSpringBootTest {
                 .contains("ć")
                 .contains("ž");
     }
+
+    @Test
+    void transposeSemitonesParameterActuallyTransposesTheChordsInTheRenderedPdf() throws IOException {
+        // Phase 4b: this used to be an accepted-but-unused parameter (see
+        // the render() Javadoc history) -- confirm it's really wired up
+        // now, not just passed through.
+        Song song = new Song("Marko Markovic", "Probna pesma", "C\nSome lyrics");
+
+        byte[] untransposed = renderer.render(song, 0);
+        byte[] transposedUp2 = renderer.render(song, 2);
+
+        String untransposedText;
+        try (PDDocument document = PDDocument.load(untransposed)) {
+            untransposedText = new PDFTextStripper().getText(document);
+        }
+        String transposedText;
+        try (PDDocument document = PDDocument.load(transposedUp2)) {
+            transposedText = new PDFTextStripper().getText(document);
+        }
+
+        assertThat(untransposedText).contains("C").doesNotContain("D\n");
+        // C up 2 semitones = D.
+        assertThat(transposedText).contains("D");
+        assertThat(untransposedText).isNotEqualTo(transposedText);
+    }
 }

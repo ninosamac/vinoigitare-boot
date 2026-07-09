@@ -1,0 +1,206 @@
+package com.vinoigitare.chords;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * Detects chord lines in a chords/lyrics text blob and shifts every chord's
+ * root (and bass note, for slash chords) by a number of semitones.
+ *
+ * <p><b>Chord grammar.</b> A single chord token looks like a root letter
+ * (A-H, German/ex-YU convention -- see below), an optional accidental
+ * (# or b), an optional quality suffix (m, maj7, m7, 7, sus2, sus4, dim,
+ * aug, add9, 5, 6, 9, 11, 13), and an optional slash-bass (e.g. {@code
+ * G/H}). This mirrors the plan's suggested pattern:
+ * {@code ^[A-HB](#|b)?(m|maj7|m7|7|sus[24]|dim|aug|add9|5|6|9|11|13)*
+ * (/[A-HB](#|b)?)?$}.
+ *
+ * <p><b>H vs B.</b> The ex-YU corpus uses German note naming, where
+ * {@code H} is what English calls B-natural and {@code B} is what English
+ * calls B-flat -- they are two semitones apart from each other (one
+ * semitone below H). Both are supported as independent root letters here
+ * (see {@link #NOTES}, where index 10 is "B" and index 11 is "H").
+ *
+ * <p><b>Chord-line detection heuristic.</b> A line is treated as a chord
+ * line if (a) every whitespace-separated token on it matches the chord
+ * grammar above, and (b) where a neighboring non-blank line exists to
+ * compare against, the line is noticeably shorter than it -- chords sit
+ * sparsely above the lyrics they annotate. Condition (a) alone is already
+ * fairly restrictive (an ordinary lyric word essentially never matches
+ * this exact grammar), so (b) is a secondary corroborating signal, applied
+ * only when there's something to compare against. <b>This is a heuristic,
+ * not a guarantee</b> -- the migration plan flags chord-line detection as
+ * the riskiest piece of this phase, and real-world {@code .tab} files with
+ * unusual formatting may confuse it. It has been validated only against
+ * this app's own fixtures.
+ *
+ * <p>The client-side mirror of this exact algorithm lives in {@code
+ * src/main/resources/static/js/transpose.js}, for the interactive
+ * on-screen transpose buttons; this Java version is what {@code
+ * SongPdfController} applies before rendering a PDF, per the migration
+ * plan (client-side JS keeps the server stateless for the interactive
+ * view, but the PDF request is a single stateless HTTP call, so it's
+ * transposed server-side instead).
+ */
+public final class ChordTransposer {
+
+    /**
+     * Chromatic scale, index 0 = C. Index 10 is "B" (German flat) and
+     * index 11 is "H" (German natural) -- see the class Javadoc.
+     */
+    private static final String[] NOTES = {
+            "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "B", "H"
+    };
+
+    /** Natural (no accidental) chromatic index for each root letter A-H. */
+    private static final java.util.Map<Character, Integer> NATURAL_INDEX = java.util.Map.of(
+            'C', 0, 'D', 2, 'E', 4, 'F', 5, 'G', 7, 'A', 9, 'B', 10, 'H', 11);
+
+    // Group 1: root letter. Group 2: optional accidental. Group 3: quality
+    // suffix (the whole repeated-alternation match, since wrapping the
+    // (?:...)* in its own capturing group captures the full matched
+    // substring, not just the last repetition -- a Java-regex-specific
+    // gotcha worth flagging for future maintainers). Group 4/5: optional
+    // slash-bass root + accidental.
+    private static final Pattern CHORD_PATTERN = Pattern.compile(
+            "^([A-H])(#|b)?((?:m|maj7|m7|7|sus[24]|dim|aug|add9|5|6|9|11|13)*)(?:/([A-H])(#|b)?)?$");
+
+    private ChordTransposer() {
+    }
+
+    /** True if every whitespace-separated token in {@code line} is a valid chord. */
+    public static boolean isChordLine(String line) {
+        String trimmed = line.trim();
+        if (trimmed.isEmpty()) {
+            return false;
+        }
+        String[] tokens = trimmed.split("\\s+");
+        for (String token : tokens) {
+            if (!CHORD_PATTERN.matcher(token).matches()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Transposes every chord line in {@code text} by {@code semitones}
+     * (positive = up, negative = down), leaving every other line
+     * unchanged. Line endings and non-chord content are preserved exactly.
+     */
+    public static String transpose(String text, int semitones) {
+        if (semitones == 0) {
+            return text;
+        }
+        String[] lines = text.split("\n", -1);
+        StringBuilder result = new StringBuilder(text.length());
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            if (isChordLine(line) && isSparseRelativeToNeighbors(lines, i)) {
+                result.append(transposeChordLine(line, semitones));
+            } else {
+                result.append(line);
+            }
+            if (i < lines.length - 1) {
+                result.append('\n');
+            }
+        }
+        return result.toString();
+    }
+
+    /**
+     * Secondary corroborating signal: true if there's no usable neighbor to
+     * compare against (can't disprove it), or the candidate line is
+     * meaningfully sparser (&lt;= 85% of the *non-whitespace* character
+     * count) than the denser of its immediate non-blank neighbors.
+     *
+     * <p>Deliberately compares non-whitespace character counts, not raw
+     * line length: chord lines routinely have wide gaps between tokens to
+     * sit above the right syllable, which can make their *raw* length
+     * longer than a tightly-packed lyric line below them even though they
+     * have far fewer actual characters. Raw length was tried first and
+     * produced a false negative on exactly this pattern against this
+     * project's own fixture data -- non-whitespace count is what the
+     * "sparse" intuition actually means here.
+     */
+    private static boolean isSparseRelativeToNeighbors(String[] lines, int index) {
+        Integer neighborDensity = denserNeighborNonWhitespaceCount(lines, index);
+        if (neighborDensity == null || neighborDensity == 0) {
+            return true;
+        }
+        return nonWhitespaceCount(lines[index]) <= neighborDensity * 0.85;
+    }
+
+    private static int nonWhitespaceCount(String line) {
+        int count = 0;
+        for (int i = 0; i < line.length(); i++) {
+            if (!Character.isWhitespace(line.charAt(i))) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private static Integer neighborNonWhitespaceCountAt(String[] lines, int index) {
+        if (index < 0 || index >= lines.length) {
+            return null;
+        }
+        String candidate = lines[index];
+        return candidate.trim().isEmpty() ? null : nonWhitespaceCount(candidate);
+    }
+
+    private static Integer denserNeighborNonWhitespaceCount(String[] lines, int index) {
+        Integer before = neighborNonWhitespaceCountAt(lines, index - 1);
+        Integer after = neighborNonWhitespaceCountAt(lines, index + 1);
+        if (before == null) {
+            return after;
+        }
+        if (after == null) {
+            return before;
+        }
+        return Math.max(before, after);
+    }
+
+    /** Transposes every chord token on an already-confirmed chord line. */
+    private static String transposeChordLine(String line, int semitones) {
+        // Rebuild the line token-by-token, preserving the original
+        // whitespace runs exactly so chord-above-lyric alignment survives.
+        Matcher tokenMatcher = Pattern.compile("\\S+|\\s+").matcher(line);
+        StringBuilder rebuilt = new StringBuilder(line.length());
+        while (tokenMatcher.find()) {
+            String piece = tokenMatcher.group();
+            if (piece.isBlank()) {
+                rebuilt.append(piece);
+            } else {
+                rebuilt.append(transposeChord(piece, semitones));
+            }
+        }
+        return rebuilt.toString();
+    }
+
+    private static String transposeChord(String chord, int semitones) {
+        Matcher matcher = CHORD_PATTERN.matcher(chord);
+        if (!matcher.matches()) {
+            return chord;
+        }
+        String root = transposeRoot(matcher.group(1), matcher.group(2), semitones);
+        String suffix = matcher.group(3) == null ? "" : matcher.group(3);
+        String bassRoot = matcher.group(4);
+        if (bassRoot == null) {
+            return root + suffix;
+        }
+        String bass = transposeRoot(bassRoot, matcher.group(5), semitones);
+        return root + suffix + "/" + bass;
+    }
+
+    private static String transposeRoot(String letter, String accidental, int semitones) {
+        int index = NATURAL_INDEX.get(letter.charAt(0));
+        if ("#".equals(accidental)) {
+            index += 1;
+        } else if ("b".equals(accidental)) {
+            index -= 1;
+        }
+        int transposed = Math.floorMod(index + semitones, NOTES.length);
+        return NOTES[transposed];
+    }
+}

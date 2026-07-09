@@ -12,6 +12,7 @@ import org.thymeleaf.context.Context;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
+import com.vinoigitare.chords.ChordTransposer;
 import com.vinoigitare.model.Song;
 
 /**
@@ -50,20 +51,33 @@ public class SongPdfRenderer {
 
     /**
      * @param song song to render
-     * @param transposeSemitones accepted for forward compatibility with the
-     *                            Phase 4 chord-transposition feature; unused
-     *                            for now (transposing the rendered PDF is
-     *                            explicitly out of scope for this phase).
+     * @param transposeSemitones semitone offset applied to the chords
+     *                            before rendering (0 = as stored). Uses
+     *                            {@link ChordTransposer}, the same
+     *                            algorithm (independently reimplemented,
+     *                            not shared code) as the on-screen song
+     *                            page's client-side transpose buttons --
+     *                            see {@code
+     *                            static/js/transpose.js}. The song itself
+     *                            is never mutated; only the copy handed to
+     *                            the template is.
      */
     public byte[] render(Song song, int transposeSemitones) {
-        String xhtml = renderXhtml(song);
+        String xhtml = renderXhtml(song, transposeSemitones);
         return toPdfBytes(xhtml);
     }
 
-    private String renderXhtml(Song song) {
+    private String renderXhtml(Song song, int transposeSemitones) {
+        Song forRendering = transposeSemitones == 0 ? song : withTransposedChords(song, transposeSemitones);
         Context context = new Context();
-        context.setVariable("song", song);
+        context.setVariable("song", forRendering);
         return templateEngine.process("song-pdf", context);
+    }
+
+    private static Song withTransposedChords(Song song, int transposeSemitones) {
+        String transposedChords = ChordTransposer.transpose(song.chords(), transposeSemitones);
+        return new Song(song.id(), song.artist(), song.title(), song.slug(), song.genre(), transposedChords,
+                song.createdAt(), song.views());
     }
 
     private byte[] toPdfBytes(String xhtml) {

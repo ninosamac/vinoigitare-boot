@@ -8,12 +8,31 @@
         <a th:href="@{/artists/{artist}(artist=${song.artist()})}" th:text="'&larr; ' + ${song.artist()}">&larr; Artist</a>
     </p>
 
+    <!--
+      Transpose controls (Phase 4b): buttons re-render the .song-chords
+      <pre> below via static/js/transpose.js, recomputing from
+      data-original-chords each click (see that file's header comment for
+      why). No page reload, no server round-trip -- the server-side
+      equivalent (com.vinoigitare.chords.ChordTransposer) only comes into
+      play for the PDF download, via the ?transpose= query param this JS
+      appends to the "Preuzmi PDF" link below.
+    -->
+    <div class="d-flex align-items-center gap-2 mb-2 no-print">
+        <span class="text-muted small">Transpozicija:</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-transpose-down aria-label="Niže za pola tona">&minus;</button>
+        <span data-transpose-display class="fw-semibold" style="min-width: 2em; text-align: center;">0</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-transpose-up aria-label="Više za pola tona">+</button>
+    </div>
+
     <div th:replace="~{fragments :: songContent(${song})}"></div>
 
     <div class="mt-3 no-print">
-        <a class="btn btn-outline-primary btn-sm" th:href="@{/akordi/{id}/pdf(id=${song.id()})}">Preuzmi PDF</a>
+        <a class="btn btn-outline-primary btn-sm" data-pdf-link
+           th:href="@{/akordi/{id}/pdf(id=${song.id()})}"
+           th:attr="data-pdf-base-href=@{/akordi/{id}/pdf(id=${song.id()})}">Preuzmi PDF</a>
         <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">Štampaj</button>
     </div>
 </main>
+<script th:src="@{/js/transpose.js}"></script>
 </body>
 </html>

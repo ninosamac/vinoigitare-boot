@@ -41,9 +41,10 @@ public class SongPdfController {
     @GetMapping(value = "/akordi/{id}/pdf", produces = "application/pdf")
     public ResponseEntity<byte[]> pdf(
             @PathVariable String id,
-            // Accepted for forward compatibility with Phase 4's chord
-            // transposition; NOT applied to the rendered PDF yet -- that's
-            // explicitly out of scope for this phase.
+            // Phase 4b: wired up to SongPdfRenderer/ChordTransposer, so the
+            // downloaded PDF matches whatever transposition is showing on
+            // screen (see the song page's "Preuzmi PDF" link, which appends
+            // this from the current on-screen transpose offset).
             @RequestParam(name = "transpose", required = false, defaultValue = "0") int transposeSemitones) {
 
         Song song = songService.load(id)

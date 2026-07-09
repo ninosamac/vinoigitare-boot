@@ -44,7 +44,13 @@
 <div th:fragment="songContent(song)">
     <h1 class="h4 mb-0" th:text="${song.title()}">Title</h1>
     <h2 class="h6 text-muted" th:text="${song.artist()}">Artist</h2>
-    <pre class="song-chords" th:text="${song.chords()}">Chords go here.</pre>
+    <!--
+      data-original-chords holds the untouched chords text for
+      static/js/transpose.js to recompute from on every +/- click (see
+      song.html). Harmless no-op on the PDF template (song-pdf.html),
+      which reuses this same fragment but never loads any JS.
+    -->
+    <pre class="song-chords" th:text="${song.chords()}" th:attr="data-original-chords=${song.chords()}">Chords go here.</pre>
 </div>
 </body>
 </html>
