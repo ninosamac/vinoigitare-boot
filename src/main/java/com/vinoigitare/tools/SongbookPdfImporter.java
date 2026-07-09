@@ -272,8 +272,8 @@ public final class SongbookPdfImporter {
 
             for (int i = 0; i < args.length; i++) {
                 switch (args[i]) {
-                    case "--pdf" -> pdfPath = Paths.get(args[++i]);
-                    case "--output-dir" -> outputDir = Paths.get(args[++i]);
+                    case "--pdf" -> pdfPath = expandHome(args[++i], System.getProperty("user.home"));
+                    case "--output-dir" -> outputDir = expandHome(args[++i], System.getProperty("user.home"));
                     case "--dry-run" -> dryRun = true;
                     case "--mode" -> mode = args[++i];
                     case "--artist-first" -> artistFirst = true;
@@ -297,6 +297,21 @@ public final class SongbookPdfImporter {
             }
             return new Options(pdfPath, outputDir, dryRun, mode, artistFirst);
         }
+    }
+
+    // A leading "~" is only expanded by the shell, and only when unquoted
+    // -- inside -Dexec.args="--pdf ~/Downloads/x.pdf" it's passed through
+    // literally, which java.nio.file.Path has no special handling for
+    // (unlike a shell). Expand it ourselves so the natural way to type
+    // this doesn't silently look in the wrong place. Package-private (not
+    // private) so SongbookPdfImporterTest can verify it directly against
+    // a fixed home directory, without needing to write into the real
+    // $HOME during a test.
+    static Path expandHome(String rawPath, String homeDir) {
+        if (rawPath.equals("~") || rawPath.startsWith("~/")) {
+            return Paths.get(homeDir, rawPath.substring(1));
+        }
+        return Paths.get(rawPath);
     }
 
     private static void printUsage() {

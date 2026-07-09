@@ -133,6 +133,26 @@ class SongbookPdfImporterTest {
         assertTrue(!output.contains("secret lyric text"), "dry-run must not print extracted lyric text");
     }
 
+    @Test
+    void expandHomeReplacesLeadingTildeWithGivenHomeDir() {
+        assertEquals(Path.of("/home/fake-user/Downloads/x.pdf"),
+                SongbookPdfImporter.expandHome("~/Downloads/x.pdf", "/home/fake-user"));
+        assertEquals(Path.of("/home/fake-user"),
+                SongbookPdfImporter.expandHome("~", "/home/fake-user"));
+    }
+
+    @Test
+    void expandHomeLeavesNonTildePathsUntouched() {
+        assertEquals(Path.of("/absolute/path.pdf"),
+                SongbookPdfImporter.expandHome("/absolute/path.pdf", "/home/fake-user"));
+        assertEquals(Path.of("relative/path.pdf"),
+                SongbookPdfImporter.expandHome("relative/path.pdf", "/home/fake-user"));
+        // A tilde that isn't at the very start, or isn't followed by a
+        // slash, is not a home-directory reference -- leave it alone.
+        assertEquals(Path.of("not~home/path.pdf"),
+                SongbookPdfImporter.expandHome("not~home/path.pdf", "/home/fake-user"));
+    }
+
     private static void run(String... args) throws IOException {
         SongbookPdfImporter.main(args);
     }
