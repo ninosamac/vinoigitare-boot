@@ -134,6 +134,48 @@ class SongbookPdfImporterTest {
     }
 
     @Test
+    void fromAndToRestrictWhichPagesAreProcessed(@TempDir Path tempDir) throws IOException {
+        Path pdf = tempDir.resolve("fixture.pdf");
+        Path outputDir = tempDir.resolve("out");
+
+        writePdf(pdf, List.of(
+                "Front Matter Fictional Page\nNot A Real Artist\nX\nfake front matter body text",
+                "Fake Song Two\nFake Artist Two\nC D\nfake body two",
+                "Fake Song Three\nFake Artist Three\nE F\nfake body three",
+                "Back Matter Fictional Page\nNot A Real Artist Either\nX\nfake back matter body text"
+        ));
+
+        run("--pdf", pdf.toString(), "--output-dir", outputDir.toString(), "--mode", "page",
+                "--from", "2", "--to", "3");
+
+        List<Path> written = Files.list(outputDir).toList();
+        assertEquals(2, written.size(), "expected only pages 2-3 to be processed");
+        assertTrue(Files.exists(outputDir.resolve("Fake Artist Two - Fake Song Two.tab")));
+        assertTrue(Files.exists(outputDir.resolve("Fake Artist Three - Fake Song Three.tab")));
+        assertTrue(Files.notExists(outputDir.resolve("Not A Real Artist - Front Matter Fictional Page.tab")));
+        assertTrue(Files.notExists(outputDir.resolve("Not A Real Artist Either - Back Matter Fictional Page.tab")));
+    }
+
+    @Test
+    void dryRunReportsRealPageNumbersNotRelativeToFrom(@TempDir Path tempDir) throws IOException {
+        Path pdf = tempDir.resolve("fixture.pdf");
+        Path outputDir = tempDir.resolve("out");
+
+        writePdf(pdf, List.of(
+                "Page One Fictional Song\nArtist One\nC\nbody one",
+                "Page Two Fictional Song\nArtist Two\nC\nbody two",
+                "Page Three Fictional Song\nArtist Three\nC\nbody three"
+        ));
+
+        String output = runCapturingStdout("--pdf", pdf.toString(), "--output-dir", outputDir.toString(),
+                "--mode", "page", "--dry-run", "--from", "2", "--to", "3");
+
+        assertTrue(output.contains("page 2"), "expected the real page number (2), not a relative index (1)");
+        assertTrue(output.contains("page 3"));
+        assertTrue(!output.contains("page 1)"), "page 1 was excluded by --from 2 and should not appear");
+    }
+
+    @Test
     void expandHomeReplacesLeadingTildeWithGivenHomeDir() {
         assertEquals(Path.of("/home/fake-user/Downloads/x.pdf"),
                 SongbookPdfImporter.expandHome("~/Downloads/x.pdf", "/home/fake-user"));

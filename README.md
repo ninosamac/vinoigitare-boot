@@ -87,15 +87,27 @@ deliberately defaults to `./imported` rather than the app's live
 `vinoigitare.songs-dir`, so a first attempt can't clobber real data.
 `--mode page` (one song per PDF page) and `--artist-first` (swap the
 default title-then-artist line order) are available for songbooks laid
-out differently than the defaults assume. Run with `--help` for the full
-option list.
+out differently than the defaults assume. `--from <page>`/`--to <page>`
+(1-indexed, inclusive) restrict processing to a page range — useful for
+trying the heuristics against a small slice of a large book (and much
+faster to iterate on) before committing to the whole thing; page numbers
+in `--dry-run` output are always the real page number in the source PDF,
+not relative to `--from`. Run with `--help` for the full option list.
 
 Song-boundary detection is a heuristic, not a real parser — real
 songbook layouts vary, and this tool has only ever been validated against
-its own synthetic test fixture. Text extracted from old/scanned PDFs can
-also have mis-mapped font encodings that garble diacritics even though the
-PDF looks fine on screen: **spot-check a sample of the output files for
-mangled š/đ/č/ć/ž before trusting the whole batch.**
+its own synthetic test fixture. If a dry run reports an implausible number
+of songs (e.g. far more than the book could plausibly contain), that
+usually means either front/back matter (a table of contents, index, or
+preface with no internal blank-line gaps) is being swallowed as one giant
+"song" per page, or the real layout has blank-line gaps *within* a single
+song (between verses, before a repeated chorus, etc.) that are being
+mistaken for song boundaries — try `--mode page` instead, or use
+`--from`/`--to` to zoom into a small page range and compare block counts
+against what you'd expect for that slice. Text extracted from old/scanned
+PDFs can also have mis-mapped font encodings that garble diacritics even
+though the PDF looks fine on screen: **spot-check a sample of the output
+files for mangled š/đ/č/ć/ž before trusting the whole batch.**
 
 ## Project status
 

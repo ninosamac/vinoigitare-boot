@@ -85,7 +85,7 @@ public final class SongbookPdfImporter {
             return;
         }
 
-        List<PageText> pages = extractPages(options.pdfPath);
+        List<PageText> pages = extractPages(options.pdfPath, options.fromPage, options.toPage);
         List<ParsedSong> songs = "page".equals(options.mode)
                 ? splitByPage(pages)
                 : splitByBlankLines(pages);
@@ -128,12 +128,14 @@ public final class SongbookPdfImporter {
     record PageText(int pageNumber, String text) {
     }
 
-    private static List<PageText> extractPages(Path pdfPath) throws IOException {
+    private static List<PageText> extractPages(Path pdfPath, int fromPage, int toPage) throws IOException {
         List<PageText> pages = new ArrayList<>();
         try (PDDocument document = PDDocument.load(pdfPath.toFile())) {
             PDFTextStripper stripper = new PDFTextStripper();
             int pageCount = document.getNumberOfPages();
-            for (int page = 1; page <= pageCount; page++) {
+            int firstPage = Math.max(1, fromPage);
+            int lastPage = Math.min(pageCount, toPage);
+            for (int page = firstPage; page <= lastPage; page++) {
                 stripper.setStartPage(page);
                 stripper.setEndPage(page);
                 pages.add(new PageText(page, stripper.getText(document)));
@@ -261,7 +263,8 @@ public final class SongbookPdfImporter {
     // CLI argument parsing
     // ------------------------------------------------------------------
 
-    private record Options(Path pdfPath, Path outputDir, boolean dryRun, String mode, boolean artistFirst) {
+    private record Options(Path pdfPath, Path outputDir, boolean dryRun, String mode, boolean artistFirst,
+                            int fromPage, int toPage) {
 
         static Options parse(String[] args) {
             Path pdfPath = null;
@@ -269,6 +272,8 @@ public final class SongbookPdfImporter {
             boolean dryRun = false;
             String mode = "blank-lines";
             boolean artistFirst = false;
+            int fromPage = 1;
+            int toPage = Integer.MAX_VALUE;
 
             for (int i = 0; i < args.length; i++) {
                 switch (args[i]) {
@@ -277,6 +282,8 @@ public final class SongbookPdfImporter {
                     case "--dry-run" -> dryRun = true;
                     case "--mode" -> mode = args[++i];
                     case "--artist-first" -> artistFirst = true;
+                    case "--from" -> fromPage = parsePageNumber(args[++i], "--from");
+                    case "--to" -> toPage = parsePageNumber(args[++i], "--to");
                     case "--help", "-h" -> {
                         return null;
                     }
@@ -295,7 +302,24 @@ public final class SongbookPdfImporter {
                 System.err.println("Invalid --mode: " + mode + " (expected 'blank-lines' or 'page')");
                 return null;
             }
-            return new Options(pdfPath, outputDir, dryRun, mode, artistFirst);
+            if (fromPage < 1) {
+                System.err.println("Invalid --from: " + fromPage + " (pages are numbered from 1)");
+                return null;
+            }
+            if (toPage < fromPage) {
+                System.err.println("Invalid --to: " + toPage + " is before --from " + fromPage);
+                return null;
+            }
+            return new Options(pdfPath, outputDir, dryRun, mode, artistFirst, fromPage, toPage);
+        }
+
+        private static int parsePageNumber(String value, String flagName) {
+            try {
+                return Integer.parseInt(value);
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid " + flagName + ": '" + value + "' is not a number");
+                return -1;
+            }
         }
     }
 
@@ -336,11 +360,25 @@ public final class SongbookPdfImporter {
                   --artist-first      Swap the default assumption (title first, artist
                                       second) if your source has them the other way
                                       around.
+                  --from <page>       First page to process (1-indexed, inclusive).
+                                      Defaults to 1. Useful for trying the heuristics
+                                      against a small slice of a large book before
+                                      running the whole thing.
+                  --to <page>         Last page to process (1-indexed, inclusive).
+                                      Defaults to the last page of the PDF. Page
+                                      numbers reported by --dry-run are always the
+                                      real page numbers in the source PDF, not
+                                      relative to --from.
                   --help              Show this message.
 
-                Example:
+                Examples:
                   ./mvnw compile exec:java -Dexec.mainClass=com.vinoigitare.tools.SongbookPdfImporter \\
                       -Dexec.args="--pdf ~/Downloads/Vino_i_gitare.pdf --dry-run"
+
+                  # Try just pages 12-20 first, e.g. to tune --mode/--artist-first
+                  # against a small slice before running the whole book:
+                  ./mvnw compile exec:java -Dexec.mainClass=com.vinoigitare.tools.SongbookPdfImporter \\
+                      -Dexec.args="--pdf ~/Downloads/Vino_i_gitare.pdf --dry-run --from 12 --to 20"
                 """);
     }
 }
