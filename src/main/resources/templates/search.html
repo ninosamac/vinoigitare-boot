@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Pretraga')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <h1 class="h4 mb-3">
+        Pretraga<span th:if="${!query.isEmpty()}" th:text="': ' + ${query}"></span>
+    </h1>
+
+    <div th:if="${query.isEmpty()}" class="text-muted">
+        Unesite pojam za pretragu.
+    </div>
+    <div th:if="${!query.isEmpty() and results.isEmpty()}" class="text-muted">
+        Nema rezultata za <strong th:text="${query}">upit</strong>.
+    </div>
+
+    <ul class="list-unstyled">
+        <li th:each="song : ${results}" class="mb-2">
+            <a th:href="@{/songs/{id}(id=${song.id()})}">
+                <span th:text="${song.artist()}">Artist</span> &ndash;
+                <span th:text="${song.title()}">Title</span>
+            </a>
+        </li>
+    </ul>
+</main>
+</body>
+</html>

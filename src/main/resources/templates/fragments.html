@@ -14,10 +14,21 @@
 </head>
 <body>
 <nav th:fragment="nav" class="navbar navbar-expand navbar-dark bg-dark mb-3">
-    <div class="container-fluid">
+    <div class="container-fluid flex-wrap">
         <a class="navbar-brand" th:href="@{/}">Vino i gitare</a>
-        <div class="navbar-nav">
-            <a class="nav-link" th:href="@{/}">Izvođači</a>
+        <!--
+          Search box, submits GET /search?q=... (SearchController). Present
+          in every page via this shared fragment. th:value falls back to
+          empty when the current page has no "query" model attribute
+          (Thymeleaf evaluates an undefined variable to null, not an error).
+        -->
+        <form class="d-flex flex-grow-1 order-3 order-md-0 mt-2 mt-md-0 mx-md-3" style="max-width: 360px;"
+              th:action="@{/search}" method="get" role="search">
+            <input class="form-control form-control-sm" type="search" name="q"
+                   placeholder="Pretraži pesme, izvođače..." th:value="${query != null ? query : ''}"/>
+        </form>
+        <div class="navbar-nav flex-row">
+            <a class="nav-link me-2" th:href="@{/}">Izvođači</a>
             <a class="nav-link" th:href="@{/admin}">Admin</a>
         </div>
     </div>
