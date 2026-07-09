@@ -96,4 +96,25 @@ class SongBrowseControllerTest {
                 .andExpect(content().string(containsString("New Song")))
                 .andExpect(content().string(containsString("Popular Song")));
     }
+
+    @Test
+    void songViewIncludesMetaDescriptionAndCanonicalLink() throws Exception {
+        Song song = new Song("Marko Markovic", "Probna pesma", "C G\nOvo je stvarni tekst pesme.");
+        given(songService.load(song.id())).willReturn(Optional.of(song));
+
+        mockMvc.perform(get("/akordi/{id}/{slug}", song.id(), song.slug()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("<meta name=\"description\"")))
+                .andExpect(content().string(containsString("Marko Markovic - Probna pesma")))
+                // The chord-only first line ("C G") must not leak into the
+                // description; the first real lyric line should.
+                .andExpect(content().string(containsString("Ovo je stvarni tekst pesme.")))
+                .andExpect(content().string(containsString("<link rel=\"canonical\"")))
+                // song.id() here is the legacy "artist - title" string (this
+                // test never goes through the real database), which
+                // Thymeleaf correctly URL-encodes (spaces -> %20) -- assert
+                // on the slug suffix, which has no such characters, rather
+                // than hand-encoding the id in the assertion too.
+                .andExpect(content().string(containsString("/" + song.slug() + "\"")));
+    }
 }

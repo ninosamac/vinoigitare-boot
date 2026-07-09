@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.vinoigitare.chords.ChordTransposer;
 import com.vinoigitare.model.Song;
 import com.vinoigitare.service.SongService;
 
@@ -68,6 +69,23 @@ public class SongBrowseController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Song not found: " + id));
         songService.recordView(id);
         model.addAttribute("song", song);
+        model.addAttribute("metaDescription", metaDescriptionFor(song));
         return "song";
+    }
+
+    /**
+     * Phase 4f (SEO): "Artist - Title: akordi i tekst pesme." plus, where
+     * available, the first actual lyric line (skipping any chord-only
+     * lines at the top, via {@link ChordTransposer#isChordLine}, so the
+     * excerpt is real words, not "C G Am F").
+     */
+    private static String metaDescriptionFor(Song song) {
+        String base = song.artist() + " - " + song.title() + ": akordi i tekst pesme.";
+        String firstLyricLine = song.chords().lines()
+                .map(String::trim)
+                .filter(line -> !line.isEmpty() && !ChordTransposer.isChordLine(line))
+                .findFirst()
+                .orElse("");
+        return firstLyricLine.isEmpty() ? base : base + " " + firstLyricLine;
     }
 }
