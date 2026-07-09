@@ -13,9 +13,9 @@
     <link rel="stylesheet" th:href="@{/css/app.css}"/>
 </head>
 <body>
-<nav th:fragment="nav" class="navbar navbar-expand navbar-dark bg-dark mb-3">
+<nav th:fragment="nav" class="navbar navbar-expand navbar-dark mb-3">
     <div class="container-fluid flex-wrap">
-        <a class="navbar-brand" th:href="@{/}">Vino i gitare</a>
+        <a class="navbar-brand brand-mark" th:href="@{/}">Vino i gitare</a>
         <!--
           Search box, submits GET /search?q=... (SearchController). Present
           in every page via this shared fragment. th:value falls back to
@@ -38,20 +38,44 @@
 <!--
   Song title/artist/chords block, shared between the on-screen song page
   (song.html) and the print-oriented PDF template (song-pdf.html) so the
-  chords-rendering markup exists in exactly one place. th:text on the
-  <pre> preserves whitespace/newlines exactly -- see song.html's comment
-  for why that matters.
+  chords-rendering markup exists in exactly one place.
+
+  Note: this file's comments must avoid a literal double hyphen, same
+  restriction as song-pdf.html's own note below explains; this fragment
+  is reused by that PDF template, and openhtmltopdf's strict XML parser
+  rejects two consecutive hyphens in a comment anywhere in the final
+  rendered document, which includes text pulled in from here.
+
+  Takes the already-highlighted chords HTML as a parameter (highlightedChords)
+  rather than computing it in here via song.chords(): Thymeleaf restricts
+  T()/new/@bean access to everything inside a fragment inserted via
+  th:replace/th:insert, not just the call-site argument list ("Instantiation
+  of new objects and access to static classes or parameters is forbidden in
+  this context"), so @chordLineHighlighter.render(...) has to be evaluated
+  by the calling template (song.html / song-pdf.html), in their own
+  unrestricted context, and handed in as a plain variable.
+
+  th:utext (not th:text) on that variable: ChordLineHighlighter wraps
+  detected chord lines in <span class="chord-line"> so CSS can tint them,
+  so it's real HTML, not plain text Thymeleaf would auto-escape; the
+  highlighter itself does the escaping (song.chords() is user-editable
+  admin-form content, not trusted markup; see that class's Javadoc).
+  Whitespace/newlines are still preserved exactly; see song.html's
+  comment for why that matters.
 -->
-<div th:fragment="songContent(song)">
-    <h1 class="h4 mb-0" th:text="${song.title()}">Title</h1>
-    <h2 class="h6 text-muted" th:text="${song.artist()}">Artist</h2>
+<div th:fragment="songContent(song, highlightedChords)">
+    <h1 class="song-title h4 mb-0" th:text="${song.title()}">Title</h1>
+    <h2 class="song-artist h6 text-muted" th:text="${song.artist()}">Artist</h2>
     <!--
-      data-original-chords holds the untouched chords text for
-      static/js/transpose.js to recompute from on every +/- click (see
-      song.html). Harmless no-op on the PDF template (song-pdf.html),
-      which reuses this same fragment but never loads any JS.
+      data-original-chords holds the untouched, unhighlighted chords text
+      for static/js/transpose.js to recompute from on every +/- click (see
+      song.html); it applies the same chord-line-detection heuristic
+      itself to re-wrap the transposed text. Harmless no-op on the PDF
+      template (song-pdf.html), which reuses this same fragment but never
+      loads any JS.
     -->
-    <pre class="song-chords" th:text="${song.chords()}" th:attr="data-original-chords=${song.chords()}">Chords go here.</pre>
+    <pre class="song-chords" th:utext="${highlightedChords}"
+         th:attr="data-original-chords=${song.chords()}">Chords go here.</pre>
 </div>
 </body>
 </html>

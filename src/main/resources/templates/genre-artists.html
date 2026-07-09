@@ -9,7 +9,7 @@
 
     <div th:if="${songCountByArtist.isEmpty()}" class="text-muted" th:text="#{genre.noArtistsForLetter}">No artists for this letter yet.</div>
     <ul class="list-unstyled">
-        <li th:each="entry : ${songCountByArtist}" class="mb-2">
+        <li th:each="entry : ${songCountByArtist}" class="index-row d-flex justify-content-between mb-2">
             <a th:href="@{/artists/{artist}(artist=${entry.key})}" th:text="${entry.key}">Artist</a>
             <span class="text-muted">(<span th:text="${entry.value}">0</span>)</span>
         </li>

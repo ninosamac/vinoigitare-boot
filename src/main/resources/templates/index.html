@@ -9,7 +9,7 @@
         <div class="col-md-6 mb-3 mb-md-0" th:if="${!newestSongs.isEmpty()}">
             <h2 class="h6 text-muted" th:text="#{home.newest}">Newest</h2>
             <ul class="list-unstyled">
-                <li th:each="song : ${newestSongs}" class="mb-1">
+                <li th:each="song : ${newestSongs}" class="index-row d-flex justify-content-between mb-2">
                     <a th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}">
                         <span th:text="${song.artist()}">Artist</span> &ndash;
                         <span th:text="${song.title()}">Title</span>
@@ -20,7 +20,7 @@
         <div class="col-md-6" th:if="${!popularSongs.isEmpty()}">
             <h2 class="h6 text-muted" th:text="#{home.popular}">Most Popular</h2>
             <ul class="list-unstyled">
-                <li th:each="song : ${popularSongs}" class="mb-1">
+                <li th:each="song : ${popularSongs}" class="index-row d-flex justify-content-between mb-2">
                     <a th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}">
                         <span th:text="${song.artist()}">Artist</span> &ndash;
                         <span th:text="${song.title()}">Title</span>
@@ -37,7 +37,7 @@
         <a th:href="@{/admin/new}" th:text="#{home.adminPanel}">admin panel</a>.
     </div>
     <ul class="list-unstyled">
-        <li th:each="entry : ${artists}" class="mb-2">
+        <li th:each="entry : ${artists}" class="index-row d-flex justify-content-between mb-2">
             <a th:href="@{/artists/{artist}(artist=${entry.key})}" th:text="${entry.key}">Artist</a>
             <span class="text-muted">(<span th:text="${entry.value.size()}">0</span>)</span>
         </li>

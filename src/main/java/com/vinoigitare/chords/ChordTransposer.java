@@ -84,6 +84,20 @@ public final class ChordTransposer {
     }
 
     /**
+     * True if {@code lines[index]} is a chord line by the full heuristic
+     * (grammar match <b>and</b> sparse relative to neighbors) -- the exact
+     * condition {@link #transpose(String, int)} uses to decide which lines
+     * to shift. Exposed for {@code ChordLineHighlighter}, which needs the
+     * identical decision (which lines are chord lines) for a different
+     * purpose (visual styling instead of semitone shifting) -- keeping one
+     * public entry point for "is this a chord line" means the two features
+     * can't quietly disagree on which lines qualify.
+     */
+    public static boolean isHighlightableChordLine(String[] lines, int index) {
+        return isChordLine(lines[index]) && isSparseRelativeToNeighbors(lines, index);
+    }
+
+    /**
      * Transposes every chord line in {@code text} by {@code semitones}
      * (positive = up, negative = down), leaving every other line
      * unchanged. Line endings and non-chord content are preserved exactly.
@@ -96,7 +110,7 @@ public final class ChordTransposer {
         StringBuilder result = new StringBuilder(text.length());
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
-            if (isChordLine(line) && isSparseRelativeToNeighbors(lines, i)) {
+            if (isHighlightableChordLine(lines, i)) {
                 result.append(transposeChordLine(line, semitones));
             } else {
                 result.append(line);

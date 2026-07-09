@@ -6,7 +6,7 @@
 <main class="container">
     <h1 class="h4 mb-3" th:text="#{genres.title}">Genres</h1>
     <ul class="list-unstyled">
-        <li th:each="entry : ${songCountByGenre}" class="mb-2">
+        <li th:each="entry : ${songCountByGenre}" class="index-row d-flex justify-content-between mb-2">
             <a th:href="@{/genres/{slug}(slug=${entry.key.slug()})}" th:text="${entry.key.label()}">Genre</a>
             <span class="text-muted">(<span th:text="${entry.value}">0</span>)</span>
         </li>

@@ -1,8 +1,105 @@
-/* Mobile-first: base rules target the smallest screen; the one @media
-   query widens things back up, it doesn't shrink them down. */
+/* ============================================================
+   "Sveska" (notebook) visual direction.
+   Leans into what this app fundamentally is: a digitized chord
+   notebook. Warm ruled paper, fountain-pen-green ink for structure,
+   red-pen for the one accent that should read as "active/annotation"
+   (transpose value, chord-line tint). See the design pitch discussed
+   with Nino for the two rejected directions (Vinska Karta, Ploča).
+
+   Deliberately single-theme (light/paper) for now, matching the
+   physical-notebook metaphor -- a dark-mode "notebook at night"
+   variant is a natural follow-up, not done here (see the migration
+   plan's Phase 6 checklist, which lists it as a separate item).
+
+   Mobile-first: base rules target the smallest screen; the one
+   @media query widens things back up, it doesn't shrink them down.
+   ============================================================ */
+
+:root {
+    --paper: #faf6ec;
+    --paper-rule: #d9d2ba;
+    --card: #fdfbf5;
+    --ink: #2a2822;
+    --ink-muted: #6b675c;
+    --accent: #2f5d50;   /* fountain-pen green -- structure, links, primary actions */
+    --accent-2: #a8402f; /* red pen -- the one "active/annotation" accent */
+    --line: #d9d2ba;
+
+    /* Bootstrap 5.3 theming hooks: retint components through Bootstrap's
+       own variables rather than fighting each utility class individually. */
+    --bs-body-bg: var(--paper);
+    --bs-body-color: var(--ink);
+    --bs-emphasis-color: var(--ink);
+    --bs-secondary-color: var(--ink-muted);
+    --bs-tertiary-bg: var(--card);
+    --bs-border-color: var(--line);
+    --bs-link-color: var(--accent);
+    --bs-link-hover-color: var(--accent-2);
+    --bs-primary: var(--accent);
+    --bs-primary-rgb: 47, 93, 80;
+}
 
 body {
     padding-bottom: 2rem;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    /* Faint ruled-paper lines -- a background gradient, not an image, so
+       it scales cleanly and costs nothing to load. */
+    background-image: repeating-linear-gradient(var(--paper) 0 27px, var(--paper-rule) 27px 28px);
+    background-color: var(--paper);
+}
+
+/* Manuscript serif for headings and the brand mark -- plays against the
+   monospace chords rather than competing with it; system font stack only
+   (the artifact/CSS here can't fetch a webfont, and this project already
+   favors self-hosted-or-nothing over CDN dependencies -- see Bootstrap's
+   own WebJar packaging). */
+h1, h2, h3,
+.brand-mark {
+    font-family: Georgia, "Iowan Old Style", "Book Antiqua", Palatino, serif;
+}
+
+.navbar {
+    background-color: var(--ink);
+}
+
+.brand-mark {
+    font-style: italic;
+    font-weight: 700;
+    color: var(--paper) !important;
+}
+
+.navbar .nav-link {
+    color: rgba(250, 246, 236, 0.75) !important;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+    color: var(--paper) !important;
+}
+
+/* Listing rows (artist index, genre browse, search results, admin table)
+   styled like index cards -- a left accent rule instead of a full border,
+   evoking a card-catalog drawer. Applied via .index-row, added to each
+   <li> in the browse/search/genre templates. */
+.index-row {
+    background-color: var(--card);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 0.25rem;
+    padding: 0.5rem 0.85rem;
+    list-style: none;
+}
+
+.index-row + .index-row {
+    margin-top: 0.4rem;
+}
+
+.song-title {
+    text-wrap: balance;
+}
+
+.song-artist {
+    font-style: italic;
 }
 
 /* Chords-above-lyrics ASCII alignment only survives in a monospace font
@@ -16,9 +113,20 @@ body {
     overflow-x: auto;
     font-size: 0.95rem;
     line-height: 1.4;
-    background-color: var(--bs-tertiary-bg, #f8f9fa);
+    background-color: var(--card);
+    border: 1px solid var(--line);
+    color: var(--ink);
     padding: 1rem;
     border-radius: 0.375rem;
+}
+
+/* Chord lines get the "different ink" treatment (com.vinoigitare.chords.
+   ChordLineHighlighter on first render, static/js/transpose.js's JS
+   mirror on every transpose click -- see both for why this can't just be
+   done once server-side and left alone). */
+.chord-line {
+    color: var(--accent-2);
+    font-weight: 700;
 }
 
 @media (max-width: 576px) {
@@ -29,7 +137,7 @@ body {
     }
 }
 
-/* Browser-native printing (the "Štampaj" button / Ctrl+P) -- the free
+/* Browser-native printing (the "Print" button / Ctrl+P) -- the free
    sibling feature to the PDF download, per the migration plan. Hides chrome
    that only makes sense on screen (navbar, back link, the download/print
    buttons themselves) and strips the on-screen chords block's background
@@ -44,6 +152,7 @@ body {
 
     body {
         padding-bottom: 0;
+        background-image: none;
     }
 
     .song-chords {
@@ -51,5 +160,9 @@ body {
         border: none;
         padding: 0;
         font-size: 11pt;
+    }
+
+    .chord-line {
+        color: inherit;
     }
 }

@@ -58,9 +58,19 @@
             font-size: 10.5pt;
             line-height: 1.35;
         }
+
+        /* Same fountain-pen/red-pen ink motif as the on-screen view
+           (app.css's accent 2 token), restated here since this document
+           doesn't load app.css. A dark, desaturated red prints legibly
+           even on a black-and-white printer, unlike a brighter accent
+           would. */
+        .chord-line {
+            color: #7a2e22;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-<div th:replace="~{fragments :: songContent(${song})}"></div>
+<div th:replace="~{fragments :: songContent(${song}, ${highlightedChords})}"></div>
 </body>
 </html>

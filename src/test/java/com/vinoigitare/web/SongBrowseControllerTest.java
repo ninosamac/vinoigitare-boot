@@ -8,9 +8,13 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.vinoigitare.chords.ChordLineHighlighter;
 import com.vinoigitare.model.Song;
 import com.vinoigitare.service.SongService;
 
@@ -21,9 +25,27 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+// @WebMvcTest only scans web-layer beans (controllers and related
+// infrastructure) by default -- ChordLineHighlighter is a plain
+// @Component, not part of that slice, but song.html's template now
+// references it directly (via @chordLineHighlighter.render(...)), so it
+// has to be explicitly provided to this trimmed-down context. A nested
+// @TestConfiguration @Bean method registers it reliably (a bare
+// @Import(ChordLineHighlighter.class) here did not make it resolvable to
+// Thymeleaf's @beanName SpEL resolver in this slice, for reasons not
+// fully tracked down -- this is the more standard pattern anyway).
 @Tag("fast")
 @WebMvcTest(SongBrowseController.class)
+@Import(SongBrowseControllerTest.ExtraBeans.class)
 class SongBrowseControllerTest {
+
+    @TestConfiguration
+    static class ExtraBeans {
+        @Bean
+        ChordLineHighlighter chordLineHighlighter() {
+            return new ChordLineHighlighter();
+        }
+    }
 
     @Autowired
     private MockMvc mockMvc;

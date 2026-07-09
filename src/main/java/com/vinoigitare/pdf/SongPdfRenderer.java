@@ -12,6 +12,7 @@ import org.thymeleaf.context.Context;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
+import com.vinoigitare.chords.ChordLineHighlighter;
 import com.vinoigitare.chords.ChordTransposer;
 import com.vinoigitare.model.Song;
 
@@ -44,9 +45,11 @@ public class SongPdfRenderer {
     private static final String BASE_URI = "pdf://vinoigitare/";
 
     private final ITemplateEngine templateEngine;
+    private final ChordLineHighlighter chordLineHighlighter;
 
-    public SongPdfRenderer(ITemplateEngine templateEngine) {
+    public SongPdfRenderer(ITemplateEngine templateEngine, ChordLineHighlighter chordLineHighlighter) {
         this.templateEngine = templateEngine;
+        this.chordLineHighlighter = chordLineHighlighter;
     }
 
     /**
@@ -71,6 +74,12 @@ public class SongPdfRenderer {
         Song forRendering = transposeSemitones == 0 ? song : withTransposedChords(song, transposeSemitones);
         Context context = new Context();
         context.setVariable("song", forRendering);
+        // Computed here (plain Java), not via a Thymeleaf expression in
+        // song-pdf.html itself: Thymeleaf restricts T()/new/@bean access
+        // to everything inside a fragment inserted via th:replace (see
+        // fragments.html's songContent fragment, which now takes this as
+        // a parameter instead of computing it internally).
+        context.setVariable("highlightedChords", chordLineHighlighter.render(forRendering.chords()));
         return templateEngine.process("song-pdf", context);
     }
 

@@ -65,7 +65,17 @@
         <button type="button" class="btn btn-outline-primary btn-sm" data-scroll-toggle aria-pressed="false" th:text="#{song.autoScrollStart}">Auto-scroll</button>
     </div>
 
-    <div th:replace="~{fragments :: songContent(${song})}"></div>
+    <!--
+      th:with and th:replace can't go on the SAME element here: th:replace
+      has higher precedence (runs first) in Thymeleaf's standard attribute
+      processing order, so by the time it evaluates its own expression the
+      th:with variable on that same tag isn't in scope yet -- it silently
+      resolves to null rather than erroring, so the fragment call site
+      needs its own wrapper element with the th:with, one level out.
+    -->
+    <div th:with="highlightedChords=${@chordLineHighlighter.render(song.chords())}">
+        <div th:replace="~{fragments :: songContent(${song}, ${highlightedChords})}"></div>
+    </div>
 
     <div class="mt-3 no-print">
         <a class="btn btn-outline-primary btn-sm" data-pdf-link

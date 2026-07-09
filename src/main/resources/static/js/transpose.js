@@ -128,6 +128,33 @@
         return lines.join("\n");
     }
 
+    var HTML_ESCAPE_MAP = { "&": "&amp;", "<": "&lt;", ">": "&gt;" };
+
+    function escapeHtml(text) {
+        return text.replace(/[&<>]/g, function (ch) {
+            return HTML_ESCAPE_MAP[ch];
+        });
+    }
+
+    /**
+     * Mirrors com.vinoigitare.chords.ChordLineHighlighter (Java): wraps
+     * each detected chord line in a <span class="chord-line"> so the CSS
+     * fountain-pen-ink tint (Sveska direction) survives a transpose click,
+     * not just the server-rendered initial view. Same escaping concern as
+     * the Java side applies here too -- this is real HTML now, not text.
+     */
+    function renderHighlighted(text) {
+        var lines = text.split("\n");
+        var html = [];
+        for (var i = 0; i < lines.length; i++) {
+            var escaped = escapeHtml(lines[i]);
+            html.push(isChordLine(lines[i]) && isSparseRelativeToNeighbors(lines, i)
+                ? '<span class="chord-line">' + escaped + "</span>"
+                : escaped);
+        }
+        return html.join("\n");
+    }
+
     function initTransposeControls() {
         var chordsBlock = document.querySelector("[data-original-chords]");
         var downButton = document.querySelector("[data-transpose-down]");
@@ -142,7 +169,7 @@
         var offset = 0;
 
         function render() {
-            chordsBlock.textContent = transpose(originalChords, offset);
+            chordsBlock.innerHTML = renderHighlighted(transpose(originalChords, offset));
             if (display) {
                 display.textContent = offset > 0 ? "+" + offset : String(offset);
             }
@@ -174,6 +201,6 @@
     // ChordTransposerTest (see the migration notes) -- harmless in the
     // browser, where `module` is undefined.
     if (typeof module !== "undefined" && module.exports) {
-        module.exports = { transpose: transpose, isChordLine: isChordLine };
+        module.exports = { transpose: transpose, isChordLine: isChordLine, renderHighlighted: renderHighlighted };
     }
 })();
