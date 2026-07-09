@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  Standalone print-oriented template for com.vinoigitare.pdf.SongPdfRenderer
+  (openhtmltopdf). Deliberately does NOT pull in fragments::head (Bootstrap,
+  viewport meta, navbar): none of that is meaningful on a printed page, and
+  openhtmltopdf doesn't need to fetch a stylesheet it won't use.
+  Reuses fragments::songContent so the chords markup itself isn't
+  duplicated between the on-screen view and this one.
+
+  Note for anyone editing this file: openhtmltopdf parses this document
+  with a strict XML parser, which (per the XML spec) forbids a literal
+  double hyphen anywhere inside a comment. Avoid using a double hyphen
+  in comments added to this particular template.
+-->
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${song.title()} + ' - ' + ${song.artist()}">Song</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm 1.6cm 2.2cm 1.6cm;
+
+            @bottom-center {
+                content: "Strana " counter(page) " / " counter(pages);
+                font-family: "DejaVu Sans Mono", monospace;
+                font-size: 8.5pt;
+                color: #666666;
+            }
+        }
+
+        body {
+            font-family: "DejaVu Sans Mono", monospace;
+            color: #111111;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 16pt;
+            margin: 0 0 2pt 0;
+        }
+
+        h2 {
+            font-size: 11pt;
+            font-weight: normal;
+            color: #555555;
+            margin: 0 0 14pt 0;
+        }
+
+        /*
+          Same monospace/preformatted intent as .song-chords in app.css,
+          restated here because this document doesn't load app.css: chords
+          must stay aligned above the lyrics exactly as shown on screen.
+        */
+        .song-chords {
+            font-family: "DejaVu Sans Mono", monospace;
+            white-space: pre;
+            font-size: 10.5pt;
+            line-height: 1.35;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments :: songContent(${song})}"></div>
+</body>
+</html>

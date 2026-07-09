@@ -33,5 +33,18 @@
         </div>
     </div>
 </nav>
+
+<!--
+  Song title/artist/chords block, shared between the on-screen song page
+  (song.html) and the print-oriented PDF template (song-pdf.html) so the
+  chords-rendering markup exists in exactly one place. th:text on the
+  <pre> preserves whitespace/newlines exactly -- see song.html's comment
+  for why that matters.
+-->
+<div th:fragment="songContent(song)">
+    <h1 class="h4 mb-0" th:text="${song.title()}">Title</h1>
+    <h2 class="h6 text-muted" th:text="${song.artist()}">Artist</h2>
+    <pre class="song-chords" th:text="${song.chords()}">Chords go here.</pre>
+</div>
 </body>
 </html>
