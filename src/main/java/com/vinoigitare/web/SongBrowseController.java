@@ -3,6 +3,8 @@ package com.vinoigitare.web;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -41,9 +43,11 @@ public class SongBrowseController {
     private static final int HOMEPAGE_LIST_SIZE = 5;
 
     private final SongService songService;
+    private final MessageSource messageSource;
 
-    public SongBrowseController(SongService songService) {
+    public SongBrowseController(SongService songService, MessageSource messageSource) {
         this.songService = songService;
+        this.messageSource = messageSource;
     }
 
     @GetMapping("/")
@@ -74,13 +78,17 @@ public class SongBrowseController {
     }
 
     /**
-     * Phase 4f (SEO): "Artist - Title: akordi i tekst pesme." plus, where
-     * available, the first actual lyric line (skipping any chord-only
-     * lines at the top, via {@link ChordTransposer#isChordLine}, so the
-     * excerpt is real words, not "C G Am F").
+     * Phase 4f (SEO): "Artist - Title: chords and lyrics." (via the
+     * {@code seo.chordsAndLyrics} message key, {@code messages.properties}
+     * -- English by default, {@code messages_sr.properties} keeps the
+     * original Serbian) plus, where available, the first actual lyric
+     * line (skipping any chord-only lines at the top, via {@link
+     * ChordTransposer#isChordLine}, so the excerpt is real words, not "C G
+     * Am F").
      */
-    private static String metaDescriptionFor(Song song) {
-        String base = song.artist() + " - " + song.title() + ": akordi i tekst pesme.";
+    private String metaDescriptionFor(Song song) {
+        String base = messageSource.getMessage("seo.chordsAndLyrics",
+                new Object[] {song.artist(), song.title()}, LocaleContextHolder.getLocale());
         String firstLyricLine = song.chords().lines()
                 .map(String::trim)
                 .filter(line -> !line.isEmpty() && !ChordTransposer.isChordLine(line))

@@ -4,7 +4,7 @@
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 <main class="container">
-    <p><a th:href="@{/}">&larr; Svi izvođači</a></p>
+    <p><a th:href="@{/}" th:text="'&larr; ' + #{artist.allArtists}">&larr; All artists</a></p>
     <h1 class="h4 mb-3" th:text="${artist}">Artist</h1>
     <ul class="list-unstyled">
         <li th:each="song : ${songs}" class="mb-2">

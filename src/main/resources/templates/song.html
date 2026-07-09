@@ -13,6 +13,11 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title th:text="${song.artist()} + ' - ' + ${song.title()} + ' - Vino i gitare'">Song - Vino i gitare</title>
+    <!-- Read by static/js/display-controls.js so the auto-scroll toggle's
+         start/stop button text comes from the message bundle instead of
+         being hardcoded in JS, which has no access to Thymeleaf messages. -->
+    <meta name="i18n-auto-scroll-start" th:content="#{song.autoScrollStart}"/>
+    <meta name="i18n-auto-scroll-stop" th:content="#{song.autoScrollStop}"/>
     <meta name="description" th:content="${metaDescription}"/>
     <link rel="canonical" th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}"/>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}"/>
@@ -35,10 +40,10 @@
       appends to the "Preuzmi PDF" link below.
     -->
     <div class="d-flex flex-wrap align-items-center gap-2 mb-2 no-print">
-        <span class="text-muted small">Transpozicija:</span>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-transpose-down aria-label="Niže za pola tona">&minus;</button>
+        <span class="text-muted small" th:text="#{song.transpose}">Transpose:</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-transpose-down th:aria-label="#{song.transposeDown}">&minus;</button>
         <span data-transpose-display class="fw-semibold" style="min-width: 2em; text-align: center;">0</span>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-transpose-up aria-label="Više za pola tona">+</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-transpose-up th:aria-label="#{song.transposeUp}">+</button>
 
         <!--
           Font size + auto-scroll controls (Phase 4d): static/js/display-
@@ -46,18 +51,18 @@
           auto-scroll is currently running does not (see that file's
           header comment).
         -->
-        <span class="text-muted small ms-md-3">Veličina teksta:</span>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-font-decrease aria-label="Manji tekst">A&minus;</button>
+        <span class="text-muted small ms-md-3" th:text="#{song.fontSize}">Text size:</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-font-decrease th:aria-label="#{song.fontSmaller}">A&minus;</button>
         <span data-font-display class="fw-semibold" style="min-width: 2em; text-align: center;">0</span>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-font-increase aria-label="Veći tekst">A+</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-font-increase th:aria-label="#{song.fontLarger}">A+</button>
     </div>
 
     <div class="d-flex flex-wrap align-items-center gap-2 mb-3 no-print">
-        <span class="text-muted small">Auto-pomeranje:</span>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-scroll-slower aria-label="Sporije">&minus;</button>
+        <span class="text-muted small" th:text="#{song.autoScroll}">Auto-scroll:</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-scroll-slower th:aria-label="#{song.scrollSlower}">&minus;</button>
         <span data-scroll-speed-display class="fw-semibold" style="min-width: 1.5em; text-align: center;">3</span>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-scroll-faster aria-label="Brže">+</button>
-        <button type="button" class="btn btn-outline-primary btn-sm" data-scroll-toggle aria-pressed="false">Automatsko pomeranje</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-scroll-faster th:aria-label="#{song.scrollFaster}">+</button>
+        <button type="button" class="btn btn-outline-primary btn-sm" data-scroll-toggle aria-pressed="false" th:text="#{song.autoScrollStart}">Auto-scroll</button>
     </div>
 
     <div th:replace="~{fragments :: songContent(${song})}"></div>
@@ -65,8 +70,8 @@
     <div class="mt-3 no-print">
         <a class="btn btn-outline-primary btn-sm" data-pdf-link
            th:href="@{/akordi/{id}/pdf(id=${song.id()})}"
-           th:attr="data-pdf-base-href=@{/akordi/{id}/pdf(id=${song.id()})}">Preuzmi PDF</a>
-        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">Štampaj</button>
+           th:attr="data-pdf-base-href=@{/akordi/{id}/pdf(id=${song.id()})}" th:text="#{song.downloadPdf}">Download PDF</a>
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()" th:text="#{song.print}">Print</button>
     </div>
 </main>
 <script th:src="@{/js/transpose.js}"></script>

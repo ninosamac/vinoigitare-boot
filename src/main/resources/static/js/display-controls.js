@@ -70,6 +70,11 @@
         render();
     }
 
+    function metaContent(name, fallback) {
+        var meta = document.querySelector('meta[name="' + name + '"]');
+        return meta ? meta.getAttribute("content") : fallback;
+    }
+
     function initAutoScrollControls() {
         var toggleButton = document.querySelector("[data-scroll-toggle]");
         var slowerButton = document.querySelector("[data-scroll-slower]");
@@ -78,6 +83,13 @@
         if (!toggleButton) {
             return;
         }
+
+        // Read from <meta> tags song.html renders via Thymeleaf's message
+        // bundle (#{song.autoScrollStart}/#{song.autoScrollStop}) rather
+        // than hardcoding English/Serbian text here -- plain JS has no
+        // access to Spring's MessageSource.
+        var startLabel = metaContent("i18n-auto-scroll-start", "Auto-scroll");
+        var stopLabel = metaContent("i18n-auto-scroll-stop", "Pause");
 
         var speed = clamp(readNumber(SCROLL_SPEED_KEY, DEFAULT_SCROLL_SPEED), MIN_SCROLL_SPEED, MAX_SCROLL_SPEED);
         var scrolling = false;
@@ -93,7 +105,7 @@
 
         function stop() {
             scrolling = false;
-            toggleButton.textContent = "Automatsko pomeranje";
+            toggleButton.textContent = startLabel;
             toggleButton.setAttribute("aria-pressed", "false");
             if (animationFrameId !== null) {
                 window.cancelAnimationFrame(animationFrameId);
@@ -123,7 +135,7 @@
                 return;
             }
             scrolling = true;
-            toggleButton.textContent = "Pauziraj";
+            toggleButton.textContent = stopLabel;
             toggleButton.setAttribute("aria-pressed", "true");
             animationFrameId = window.requestAnimationFrame(step);
         }

@@ -1,6 +1,15 @@
 spring:
   application:
     name: vinoigitare-boot
+  # English by default regardless of the browser's Accept-Language header
+  # -- "fixed" pins it; without this a Serbian-locale browser would get
+  # messages_sr.properties automatically, which defeats the point of
+  # having switched the default. Serbian is kept as a bundle (see
+  # messages_sr.properties) for a future language switcher, just not
+  # auto-selected by the browser.
+  mvc:
+    locale: en
+    locale-resolver: fixed
   # Phase 4a: embedded H2, file-mode so data survives restarts. AUTO_SERVER
   # lets a second JVM (e.g. a one-off script, or running tests alongside a
   # live dev instance) connect to the same file without a lock error.

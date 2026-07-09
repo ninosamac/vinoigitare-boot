@@ -16,13 +16,13 @@
 <head>
     <meta charset="UTF-8"/>
     <title th:text="${song.title()} + ' - ' + ${song.artist()}">Song</title>
-    <style>
+    <style th:inline="css">
         @page {
             size: A4;
             margin: 2cm 1.6cm 2.2cm 1.6cm;
 
             @bottom-center {
-                content: "Strana " counter(page) " / " counter(pages);
+                content: "[[#{pdf.page}]] " counter(page) " / " counter(pages);
                 font-family: "DejaVu Sans Mono", monospace;
                 font-size: 8.5pt;
                 color: #666666;

@@ -1,35 +1,35 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head(${isNew} ? 'Nova pesma' : 'Izmena pesme')}"></head>
+<head th:replace="~{fragments :: head(${isNew} ? #{admin.newSong} : #{admin.editSong})}"></head>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 <main class="container">
     <!-- TODO: unauthenticated -- see AdminController class Javadoc. -->
-    <h1 class="h4 mb-3" th:text="${isNew} ? 'Nova pesma' : 'Izmena pesme'">Pesma</h1>
+    <h1 class="h4 mb-3" th:text="${isNew} ? #{admin.newSong} : #{admin.editSong}">Song</h1>
     <form th:action="${isNew} ? @{/admin/new} : @{/admin/edit/{id}(id=${originalId})}"
           th:object="${songForm}" method="post">
         <div class="mb-3">
-            <label class="form-label">Izvođač</label>
+            <label class="form-label" th:text="#{admin.artist}">Artist</label>
             <input type="text" class="form-control" th:field="*{artist}" required="required"/>
         </div>
         <div class="mb-3">
-            <label class="form-label">Naslov</label>
+            <label class="form-label" th:text="#{admin.title}">Title</label>
             <input type="text" class="form-control" th:field="*{title}" required="required"/>
         </div>
         <div class="mb-3">
-            <label class="form-label">Žanr</label>
+            <label class="form-label" th:text="#{admin.genre}">Genre</label>
             <select class="form-select" th:field="*{genre}">
-                <option value="">(bez žanra)</option>
+                <option value="" th:text="#{admin.noGenre}">(no genre)</option>
                 <option th:each="g : ${genres}" th:value="${g.label()}" th:text="${g.label()}">Genre</option>
             </select>
         </div>
         <div class="mb-3">
-            <label class="form-label">Tekst i akordi</label>
+            <label class="form-label" th:text="#{admin.lyricsAndChords}">Lyrics and chords</label>
             <textarea class="form-control song-chords-input" rows="16" th:field="*{chords}"
                       required="required"></textarea>
         </div>
-        <button type="submit" class="btn btn-primary">Sačuvaj</button>
-        <a class="btn btn-secondary" th:href="@{/admin}">Otkaži</a>
+        <button type="submit" class="btn btn-primary" th:text="#{admin.save}">Save</button>
+        <a class="btn btn-secondary" th:href="@{/admin}" th:text="#{admin.cancel}">Cancel</a>
     </form>
 </main>
 </body>

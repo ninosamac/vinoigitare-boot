@@ -15,9 +15,15 @@ import java.util.Optional;
  */
 public enum Genre {
 
+    // Slugs stay as-is (URL/DB-stable, already matched pesmarica.rs's own
+    // scheme); labels translated to English as part of the site-wide
+    // switch away from Serbian UI text. "Narodno"/"Strano" don't have a
+    // single universally "correct" English equivalent for these Balkan
+    // radio-style genre categories -- "Folk"/"Foreign" is a reasonable,
+    // simple choice, not a claim of perfect equivalence.
     POP_ROCK("pop-rock", "Pop/Rock"),
-    NARODNO("narodno", "Narodno"),
-    STRANO("strano", "Strano");
+    NARODNO("narodno", "Folk"),
+    STRANO("strano", "Foreign");
 
     private final String slug;
     private final String label;

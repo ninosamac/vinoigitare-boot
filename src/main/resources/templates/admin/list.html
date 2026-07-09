@@ -1,21 +1,21 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head('Admin')}"></head>
+<head th:replace="~{fragments :: head(#{admin.allSongs})}"></head>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 <main class="container">
     <!-- TODO: unauthenticated -- see AdminController class Javadoc. -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h4 mb-0">Sve pesme</h1>
-        <a class="btn btn-primary btn-sm" th:href="@{/admin/new}">Nova pesma</a>
+        <h1 class="h4 mb-0" th:text="#{admin.allSongs}">All Songs</h1>
+        <a class="btn btn-primary btn-sm" th:href="@{/admin/new}" th:text="#{admin.newSong}">New Song</a>
     </div>
     <div class="table-responsive">
         <table class="table table-sm align-middle">
             <thead>
             <tr>
-                <th>Izvođač</th>
-                <th>Naslov</th>
-                <th>Žanr</th>
+                <th th:text="#{admin.artist}">Artist</th>
+                <th th:text="#{admin.title}">Title</th>
+                <th th:text="#{admin.genre}">Genre</th>
                 <th></th>
             </tr>
             </thead>
@@ -25,11 +25,11 @@
                 <td th:text="${song.title()}">Title</td>
                 <td th:text="${song.genre()} ?: '-'">Genre</td>
                 <td class="text-end text-nowrap">
-                    <a class="btn btn-sm btn-outline-secondary" th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}">Prikaži</a>
-                    <a class="btn btn-sm btn-outline-secondary" th:href="@{/admin/edit/{id}(id=${song.id()})}">Izmeni</a>
+                    <a class="btn btn-sm btn-outline-secondary" th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}" th:text="#{admin.view}">View</a>
+                    <a class="btn btn-sm btn-outline-secondary" th:href="@{/admin/edit/{id}(id=${song.id()})}" th:text="#{admin.edit}">Edit</a>
                     <form th:action="@{/admin/delete/{id}(id=${song.id()})}" method="post" class="d-inline"
-                          onsubmit="return confirm('Obrisati pesmu?');">
-                        <button type="submit" class="btn btn-sm btn-outline-danger">Obriši</button>
+                          th:attr="data-confirm-delete=#{admin.confirmDelete}" data-delete-form>
+                        <button type="submit" class="btn btn-sm btn-outline-danger" th:text="#{admin.delete}">Delete</button>
                     </form>
                 </td>
             </tr>
@@ -37,5 +37,19 @@
         </table>
     </div>
 </main>
+<script>
+    // Thymeleaf deliberately rejects free-form string expressions in
+    // th:onsubmit/th:onclick (XSS guard: "Only variable expressions
+    // returning numbers or booleans are allowed in this context") -- the
+    // confirmation message has to come in via a data-* attribute and be
+    // read from here instead, per that restriction's own suggested fix.
+    document.querySelectorAll("[data-delete-form]").forEach(function (form) {
+        form.addEventListener("submit", function (event) {
+            if (!window.confirm(form.getAttribute("data-confirm-delete"))) {
+                event.preventDefault();
+            }
+        });
+    });
+</script>
 </body>
 </html>

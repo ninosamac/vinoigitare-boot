@@ -33,14 +33,14 @@ class GenreBrowseControllerTest {
     void genreIndexListsAllThreeGenresWithCounts() throws Exception {
         given(songService.loadByGenre("Pop/Rock")).willReturn(List.of(
                 new Song("Marko Markovic", "Probna pesma", "chords")));
-        given(songService.loadByGenre("Narodno")).willReturn(List.of());
-        given(songService.loadByGenre("Strano")).willReturn(List.of());
+        given(songService.loadByGenre("Folk")).willReturn(List.of());
+        given(songService.loadByGenre("Foreign")).willReturn(List.of());
 
         mockMvc.perform(get("/genres"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Pop/Rock")))
-                .andExpect(content().string(containsString("Narodno")))
-                .andExpect(content().string(containsString("Strano")));
+                .andExpect(content().string(containsString("Folk")))
+                .andExpect(content().string(containsString("Foreign")));
     }
 
     @Test

@@ -42,14 +42,14 @@ class SearchControllerTest {
     void blankQueryShowsEmptyStatePrompt() throws Exception {
         mockMvc.perform(get("/search").param("q", ""))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Unesite pojam")));
+                .andExpect(content().string(containsString("Enter a search term")));
     }
 
     @Test
     void missingQueryParamShowsEmptyStatePrompt() throws Exception {
         mockMvc.perform(get("/search"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Unesite pojam")));
+                .andExpect(content().string(containsString("Enter a search term")));
     }
 
     @Test
@@ -58,6 +58,6 @@ class SearchControllerTest {
 
         mockMvc.perform(get("/search").param("q", "nepostojeci"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Nema rezultata")));
+                .andExpect(content().string(containsString("No results for")));
     }
 }

@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head('Pretraga')}"></head>
+<head th:replace="~{fragments :: head(#{search.title})}"></head>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 <main class="container">
     <h1 class="h4 mb-3">
-        Pretraga<span th:if="${!query.isEmpty()}" th:text="': ' + ${query}"></span>
+        <span th:text="#{search.title}">Search</span><span th:if="${!query.isEmpty()}" th:text="': ' + ${query}"></span>
     </h1>
 
-    <div th:if="${query.isEmpty()}" class="text-muted">
-        Unesite pojam za pretragu.
+    <div th:if="${query.isEmpty()}" class="text-muted" th:text="#{search.enterTerm}">
+        Enter a search term.
     </div>
     <div th:if="${!query.isEmpty() and results.isEmpty()}" class="text-muted">
-        Nema rezultata za <strong th:text="${query}">upit</strong>.
+        <span th:text="#{search.noResultsFor}">No results for</span> <strong th:text="${query}">query</strong>.
     </div>
 
     <ul class="list-unstyled">
