@@ -47,6 +47,17 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
+		<!-- Self-hosted Bootstrap 5 (WebJar), served automatically by Spring
+		     Boot's default /webjars/** mapping. Chosen over a CDN link so the
+		     app has no runtime dependency on an external host, which matters
+		     for a home-lab deployment that shouldn't need internet access to
+		     render a page it's already serving. -->
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>bootstrap</artifactId>
+			<version>5.3.8</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>

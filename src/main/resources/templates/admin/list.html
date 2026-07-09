@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Admin')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <!-- TODO: unauthenticated -- see AdminController class Javadoc. -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h4 mb-0">Sve pesme</h1>
+        <a class="btn btn-primary btn-sm" th:href="@{/admin/new}">Nova pesma</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead>
+            <tr>
+                <th>Izvođač</th>
+                <th>Naslov</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="song : ${songs}">
+                <td th:text="${song.artist()}">Artist</td>
+                <td th:text="${song.title()}">Title</td>
+                <td class="text-end text-nowrap">
+                    <a class="btn btn-sm btn-outline-secondary" th:href="@{/songs/{id}(id=${song.id()})}">Prikaži</a>
+                    <a class="btn btn-sm btn-outline-secondary" th:href="@{/admin/edit/{id}(id=${song.id()})}">Izmeni</a>
+                    <form th:action="@{/admin/delete/{id}(id=${song.id()})}" method="post" class="d-inline"
+                          onsubmit="return confirm('Obrisati pesmu?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Obriši</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

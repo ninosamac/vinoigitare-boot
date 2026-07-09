@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  Shared fragments (head + nav) included by every page via
+  th:replace="~{fragments :: head('Page title')}" / th:replace="~{fragments :: nav}".
+  No layout-dialect dependency needed for a handful of pages this simple.
+-->
+<head th:fragment="head(title)">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${title} + ' - Vino i gitare'">Vino i gitare</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/app.css}"/>
+</head>
+<body>
+<nav th:fragment="nav" class="navbar navbar-expand navbar-dark bg-dark mb-3">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/}">Vino i gitare</a>
+        <div class="navbar-nav">
+            <a class="nav-link" th:href="@{/}">Izvođači</a>
+            <a class="nav-link" th:href="@{/admin}">Admin</a>
+        </div>
+    </div>
+</nav>
+</body>
+</html>

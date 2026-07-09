@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Izvođači')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <h1 class="h4 mb-3">Izvođači</h1>
+    <div th:if="${artists.isEmpty()}" class="text-muted">
+        Nema pesama. Dodajte prvu u <a th:href="@{/admin/new}">admin panelu</a>.
+    </div>
+    <ul class="list-unstyled">
+        <li th:each="entry : ${artists}" class="mb-2">
+            <a th:href="@{/artists/{artist}(artist=${entry.key})}" th:text="${entry.key}">Artist</a>
+            <span class="text-muted">(<span th:text="${entry.value.size()}">0</span>)</span>
+        </li>
+    </ul>
+</main>
+</body>
+</html>

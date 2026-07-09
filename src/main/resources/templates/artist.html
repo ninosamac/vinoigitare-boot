@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${artist})}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <p><a th:href="@{/}">&larr; Svi izvođači</a></p>
+    <h1 class="h4 mb-3" th:text="${artist}">Artist</h1>
+    <ul class="list-unstyled">
+        <li th:each="song : ${songs}" class="mb-2">
+            <a th:href="@{/songs/{id}(id=${song.id()})}" th:text="${song.title()}">Title</a>
+        </li>
+    </ul>
+</main>
+</body>
+</html>

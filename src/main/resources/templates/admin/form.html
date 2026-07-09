@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${isNew} ? 'Nova pesma' : 'Izmena pesme')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <!-- TODO: unauthenticated -- see AdminController class Javadoc. -->
+    <h1 class="h4 mb-3" th:text="${isNew} ? 'Nova pesma' : 'Izmena pesme'">Pesma</h1>
+    <form th:action="${isNew} ? @{/admin/new} : @{/admin/edit/{id}(id=${originalId})}"
+          th:object="${songForm}" method="post">
+        <div class="mb-3">
+            <label class="form-label">Izvođač</label>
+            <input type="text" class="form-control" th:field="*{artist}" required="required"/>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Naslov</label>
+            <input type="text" class="form-control" th:field="*{title}" required="required"/>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Tekst i akordi</label>
+            <textarea class="form-control song-chords-input" rows="16" th:field="*{chords}"
+                      required="required"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Sačuvaj</button>
+        <a class="btn btn-secondary" th:href="@{/admin}">Otkaži</a>
+    </form>
+</main>
+</body>
+</html>

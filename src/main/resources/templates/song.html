@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${song.title()})}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <p>
+        <a th:href="@{/artists/{artist}(artist=${song.artist()})}" th:text="'&larr; ' + ${song.artist()}">&larr; Artist</a>
+    </p>
+    <h1 class="h4 mb-0" th:text="${song.title()}">Title</h1>
+    <h2 class="h6 text-muted" th:text="${song.artist()}">Artist</h2>
+    <!--
+      th:text sets the <pre> element's text content directly (with HTML
+      escaping for safety) without touching whitespace/newlines, which is
+      exactly what's needed to preserve the ASCII chords-above-lyrics
+      alignment from the old Vaadin Label(ContentMode.PREFORMATTED) view.
+      Do not switch this to th:utext or trim/reflow the chords string.
+    -->
+    <pre class="song-chords" th:text="${song.chords()}">Chords go here.</pre>
+</main>
+</body>
+</html>
