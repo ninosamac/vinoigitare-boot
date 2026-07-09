@@ -97,6 +97,32 @@ class SongbookPdfImporterTest {
     }
 
     @Test
+    void aBlockWithOnlyANumberAndOneMoreLineStillMisassignsAfterNumberStrip() {
+        // Documents a real limitation found by the user: some blocks have
+        // only TWO header-ish lines (index number + one more line), not
+        // three (index number + title + artist) -- e.g. a songbook that
+        // prints the artist once per group of songs rather than repeating
+        // it under every single title. Stripping the leading number alone
+        // does not fix this shape, since there's no separate title *and*
+        // artist line left to assign -- whatever single line remains gets
+        // assigned as "firstLine" (title slot by default) and the real
+        // body's own first line incorrectly becomes "secondLine" (artist
+        // slot). This test exists to make that limitation explicit and
+        // catch any accidental regression in how it degrades, not to
+        // assert this is correct behavior.
+        SongbookPdfImporter.PageText page = new SongbookPdfImporter.PageText(1,
+                "13\nSole Fictional Header Line\nC G Am\nfake placeholder body line one\nC G Am\nfake placeholder body line two");
+
+        List<SongbookPdfImporter.ParsedSong> songs = SongbookPdfImporter.splitByBlankLines(List.of(page));
+
+        assertEquals(1, songs.size());
+        assertEquals("Sole Fictional Header Line", songs.get(0).firstLine());
+        // The real body's first line is incorrectly consumed as "secondLine"
+        // (would be treated as the artist) -- this is the known gap.
+        assertEquals("C G Am", songs.get(0).secondLine());
+    }
+
+    @Test
     void diacriticsSurviveExtractionAndFilenameSanitization(@TempDir Path tempDir) throws IOException {
         Path pdf = tempDir.resolve("fixture.pdf");
         Path outputDir = tempDir.resolve("out");
