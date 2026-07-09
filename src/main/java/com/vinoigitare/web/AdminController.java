@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.vinoigitare.model.Genre;
 import com.vinoigitare.model.Song;
 import com.vinoigitare.service.SongService;
 
@@ -41,14 +42,17 @@ public class AdminController {
 
     @GetMapping("/new")
     public String newForm(Model model) {
-        model.addAttribute("songForm", new SongForm("", "", ""));
+        model.addAttribute("songForm", new SongForm("", "", "", ""));
         model.addAttribute("isNew", true);
+        model.addAttribute("genres", Genre.values());
         return "admin/form";
     }
 
     @PostMapping("/new")
     public String create(@ModelAttribute SongForm songForm) {
-        songService.store(new Song(songForm.artist(), songForm.title(), songForm.chords()));
+        String genre = blankToNull(songForm.genre());
+        songService.store(new Song(null, songForm.artist(), songForm.title(), null, genre, songForm.chords(),
+                null, 0L));
         return "redirect:/admin";
     }
 
@@ -56,9 +60,11 @@ public class AdminController {
     public String editForm(@PathVariable String id, Model model) {
         Song song = songService.load(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Song not found: " + id));
-        model.addAttribute("songForm", new SongForm(song.artist(), song.title(), song.chords()));
+        String genre = song.genre() == null ? "" : song.genre();
+        model.addAttribute("songForm", new SongForm(song.artist(), song.title(), song.chords(), genre));
         model.addAttribute("isNew", false);
         model.addAttribute("originalId", id);
+        model.addAttribute("genres", Genre.values());
         return "admin/form";
     }
 
@@ -69,12 +75,14 @@ public class AdminController {
         // -- unlike the old file-storage scheme (still visible in
         // TextFileSongRepository), where the id *was* the filename and
         // editing artist/title meant deleting the old file and writing a
-        // new one. Load the existing row first so its id/genre/createdAt
-        // /views survive the edit; slug is passed as null so it's
-        // recomputed from the (possibly changed) artist/title.
+        // new one. Load the existing row first so its id/createdAt/views
+        // survive the edit; slug is passed as null so it's recomputed from
+        // the (possibly changed) artist/title. Genre (Phase 4c) comes from
+        // the form, not the existing row, since it's now editable.
         Song existing = songService.load(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Song not found: " + id));
-        Song updated = new Song(existing.id(), songForm.artist(), songForm.title(), null, existing.genre(),
+        String genre = blankToNull(songForm.genre());
+        Song updated = new Song(existing.id(), songForm.artist(), songForm.title(), null, genre,
                 songForm.chords(), existing.createdAt(), existing.views());
         songService.store(updated);
         return "redirect:/admin";
@@ -86,6 +94,10 @@ public class AdminController {
         return "redirect:/admin";
     }
 
-    public record SongForm(String artist, String title, String chords) {
+    private static String blankToNull(String value) {
+        return (value == null || value.isBlank()) ? null : value;
+    }
+
+    public record SongForm(String artist, String title, String chords, String genre) {
     }
 }

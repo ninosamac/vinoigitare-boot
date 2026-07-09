@@ -17,6 +17,13 @@
             <input type="text" class="form-control" th:field="*{title}" required="required"/>
         </div>
         <div class="mb-3">
+            <label class="form-label">Žanr</label>
+            <select class="form-select" th:field="*{genre}">
+                <option value="">(bez žanra)</option>
+                <option th:each="g : ${genres}" th:value="${g.label()}" th:text="${g.label()}">Genre</option>
+            </select>
+        </div>
+        <div class="mb-3">
             <label class="form-label">Tekst i akordi</label>
             <textarea class="form-control song-chords-input" rows="16" th:field="*{chords}"
                       required="required"></textarea>

@@ -71,4 +71,18 @@ public class SongService {
                 .sorted(Comparator.comparing(Song::title, String.CASE_INSENSITIVE_ORDER))
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Songs in the given genre (Phase 4c), matched against {@link
+     * Song#genre()}'s display label (e.g. {@code "Pop/Rock"} -- see {@link
+     * com.vinoigitare.model.Genre}). Songs with no genre assigned never
+     * match any genre.
+     */
+    public List<Song> loadByGenre(String genreLabel) {
+        return repository.findAll().stream()
+                .filter(song -> genreLabel.equals(song.genre()))
+                .sorted(Comparator.comparing(Song::artist, String.CASE_INSENSITIVE_ORDER)
+                        .thenComparing(Song::title, String.CASE_INSENSITIVE_ORDER))
+                .collect(Collectors.toList());
+    }
 }

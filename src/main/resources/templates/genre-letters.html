@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${genre.label()})}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <p><a th:href="@{/genres}">&larr; Svi žanrovi</a></p>
+    <h1 class="h4 mb-1" th:text="${genre.label()}">Genre</h1>
+    <p class="text-muted" th:text="${songCount} + ' pesama'">0 pesama</p>
+
+    <div th:if="${letters.isEmpty()}" class="text-muted">Nema pesama u ovom žanru.</div>
+    <div class="d-flex flex-wrap gap-2">
+        <a th:each="letter : ${letters}"
+           th:href="@{/genres/{slug}/{letter}(slug=${genre.slug()},letter=${letter})}"
+           th:text="${letter}"
+           class="btn btn-outline-secondary btn-sm">A</a>
+    </div>
+</main>
+</body>
+</html>

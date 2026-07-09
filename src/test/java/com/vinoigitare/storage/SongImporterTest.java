@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.vinoigitare.VinoigitareProperties;
+import com.vinoigitare.model.Genre;
 import com.vinoigitare.model.Song;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -104,6 +105,32 @@ class SongImporterTest {
         assertThat(imported.title()).isEqualTo("Šašava priča");
         assertThat(imported.chords()).isEqualTo("š đ č ć ž tekst pesme");
         assertThat(imported.slug()).isEqualTo("dorde-dokic--sasava-prica");
+    }
+
+    @Test
+    void importedSongsGetGenresAssignedRoundRobin(@TempDir Path songsDir) throws IOException {
+        // Four fixtures, one more than Genre.values().length (3), so the
+        // 4th should wrap back around to the 1st genre.
+        writeFixture(songsDir, "A Artist - Song A.tab", "chords");
+        writeFixture(songsDir, "B Artist - Song B.tab", "chords");
+        writeFixture(songsDir, "C Artist - Song C.tab", "chords");
+        writeFixture(songsDir, "D Artist - Song D.tab", "chords");
+
+        TextFileSongRepository fileRepository = new TextFileSongRepository(new VinoigitareProperties(songsDir.toString()));
+        InMemorySongRepository database = new InMemorySongRepository();
+        SongImporter importer = new SongImporter(fileRepository, database);
+
+        importer.run(null);
+
+        List<Song> imported = database.findAll().stream()
+                .sorted((a, b) -> a.artist().compareTo(b.artist()))
+                .toList();
+        assertThat(imported).hasSize(4);
+        assertThat(imported.get(0).genre()).isEqualTo(Genre.values()[0].label());
+        assertThat(imported.get(1).genre()).isEqualTo(Genre.values()[1].label());
+        assertThat(imported.get(2).genre()).isEqualTo(Genre.values()[2].label());
+        // Wraps back around to the first genre.
+        assertThat(imported.get(3).genre()).isEqualTo(Genre.values()[0].label());
     }
 
     private static void writeFixture(Path dir, String fileName, String content) throws IOException {

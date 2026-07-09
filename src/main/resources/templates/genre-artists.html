@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${genre.label()} + ' - ' + ${letter})}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <p><a th:href="@{/genres/{slug}(slug=${genre.slug()})}" th:text="'&larr; ' + ${genre.label()}">&larr; Genre</a></p>
+    <h1 class="h4 mb-3" th:text="${genre.label()} + ' &mdash; ' + ${letter}">Genre - Letter</h1>
+
+    <div th:if="${songCountByArtist.isEmpty()}" class="text-muted">Nema izvođača za ovo slovo.</div>
+    <ul class="list-unstyled">
+        <li th:each="entry : ${songCountByArtist}" class="mb-2">
+            <a th:href="@{/artists/{artist}(artist=${entry.key})}" th:text="${entry.key}">Artist</a>
+            <span class="text-muted">(<span th:text="${entry.value}">0</span>)</span>
+        </li>
+    </ul>
+</main>
+</body>
+</html>

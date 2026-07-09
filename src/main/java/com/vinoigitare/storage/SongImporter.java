@@ -8,6 +8,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+import com.vinoigitare.model.Genre;
 import com.vinoigitare.model.Song;
 
 /**
@@ -34,6 +35,14 @@ import com.vinoigitare.model.Song;
  * corrupt any non-ASCII text that wasn't actually UTF-8 to begin with.
  * This importer does not attempt that detection; it trusts its input is
  * already valid UTF-8, same as {@link TextFileSongRepository} always has.
+ *
+ * <p><b>Genre assignment (Phase 4c):</b> {@code .tab} files carry no genre
+ * metadata (they're just a raw chords/lyrics blob), and there's no real
+ * corpus to derive genres from anyway. Imported songs are assigned one of
+ * the three {@link Genre} categories round-robin, in file order -- purely
+ * functional (so every category has at least one song to browse) rather
+ * than musically meaningful. A real import would instead carry genre data
+ * from wherever the source `.tab` files' metadata lives, if any.
  */
 @Component
 public class SongImporter implements ApplicationRunner {
@@ -62,8 +71,13 @@ public class SongImporter implements ApplicationRunner {
         }
 
         log.info("Importing " + fileSongs.size() + " song(s) from .tab files into the database.");
-        for (Song song : fileSongs) {
-            repository.save(song);
+        Genre[] genres = Genre.values();
+        for (int i = 0; i < fileSongs.size(); i++) {
+            Song song = fileSongs.get(i);
+            Genre genre = genres[i % genres.length];
+            Song withGenre = new Song(song.id(), song.artist(), song.title(), song.slug(), genre.label(),
+                    song.chords(), song.createdAt(), song.views());
+            repository.save(withGenre);
         }
     }
 }
