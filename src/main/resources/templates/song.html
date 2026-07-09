@@ -17,11 +17,30 @@
       play for the PDF download, via the ?transpose= query param this JS
       appends to the "Preuzmi PDF" link below.
     -->
-    <div class="d-flex align-items-center gap-2 mb-2 no-print">
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2 no-print">
         <span class="text-muted small">Transpozicija:</span>
         <button type="button" class="btn btn-outline-secondary btn-sm" data-transpose-down aria-label="Niže za pola tona">&minus;</button>
         <span data-transpose-display class="fw-semibold" style="min-width: 2em; text-align: center;">0</span>
         <button type="button" class="btn btn-outline-secondary btn-sm" data-transpose-up aria-label="Više za pola tona">+</button>
+
+        <!--
+          Font size + auto-scroll controls (Phase 4d): static/js/display-
+          controls.js. Both preferences persist in localStorage; whether
+          auto-scroll is currently running does not (see that file's
+          header comment).
+        -->
+        <span class="text-muted small ms-md-3">Veličina teksta:</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-font-decrease aria-label="Manji tekst">A&minus;</button>
+        <span data-font-display class="fw-semibold" style="min-width: 2em; text-align: center;">0</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-font-increase aria-label="Veći tekst">A+</button>
+    </div>
+
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3 no-print">
+        <span class="text-muted small">Auto-pomeranje:</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-scroll-slower aria-label="Sporije">&minus;</button>
+        <span data-scroll-speed-display class="fw-semibold" style="min-width: 1.5em; text-align: center;">3</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-scroll-faster aria-label="Brže">+</button>
+        <button type="button" class="btn btn-outline-primary btn-sm" data-scroll-toggle aria-pressed="false">Automatsko pomeranje</button>
     </div>
 
     <div th:replace="~{fragments :: songContent(${song})}"></div>
@@ -34,5 +53,6 @@
     </div>
 </main>
 <script th:src="@{/js/transpose.js}"></script>
+<script th:src="@{/js/display-controls.js}"></script>
 </body>
 </html>
