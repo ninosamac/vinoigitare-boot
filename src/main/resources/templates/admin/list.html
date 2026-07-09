@@ -23,7 +23,7 @@
                 <td th:text="${song.artist()}">Artist</td>
                 <td th:text="${song.title()}">Title</td>
                 <td class="text-end text-nowrap">
-                    <a class="btn btn-sm btn-outline-secondary" th:href="@{/songs/{id}(id=${song.id()})}">Prikaži</a>
+                    <a class="btn btn-sm btn-outline-secondary" th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}">Prikaži</a>
                     <a class="btn btn-sm btn-outline-secondary" th:href="@{/admin/edit/{id}(id=${song.id()})}">Izmeni</a>
                     <form th:action="@{/admin/delete/{id}(id=${song.id()})}" method="post" class="d-inline"
                           onsubmit="return confirm('Obrisati pesmu?');">

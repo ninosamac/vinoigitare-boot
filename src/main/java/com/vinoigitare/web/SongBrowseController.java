@@ -19,11 +19,16 @@ import com.vinoigitare.service.SongService;
  * <p>Replaces the old Vaadin {@code SongTree}/{@code Navigator} components
  * and {@code SongViewer} panel with plain server-rendered pages.
  *
- * <p>Known limitation carried over from the old app's id scheme: artist and
- * song ids are used directly as path segments (URL-encoded by Thymeleaf /
- * decoded by Spring), so an id containing a literal "/" would break
- * routing. Not a real risk for the current sample data; the plan's Phase 4
- * introduces numeric ids + slugs, which removes this problem entirely.
+ * <p><b>Phase 4a URL scheme change:</b> the song view route is now {@code
+ * /akordi/{id}/{slug}}, matching pesmarica.rs's own {@code
+ * /akordi/{id}/{Artist-Name}--{Song-Title}} pattern, and replaces the
+ * Phase 1-3 {@code /songs/{id}} route outright (no redirect kept: nothing
+ * external depends on the old URL yet, and the plan explicitly allows
+ * dropping it in that case). {@code id} is now expected to be the numeric
+ * database id from {@link DatabaseSongRepository}; {@code slug} is
+ * decorative for readability/SEO and isn't validated against the song's
+ * canonical slug -- the lookup is by id alone, same lenient approach
+ * pesmarica.rs itself appears to take.
  */
 @Controller
 public class SongBrowseController {
@@ -49,8 +54,8 @@ public class SongBrowseController {
         return "artist";
     }
 
-    @GetMapping("/songs/{id}")
-    public String song(@PathVariable String id, Model model) {
+    @GetMapping("/akordi/{id}/{slug}")
+    public String song(@PathVariable String id, @PathVariable String slug, Model model) {
         Song song = songService.load(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Song not found: " + id));
         model.addAttribute("song", song);

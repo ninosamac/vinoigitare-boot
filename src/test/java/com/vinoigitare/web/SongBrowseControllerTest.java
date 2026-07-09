@@ -55,7 +55,7 @@ class SongBrowseControllerTest {
         Song song = new Song("Marko Markovic", "Probna pesma", "C G\nline one");
         given(songService.load(song.id())).willReturn(Optional.of(song));
 
-        mockMvc.perform(get("/songs/{id}", song.id()))
+        mockMvc.perform(get("/akordi/{id}/{slug}", song.id(), song.slug()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("<pre")))
                 .andExpect(content().string(containsString("line one")));
@@ -63,9 +63,9 @@ class SongBrowseControllerTest {
 
     @Test
     void songViewReturns404WhenSongIsMissing() throws Exception {
-        given(songService.load("Unknown - Song")).willReturn(Optional.empty());
+        given(songService.load("42")).willReturn(Optional.empty());
 
-        mockMvc.perform(get("/songs/{id}", "Unknown - Song"))
+        mockMvc.perform(get("/akordi/{id}/{slug}", "42", "unknown-song"))
                 .andExpect(status().isNotFound());
     }
 }

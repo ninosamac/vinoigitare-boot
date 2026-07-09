@@ -67,6 +67,22 @@
 			<version>1.0.10</version>
 		</dependency>
 
+		<!-- Phase 4a: embedded H2 database (file-mode in production, in-memory
+		     in tests) plus plain Spring JDBC (JdbcTemplate) rather than full
+		     JPA/Hibernate: this app's query needs are simple CRUD plus a few
+		     filters/sorts, so a RowMapper<Song> keeps the DB-row-to-record
+		     mapping fully explicit with no ORM entity-lifecycle complexity to
+		     reason about, which matters for a solo hobbyist maintainer. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>

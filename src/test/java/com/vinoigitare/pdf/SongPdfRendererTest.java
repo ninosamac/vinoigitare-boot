@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import com.vinoigitare.AbstractSpringBootTest;
 import com.vinoigitare.model.Song;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @Tag("io")
 @SpringBootTest
-class SongPdfRendererTest {
+class SongPdfRendererTest extends AbstractSpringBootTest {
 
     @Autowired
     private SongPdfRenderer renderer;

@@ -8,7 +8,7 @@
     <h1 class="h4 mb-3" th:text="${artist}">Artist</h1>
     <ul class="list-unstyled">
         <li th:each="song : ${songs}" class="mb-2">
-            <a th:href="@{/songs/{id}(id=${song.id()})}" th:text="${song.title()}">Title</a>
+            <a th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}" th:text="${song.title()}">Title</a>
         </li>
     </ul>
 </main>

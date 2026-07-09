@@ -64,13 +64,18 @@ public class AdminController {
 
     @PostMapping("/edit/{id}")
     public String update(@PathVariable String id, @ModelAttribute SongForm songForm) {
-        Song updated = new Song(songForm.artist(), songForm.title(), songForm.chords());
-        if (!updated.id().equals(id)) {
-            // Artist and/or title changed, so the derived id (and therefore
-            // the backing filename) changed too: remove the old file after
-            // writing the new one.
-            songService.remove(id);
-        }
+        // Phase 4a: with the database-backed repository, id is a stable
+        // numeric row id that never changes just because artist/title did
+        // -- unlike the old file-storage scheme (still visible in
+        // TextFileSongRepository), where the id *was* the filename and
+        // editing artist/title meant deleting the old file and writing a
+        // new one. Load the existing row first so its id/genre/createdAt
+        // /views survive the edit; slug is passed as null so it's
+        // recomputed from the (possibly changed) artist/title.
+        Song existing = songService.load(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Song not found: " + id));
+        Song updated = new Song(existing.id(), songForm.artist(), songForm.title(), null, existing.genre(),
+                songForm.chords(), existing.createdAt(), existing.views());
         songService.store(updated);
         return "redirect:/admin";
     }

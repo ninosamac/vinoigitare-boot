@@ -4,6 +4,10 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Vinoigitare ###
+# Generated H2 database files (Phase 4a) -- runtime data, not source.
+/data/vinoigitare-db*
+
 ### STS ###
 .apt_generated
 .classpath

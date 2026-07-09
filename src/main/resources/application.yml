@@ -1,6 +1,19 @@
 spring:
   application:
     name: vinoigitare-boot
+  # Phase 4a: embedded H2, file-mode so data survives restarts. AUTO_SERVER
+  # lets a second JVM (e.g. a one-off script, or running tests alongside a
+  # live dev instance) connect to the same file without a lock error.
+  # Overridable via VINOIGITARE_DB for the same reason VINOIGITARE_HOME
+  # overrides the songs directory. Tests never use this -- see
+  # AbstractSpringBootTest, which points every @SpringBootTest at an
+  # isolated in-memory database instead.
+  datasource:
+    url: jdbc:h2:file:${VINOIGITARE_DB:./data/vinoigitare-db};AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+  sql:
+    init:
+      mode: always
 
 vinoigitare:
   # Directory containing song files. Overridable via the VINOIGITARE_HOME

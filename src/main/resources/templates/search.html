@@ -17,7 +17,7 @@
 
     <ul class="list-unstyled">
         <li th:each="song : ${results}" class="mb-2">
-            <a th:href="@{/songs/{id}(id=${song.id()})}">
+            <a th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}">
                 <span th:text="${song.artist()}">Artist</span> &ndash;
                 <span th:text="${song.title()}">Title</span>
             </a>

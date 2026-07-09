@@ -18,9 +18,14 @@ import com.vinoigitare.pdf.SongPdfRenderer;
 import com.vinoigitare.service.SongService;
 
 /**
- * {@code GET /songs/{id}/pdf} -- the feature the old (never-implemented)
+ * {@code GET /akordi/{id}/pdf} -- the feature the old (never-implemented)
  * {@code Vinoigitare_Utils} {@code SongPDF} stub was meant for: download a
  * PDF of the currently-displayed song.
+ *
+ * <p>Phase 4a: route moved from {@code /songs/{id}/pdf} to {@code
+ * /akordi/{id}/pdf} alongside the song view route's move to {@code
+ * /akordi/{id}/{slug}} (see {@code SongBrowseController}); {@code id} is
+ * now the numeric database id.
  */
 @RestController
 public class SongPdfController {
@@ -33,7 +38,7 @@ public class SongPdfController {
         this.pdfRenderer = pdfRenderer;
     }
 
-    @GetMapping(value = "/songs/{id}/pdf", produces = "application/pdf")
+    @GetMapping(value = "/akordi/{id}/pdf", produces = "application/pdf")
     public ResponseEntity<byte[]> pdf(
             @PathVariable String id,
             // Accepted for forward compatibility with Phase 4's chord

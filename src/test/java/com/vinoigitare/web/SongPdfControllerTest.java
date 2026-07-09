@@ -39,7 +39,7 @@ class SongPdfControllerTest {
         given(songService.load(song.id())).willReturn(Optional.of(song));
         given(pdfRenderer.render(eq(song), anyInt())).willReturn(new byte[] {'%', 'P', 'D', 'F'});
 
-        mockMvc.perform(get("/songs/{id}/pdf", song.id()))
+        mockMvc.perform(get("/akordi/{id}/pdf", song.id()))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/pdf"))
                 // RFC 6266 fallback pattern: a plain ASCII-transliterated
@@ -54,9 +54,9 @@ class SongPdfControllerTest {
 
     @Test
     void returns404WhenSongIsMissing() throws Exception {
-        given(songService.load("Unknown - Song")).willReturn(Optional.empty());
+        given(songService.load("42")).willReturn(Optional.empty());
 
-        mockMvc.perform(get("/songs/{id}/pdf", "Unknown - Song"))
+        mockMvc.perform(get("/akordi/{id}/pdf", "42"))
                 .andExpect(status().isNotFound());
     }
 }

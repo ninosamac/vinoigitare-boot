@@ -11,7 +11,7 @@
     <div th:replace="~{fragments :: songContent(${song})}"></div>
 
     <div class="mt-3 no-print">
-        <a class="btn btn-outline-primary btn-sm" th:href="@{/songs/{id}/pdf(id=${song.id()})}">Preuzmi PDF</a>
+        <a class="btn btn-outline-primary btn-sm" th:href="@{/akordi/{id}/pdf(id=${song.id()})}">Preuzmi PDF</a>
         <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">Štampaj</button>
     </div>
 </main>
