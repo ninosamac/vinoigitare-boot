@@ -11,6 +11,7 @@ import com.vinoigitare.VinoigitareProperties;
 import com.vinoigitare.model.Song;
 import com.vinoigitare.service.SongService;
 import com.vinoigitare.storage.SongRepository;
+import com.vinoigitare.storage.TabFileMirror;
 import com.vinoigitare.storage.TextFileSongRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,7 +24,7 @@ class SearchServiceTest {
         for (Song song : songs) {
             repository.save(song);
         }
-        return new SearchService(new SongService(repository));
+        return new SearchService(new SongService(repository, new TabFileMirror(new TextFileSongRepository(dir))));
     }
 
     @Test

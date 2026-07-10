@@ -1,5 +1,10 @@
 package com.vinoigitare.service;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -8,15 +13,29 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.vinoigitare.model.Genre;
 import com.vinoigitare.model.Song;
 import com.vinoigitare.storage.SongRepository;
+import com.vinoigitare.storage.TabFileMirror;
+import com.vinoigitare.storage.TextFileSongRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Tag("fast")
 class SongServiceTest {
+
+    // A real TextFileSongRepository/TabFileMirror against a throwaway
+    // @TempDir, shared by every test below -- none of them exercise
+    // store()'s .tab-mirroring behavior except the dedicated tests further
+    // down, so this just needs to be a valid, harmless collaborator.
+    @TempDir
+    private Path tempSongsDir;
+
+    private TabFileMirror mirror() {
+        return new TabFileMirror(new TextFileSongRepository(tempSongsDir));
+    }
 
     private static class InMemorySongRepository implements SongRepository {
         private final Map<String, Song> songs = new LinkedHashMap<>();
@@ -66,7 +85,7 @@ class SongServiceTest {
         repository.save(new Song(null, "C Artist", "Title", null, "Narodno", "chords", null, 0L));
         repository.save(new Song(null, "D Artist", "Title", null, null, "chords", null, 0L));
 
-        SongService service = new SongService(repository);
+        SongService service = new SongService(repository, mirror());
         List<Song> popRock = service.loadByGenre(Genre.POP_ROCK);
 
         assertThat(popRock).extracting(Song::artist).containsExactly("A Artist", "A Artist", "B Artist");
@@ -78,7 +97,7 @@ class SongServiceTest {
         InMemorySongRepository repository = new InMemorySongRepository();
         repository.save(new Song("Artist", "Title", "chords")); // genre defaults to null
 
-        SongService service = new SongService(repository);
+        SongService service = new SongService(repository, mirror());
 
         assertThat(service.loadByGenre(Genre.POP_ROCK)).isEmpty();
     }
@@ -94,7 +113,7 @@ class SongServiceTest {
         repository.save(new Song(null, "Old Artist", "Old Song", null, "Strano", "chords", null, 0L));
         repository.save(new Song(null, "New Artist", "New Song", null, "Foreign", "chords", null, 0L));
 
-        SongService service = new SongService(repository);
+        SongService service = new SongService(repository, mirror());
 
         assertThat(service.loadByGenre(Genre.STRANO)).extracting(Song::artist)
                 .containsExactlyInAnyOrder("Old Artist", "New Artist");
@@ -109,7 +128,7 @@ class SongServiceTest {
         repository.save(new Song("3", "Artist", "Middle", "middle", null, "chords", now.minusSeconds(100), 0L));
         repository.save(new Song("Artist", "No Timestamp", "chords")); // createdAt null via 3-arg ctor
 
-        SongService service = new SongService(repository);
+        SongService service = new SongService(repository, mirror());
         List<Song> newest = service.loadNewest(10);
 
         assertThat(newest).extracting(Song::title).containsExactly("Newest", "Middle", "Oldest");
@@ -124,7 +143,7 @@ class SongServiceTest {
                     now.minusSeconds(i), 0L));
         }
 
-        SongService service = new SongService(repository);
+        SongService service = new SongService(repository, mirror());
 
         assertThat(service.loadNewest(2)).hasSize(2);
     }
@@ -136,7 +155,7 @@ class SongServiceTest {
         repository.save(new Song("2", "Artist", "High", "high", null, "chords", null, 10L));
         repository.save(new Song("3", "Artist", "Mid", "mid", null, "chords", null, 5L));
 
-        SongService service = new SongService(repository);
+        SongService service = new SongService(repository, mirror());
         List<Song> popular = service.loadMostViewed(10);
 
         assertThat(popular).extracting(Song::title).containsExactly("High", "Mid", "Low");
@@ -146,11 +165,60 @@ class SongServiceTest {
     void recordViewDelegatesToRepositoryIncrementViews() {
         InMemorySongRepository repository = new InMemorySongRepository();
         Song saved = repository.save(new Song("1", "Artist", "Title", "slug", null, "chords", null, 0L));
-        SongService service = new SongService(repository);
+        SongService service = new SongService(repository, mirror());
 
         service.recordView(saved.id());
         service.recordView(saved.id());
 
         assertThat(repository.findById(saved.id()).orElseThrow().views()).isEqualTo(2L);
+    }
+
+    @Test
+    void storingABrandNewSongCreatesItsTabFile() {
+        InMemorySongRepository repository = new InMemorySongRepository();
+        SongService service = new SongService(repository, mirror());
+
+        // Mirrors AdminController.create(): id is null, so Song's compact
+        // constructor derives the legacy "artist - title" form -- never a
+        // real database row id, which is exactly what tells store() this
+        // is a new song, not an edit (see its Javadoc).
+        service.store(new Song(null, "Test Artist", "Test Title", null, null, "C G\nSome lyrics", null, 0L));
+
+        assertThat(tabFileContent("Test Artist - Test Title.tab")).isEqualTo("C G\nSome lyrics");
+    }
+
+    @Test
+    void storingAnEditedSongOverwritesTheSameTabFile() {
+        InMemorySongRepository repository = new InMemorySongRepository();
+        Song original = repository.save(
+                new Song("1", "Test Artist", "Test Title", "test-artist--test-title", null, "old chords", null, 0L));
+        SongService service = new SongService(repository, mirror());
+
+        service.store(new Song(original.id(), original.artist(), original.title(), original.slug(), null,
+                "new chords", null, 0L));
+
+        assertThat(tabFileContent("Test Artist - Test Title.tab")).isEqualTo("new chords");
+    }
+
+    @Test
+    void storingASongWithAChangedArtistOrTitleMovesItsTabFile() {
+        InMemorySongRepository repository = new InMemorySongRepository();
+        Song original = repository.save(
+                new Song("1", "Old Artist", "Old Title", "old-artist--old-title", null, "chords", null, 0L));
+        SongService service = new SongService(repository, mirror());
+
+        service.store(
+                new Song(original.id(), "New Artist", "New Title", null, null, original.chords(), null, 0L));
+
+        assertThat(tempSongsDir.resolve("Old Artist - Old Title.tab")).doesNotExist();
+        assertThat(tabFileContent("New Artist - New Title.tab")).isEqualTo("chords");
+    }
+
+    private String tabFileContent(String fileName) {
+        try {
+            return Files.readString(tempSongsDir.resolve(fileName), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

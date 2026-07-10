@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.vinoigitare.model.Genre;
 import com.vinoigitare.model.Song;
 import com.vinoigitare.storage.SongRepository;
+import com.vinoigitare.storage.TabFileMirror;
 
 /**
  * Thin service layer over {@link SongRepository}, mirroring the role of the
@@ -30,9 +31,11 @@ import com.vinoigitare.storage.SongRepository;
 public class SongService {
 
     private final SongRepository repository;
+    private final TabFileMirror tabFileMirror;
 
-    public SongService(SongRepository repository) {
+    public SongService(SongRepository repository, TabFileMirror tabFileMirror) {
         this.repository = repository;
+        this.tabFileMirror = tabFileMirror;
     }
 
     public Optional<Song> load(String id) {
@@ -43,8 +46,20 @@ public class SongService {
         return repository.findAll();
     }
 
+    /**
+     * Saves the song and mirrors it to its {@code .tab} file (see {@link
+     * TabFileMirror}). The lookup by {@code song.id()} before saving is
+     * what lets the mirror detect a rename: for a brand-new song, {@code
+     * id()} is the legacy {@code "artist - title"} string (never a real
+     * database row id), so this finds nothing and {@code previous} is
+     * {@code null}; for an edit, it's the song's actual numeric id, so
+     * this finds the pre-edit row.
+     */
     public Song store(Song song) {
-        return repository.save(song);
+        Song previous = repository.findById(song.id()).orElse(null);
+        Song saved = repository.save(song);
+        tabFileMirror.mirror(saved, previous);
+        return saved;
     }
 
     public void remove(String id) {
