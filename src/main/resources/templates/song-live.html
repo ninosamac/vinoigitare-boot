@@ -57,25 +57,34 @@
 </div>
 <main class="container">
     <!-- Same control rows and data-* attributes as song.html, verbatim --
-         transpose.js/display-controls.js don't care which page they're on. -->
+         transpose.js/display-controls.js don't care which page they're on.
+         Stacked one group per row (not Transpose+Zoom sharing one row) and
+         using the same .control-label/.control-step-btn column-alignment
+         classes, matching the fix applied to the normal song page -- see
+         app.css's comment on those classes for why. No Live view button
+         here (you're already in live view), so the Zoom row has nothing
+         at its right; Auto-scroll's toggle still sits at the right of its
+         own row, same as song.html. -->
     <div class="d-flex flex-wrap align-items-center gap-2 mb-2 mt-2 no-print">
-        <span class="text-muted small" th:text="#{song.transpose}">Transpose:</span>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-transpose-down th:aria-label="#{song.transposeDown}">&minus;</button>
+        <span class="text-muted small control-label" th:text="#{song.transpose}">Transpose:</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm control-step-btn" data-transpose-down th:aria-label="#{song.transposeDown}">&minus;</button>
         <span data-transpose-display class="fw-semibold" style="min-width: 2em; text-align: center;">0</span>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-transpose-up th:aria-label="#{song.transposeUp}">+</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm control-step-btn" data-transpose-up th:aria-label="#{song.transposeUp}">+</button>
+    </div>
 
-        <span class="text-muted small ms-md-3" th:text="#{song.fontSize}">Text size:</span>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-font-decrease th:aria-label="#{song.fontSmaller}">A&minus;</button>
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2 no-print">
+        <span class="text-muted small control-label" th:text="#{song.fontSize}">Zoom:</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm control-step-btn" data-font-decrease th:aria-label="#{song.fontSmaller}">A&minus;</button>
         <span data-font-display class="fw-semibold" style="min-width: 2em; text-align: center;">0</span>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-font-increase th:aria-label="#{song.fontLarger}">A+</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm control-step-btn" data-font-increase th:aria-label="#{song.fontLarger}">A+</button>
     </div>
 
     <div class="d-flex flex-wrap align-items-center gap-2 mb-3 no-print">
-        <span class="text-muted small" th:text="#{song.autoScroll}">Auto-scroll:</span>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-scroll-slower th:aria-label="#{song.scrollSlower}">&minus;</button>
-        <span data-scroll-speed-display class="fw-semibold" style="min-width: 1.5em; text-align: center;">3</span>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-scroll-faster th:aria-label="#{song.scrollFaster}">+</button>
-        <button type="button" class="btn btn-outline-primary btn-sm" data-scroll-toggle aria-pressed="false" th:text="#{song.autoScrollStart}">Auto-scroll</button>
+        <span class="text-muted small control-label" th:text="#{song.autoScroll}">Auto-scroll:</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm control-step-btn" data-scroll-slower th:aria-label="#{song.scrollSlower}">&minus;</button>
+        <span data-scroll-speed-display class="fw-semibold" style="min-width: 2em; text-align: center;">3</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm control-step-btn" data-scroll-faster th:aria-label="#{song.scrollFaster}">+</button>
+        <button type="button" class="btn btn-outline-primary btn-sm ms-auto" data-scroll-toggle aria-pressed="false" th:text="#{song.autoScrollStart}">Auto-scroll</button>
     </div>
 
     <!-- th:with on its own wrapper element, not the th:replace element itself --
