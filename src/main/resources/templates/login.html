@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  Admin-auth plan (~/knowledge/projects/vinoigitare/admin-auth-plan.md),
+  step 2: replaces Spring Security's default generated login page (grey
+  background, no theme) with one matching the rest of the app. Uses
+  fragments :: head/nav unchanged -- unlike song.html/song-live.html, this
+  page needs no extra <meta> tags beyond title, so there's no reason to
+  duplicate the shared fragment's <head>.
+-->
+<head th:replace="~{fragments :: head(#{login.title})}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <div class="login-card mx-auto">
+        <h1 class="h4 mb-3" th:text="#{login.title}">Sign in</h1>
+        <!-- Spring Security appends these as plain query params, not model
+             attributes -- ?error after a failed attempt, ?logout after a
+             successful log out (see SecurityConfig's logout config, step 3). -->
+        <p class="text-danger small" th:if="${param.error}" th:text="#{login.error}">
+            Incorrect username or password.
+        </p>
+        <p class="text-success small" th:if="${param.logout}" th:text="#{login.loggedOut}">
+            You have been logged out.
+        </p>
+        <form method="post" th:action="@{/login}">
+            <div class="mb-3">
+                <label class="form-label" for="username" th:text="#{login.username}">Username</label>
+                <input type="text" class="form-control" id="username" name="username"
+                       required="required" autofocus="autofocus"/>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="password" th:text="#{login.password}">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required="required"/>
+            </div>
+            <button type="submit" class="btn btn-primary" th:text="#{login.submit}">Sign in</button>
+        </form>
+    </div>
+</main>
+<script th:src="@{/js/theme-toggle.js}"></script>
+</body>
+</html>

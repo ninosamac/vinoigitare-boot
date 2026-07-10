@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Admin-auth plan (~/knowledge/projects/vinoigitare/admin-auth-plan.md): a
@@ -36,7 +38,30 @@ public class SecurityConfig {
                                 "/actuator/health", "/login")
                         .permitAll()
                         .anyRequest().authenticated())
-                .formLogin(form -> form.permitAll());
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .permitAll());
         return http.build();
+    }
+
+    /**
+     * Registering a custom {@code loginPage(...)} above means Spring
+     * Security stops auto-generating one -- it now expects the app to
+     * serve {@code GET /login} itself. A plain view-controller mapping is
+     * enough: {@code templates/login.html} needs no model data, just the
+     * {@code ?error}/{@code ?logout} query parameters Spring Security
+     * appends itself (read directly as request params in the template, see
+     * its comment). Kept in this class, next to the {@code loginPage(...)}
+     * call it exists for, rather than a separate {@code WebMvcConfigurer}
+     * file elsewhere -- so the two can't drift out of sync.
+     */
+    @Bean
+    public WebMvcConfigurer loginViewConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addViewControllers(ViewControllerRegistry registry) {
+                registry.addViewController("/login").setViewName("login");
+            }
+        };
     }
 }

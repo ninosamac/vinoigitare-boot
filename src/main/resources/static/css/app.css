@@ -225,6 +225,18 @@ h1, h2, h3,
     min-width: 2.25rem;
 }
 
+/* Login page (admin-auth plan, step 2) -- same card treatment as
+   .index-row/.chord-diagram-card (--card/--line tokens), just narrower
+   and centered, since a login form has exactly one thing to look at. */
+.login-card {
+    max-width: 24rem;
+    background-color: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 0.375rem;
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
 /* Chord-diagram reference page (com.vinoigitare.chords.ChordDiagramRenderer
    builds the actual <svg> per diagram; this is just the card/grid layout
    and the SVG's stroke/fill colors, which have to be set here since an
