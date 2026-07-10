@@ -56,19 +56,24 @@
       play for the PDF download, via the ?transpose= query param this JS
       appends to the "Preuzmi PDF" link below.
     -->
+    <!-- Each control group gets its own row (was Transpose + Text size
+         sharing one row, which wrapped mid-group on narrow phones -- e.g.
+         "A+" landing alone on its own line around 390px wide). -->
     <div class="d-flex flex-wrap align-items-center gap-2 mb-2 no-print">
         <span class="text-muted small" th:text="#{song.transpose}">Transpose:</span>
         <button type="button" class="btn btn-outline-secondary btn-sm" data-transpose-down th:aria-label="#{song.transposeDown}">&minus;</button>
         <span data-transpose-display class="fw-semibold" style="min-width: 2em; text-align: center;">0</span>
         <button type="button" class="btn btn-outline-secondary btn-sm" data-transpose-up th:aria-label="#{song.transposeUp}">+</button>
+    </div>
 
-        <!--
-          Font size + auto-scroll controls (Phase 4d): static/js/display-
-          controls.js. Both preferences persist in localStorage; whether
-          auto-scroll is currently running does not (see that file's
-          header comment).
-        -->
-        <span class="text-muted small ms-md-3" th:text="#{song.fontSize}">Text size:</span>
+    <!--
+      Font size + auto-scroll controls (Phase 4d): static/js/display-
+      controls.js. Both preferences persist in localStorage; whether
+      auto-scroll is currently running does not (see that file's
+      header comment).
+    -->
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2 no-print">
+        <span class="text-muted small" th:text="#{song.fontSize}">Text size:</span>
         <button type="button" class="btn btn-outline-secondary btn-sm" data-font-decrease th:aria-label="#{song.fontSmaller}">A&minus;</button>
         <span data-font-display class="fw-semibold" style="min-width: 2em; text-align: center;">0</span>
         <button type="button" class="btn btn-outline-secondary btn-sm" data-font-increase th:aria-label="#{song.fontLarger}">A+</button>
@@ -79,7 +84,19 @@
         <button type="button" class="btn btn-outline-secondary btn-sm" data-scroll-slower th:aria-label="#{song.scrollSlower}">&minus;</button>
         <span data-scroll-speed-display class="fw-semibold" style="min-width: 1.5em; text-align: center;">3</span>
         <button type="button" class="btn btn-outline-secondary btn-sm" data-scroll-faster th:aria-label="#{song.scrollFaster}">+</button>
+    </div>
+
+    <!--
+      Auto-scroll toggle + Live view (Phase 7): grouped together and
+      centered, rather than the toggle being glued to the speed controls
+      above (it used to sit at the end of that row) while Live view lived
+      down at the bottom with Download PDF/Print -- these two are both
+      "hands-free reading" actions, not really related to PDF/Print, so
+      they get their own row.
+    -->
+    <div class="d-flex justify-content-center gap-2 mb-3 no-print">
         <button type="button" class="btn btn-outline-primary btn-sm" data-scroll-toggle aria-pressed="false" th:text="#{song.autoScrollStart}">Auto-scroll</button>
+        <a class="btn btn-outline-primary btn-sm" th:href="@{/akordi/{id}/live(id=${song.id()})}" th:text="#{song.liveView}">Live view</a>
     </div>
 
     <!--
@@ -99,7 +116,6 @@
            th:href="@{/akordi/{id}/pdf(id=${song.id()})}"
            th:attr="data-pdf-base-href=@{/akordi/{id}/pdf(id=${song.id()})}" th:text="#{song.downloadPdf}">Download PDF</a>
         <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()" th:text="#{song.print}">Print</button>
-        <a class="btn btn-outline-secondary btn-sm" th:href="@{/akordi/{id}/live(id=${song.id()})}" th:text="#{song.liveView}">Live view</a>
     </div>
 </main>
 <script th:src="@{/js/transpose.js}"></script>
