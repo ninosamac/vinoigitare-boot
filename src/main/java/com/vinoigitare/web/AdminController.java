@@ -20,11 +20,11 @@ import com.vinoigitare.service.SongService;
  * Minimal song CRUD, replacing the old {@code SongEditor} component and
  * {@code NewSongAction}/{@code EditSongAction}/{@code RemoveSongAction}.
  *
- * <p>TODO: this entire {@code /admin} path is UNAUTHENTICATED. There is no
- * Spring Security (or any other guard) in front of it yet -- deliberately
- * out of scope for Phase 1 per the migration plan, which defers accounts
- * to Phase 5. Do not expose this application beyond localhost / the home
- * lab network until at least basic auth is added here.
+ * <p>Every route here requires the single admin credential configured in
+ * {@code application.yml} -- see {@link com.vinoigitare.security.SecurityConfig}
+ * and the admin-auth plan (~/knowledge/projects/vinoigitare/admin-auth-plan.md)
+ * for the full rationale. Resolves what used to be a standing TODO on this
+ * exact class.
  */
 @Controller
 @RequestMapping("/admin")
