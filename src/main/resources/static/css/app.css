@@ -237,6 +237,163 @@ h1, h2, h3,
     margin-top: 2rem;
 }
 
+/* Homepage artist tree -- rethinking the main page for scale (hundreds of
+   artists, thousands of songs), replacing the old flat list. Artists as
+   "folders" (serif-adjacent, like everything else that isn't chords),
+   songs as "files" (monospace, echoing the chords block's own typewriter
+   feel). Verified first as a standalone mockup before building this for
+   real -- see SongBrowseController's class Javadoc. */
+.tree-card {
+    background-color: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.tree-scroll {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.letter-heading {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: var(--card);
+    color: var(--ink-muted);
+    font-family: Georgia, "Iowan Old Style", "Book Antiqua", Palatino, serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    padding: 0.35rem 1rem;
+    border-bottom: 1px solid var(--line);
+    border-top: 1px solid var(--line);
+}
+
+.letter-heading:first-child {
+    border-top: none;
+}
+
+.artist-row {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.5rem 1rem 0.5rem 0.75rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.artist-row:hover {
+    background-color: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+.artist-row:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+.twisty {
+    width: 0.9rem;
+    flex: none;
+    color: var(--accent);
+    font-size: 0.7rem;
+    transition: transform 0.15s ease;
+    display: inline-block;
+}
+
+.artist-row[aria-expanded="true"] .twisty {
+    transform: rotate(90deg);
+}
+
+.folder-icon {
+    flex: none;
+    color: var(--accent);
+    opacity: 0.85;
+}
+
+.artist-name {
+    flex: 1 1 auto;
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.artist-name:hover {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+.artist-name mark,
+.song-title mark {
+    background-color: color-mix(in srgb, var(--accent-2) 30%, transparent);
+    color: inherit;
+    border-radius: 0.15rem;
+    padding: 0 0.1rem;
+}
+
+.song-count {
+    flex: none;
+    color: var(--ink-muted);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+}
+
+/* No .collapsed class present = visible -- the no-JS default (see
+   SongBrowseController's Javadoc and index.html's comment on this). JS
+   adds/removes .collapsed to drive the interactive tree. */
+.song-list.collapsed {
+    display: none;
+}
+
+.song-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    padding: 0.4rem 1rem 0.4rem 2.35rem;
+    text-decoration: none;
+    color: var(--ink);
+}
+
+.song-row:hover {
+    background-color: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+.song-row:hover .song-title {
+    color: var(--accent);
+}
+
+.file-icon {
+    flex: none;
+    color: var(--ink-muted);
+    font-family: "Courier New", Consolas, monospace;
+    font-size: 0.85rem;
+}
+
+.song-title {
+    flex: 1 1 auto;
+    font-family: "Courier New", Consolas, monospace;
+    font-size: 0.92rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.song-views {
+    flex: none;
+    color: var(--ink-muted);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.tree-empty-state {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--ink-muted);
+}
+
 /* Chord-diagram reference page (com.vinoigitare.chords.ChordDiagramRenderer
    builds the actual <svg> per diagram; this is just the card/grid layout
    and the SVG's stroke/fill colors, which have to be set here since an

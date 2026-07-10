@@ -1,7 +1,9 @@
 package com.vinoigitare.web;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -36,6 +38,20 @@ import com.vinoigitare.service.SongService;
  * <p>Phase 4e: the homepage also shows "newest" and "popular" lists, and
  * every successful song-page load (not the PDF download, not admin) counts
  * as one view.
+ *
+ * <p><b>Homepage artist tree (rethinking the main page for scale):</b> the
+ * old homepage was a single flat, unsectioned artist list -- fine for a
+ * handful of artists, unusable once there are hundreds of artists and
+ * thousands of songs (pesmarica.rs's own homepage has exactly this
+ * problem). Replaced with a letter-grouped, expandable tree -- artists as
+ * "folders", songs as "files" -- mirroring the physical songbook's own
+ * table-of-contents principle (the real PDF this project is modeled on).
+ * {@link #buildArtistTree} does the grouping here in Java, not in the
+ * template: Thymeleaf's restricted-expression guard rejects
+ * {@code T()}/{@code new}/{@code @bean} access inside a {@code th:each}
+ * loop on a directly-rendered page (see {@code ChordDiagramController}'s
+ * Javadoc for the first time this was hit), and grouping-by-letter needs
+ * exactly that kind of computation.
  */
 @Controller
 public class SongBrowseController {
@@ -50,13 +66,40 @@ public class SongBrowseController {
         this.messageSource = messageSource;
     }
 
+    /** One letter's worth of artists in the homepage tree, e.g. all of "B". */
+    public record LetterGroup(String letter, List<ArtistEntry> artists) {
+    }
+
+    /** One artist's node in the tree: their name and all of their songs (already sorted by title). */
+    public record ArtistEntry(String artist, List<Song> songs) {
+    }
+
     @GetMapping("/")
     public String index(Model model) {
         Map<String, List<Song>> songsByArtist = songService.loadAllGroupedByArtist();
-        model.addAttribute("artists", songsByArtist);
+        model.addAttribute("artistTree", buildArtistTree(songsByArtist));
+        model.addAttribute("totalArtists", songsByArtist.size());
+        model.addAttribute("totalSongs", songsByArtist.values().stream().mapToInt(List::size).sum());
         model.addAttribute("newestSongs", songService.loadNewest(HOMEPAGE_LIST_SIZE));
         model.addAttribute("popularSongs", songService.loadMostViewed(HOMEPAGE_LIST_SIZE));
         return "index";
+    }
+
+    /**
+     * Groups an already-artist-sorted {@code Map<String, List<Song>>} (see
+     * {@link SongService#loadAllGroupedByArtist}) by first letter, without
+     * disturbing that existing order -- iterating the source map in its
+     * own (case-insensitive alphabetical) order and appending to each
+     * letter's list means every per-letter list comes out sorted for free.
+     */
+    private static List<LetterGroup> buildArtistTree(Map<String, List<Song>> songsByArtist) {
+        Map<Character, List<ArtistEntry>> byLetter = new TreeMap<>();
+        songsByArtist.forEach((artist, songs) -> byLetter
+                .computeIfAbsent(AlphabeticalIndex.firstLetter(artist), letter -> new ArrayList<>())
+                .add(new ArtistEntry(artist, songs)));
+        return byLetter.entrySet().stream()
+                .map(entry -> new LetterGroup(String.valueOf(entry.getKey()), entry.getValue()))
+                .toList();
     }
 
     @GetMapping("/artists/{artist}")

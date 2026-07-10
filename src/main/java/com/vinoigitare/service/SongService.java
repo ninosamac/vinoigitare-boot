@@ -71,14 +71,23 @@ public class SongService {
     }
 
     /**
-     * All songs grouped by artist, artists in natural (TreeMap) order and
-     * each artist's songs sorted by title. Replaces the old
+     * All songs grouped by artist, artists in case-insensitive alphabetical
+     * order and each artist's songs sorted by title. Replaces the old
      * {@code SongTree}'s {@code TreeMap<String, TreeSet<Song>>}.
+     *
+     * <p>Case-insensitive on purpose: a plain {@code TreeMap::new} (natural
+     * {@code String} ordering) sorts by raw character code, so any
+     * inconsistently-cased artist name would land in the wrong place
+     * relative to its neighbors (all-uppercase names sort before any
+     * lowercase one, even alphabetically later) -- exactly the kind of
+     * thing that only becomes visible once there are enough artists for it
+     * to matter, per the homepage artist-tree redesign this feeds.
      */
     public Map<String, List<Song>> loadAllGroupedByArtist() {
         return repository.findAll().stream()
                 .sorted(Comparator.comparing(Song::title, String.CASE_INSENSITIVE_ORDER))
-                .collect(Collectors.groupingBy(Song::artist, TreeMap::new, Collectors.toList()));
+                .collect(Collectors.groupingBy(Song::artist, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER),
+                        Collectors.toList()));
     }
 
     public List<Song> loadByArtist(String artist) {

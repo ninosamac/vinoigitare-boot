@@ -23,13 +23,8 @@ import com.vinoigitare.service.SongService;
  * letter, see that letter's artists (with their song count within that
  * genre) in that genre.
  *
- * <p>Letter grouping is simplified to "first Unicode code point,
- * uppercased" -- this correctly buckets diacritic letters (Đ, Š, Č, Ć, Ž)
- * as their own letters (matching pesmarica.rs's own alphabet, which does
- * the same), but does NOT implement the full Serbian/Croatian alphabet's
- * two-character letters (Lj, Nj, Dž) as single buckets -- e.g. "Ljubomir"
- * groups under "L", not a separate "Lj". Acceptable simplification for
- * this wave; a known limitation if it's ever worth fixing.
+ * <p>Letter grouping is via {@link AlphabeticalIndex#firstLetter} -- see
+ * its Javadoc for the exact rule and its known limitation.
  */
 @Controller
 @RequestMapping("/genres")
@@ -58,7 +53,7 @@ public class GenreBrowseController {
 
         TreeSet<Character> letters = new TreeSet<>();
         for (Song song : songs) {
-            letters.add(firstLetter(song.artist()));
+            letters.add(AlphabeticalIndex.firstLetter(song.artist()));
         }
 
         model.addAttribute("genre", genre);
@@ -70,11 +65,11 @@ public class GenreBrowseController {
     @GetMapping("/{genreSlug}/{letter}")
     public String artistsForLetter(@PathVariable String genreSlug, @PathVariable String letter, Model model) {
         Genre genre = genreFor(genreSlug);
-        char letterChar = firstLetter(letter);
+        char letterChar = AlphabeticalIndex.firstLetter(letter);
 
         Map<String, Long> songCountByArtist = new TreeMap<>();
         for (Song song : songService.loadByGenre(genre)) {
-            if (firstLetter(song.artist()) == letterChar) {
+            if (AlphabeticalIndex.firstLetter(song.artist()) == letterChar) {
                 songCountByArtist.merge(song.artist(), 1L, Long::sum);
             }
         }
@@ -88,9 +83,5 @@ public class GenreBrowseController {
     private static Genre genreFor(String genreSlug) {
         return Genre.fromSlug(genreSlug)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Unknown genre: " + genreSlug));
-    }
-
-    private static char firstLetter(String text) {
-        return text.isEmpty() ? '#' : Character.toUpperCase(text.charAt(0));
     }
 }

@@ -31,17 +31,51 @@
         </div>
     </div>
 
-    <h1 class="h4 mb-3" th:text="#{home.artists}">Artists</h1>
-    <div th:if="${artists.isEmpty()}" class="text-muted">
+    <div class="d-flex justify-content-between align-items-baseline mb-1 flex-wrap">
+        <h1 class="h4 mb-0" th:text="#{home.artists}">Artists</h1>
+        <span class="text-muted small" th:if="${totalArtists > 0}"
+              th:text="#{home.treeStats(${totalArtists},${totalSongs})}">0 artists · 0 songs</span>
+    </div>
+    <div th:if="${totalArtists == 0}" class="text-muted mb-3">
         <span th:text="#{home.noSongs}">No songs yet. Add the first one in the</span>
         <a th:href="@{/admin/new}" th:text="#{home.adminPanel}">admin panel</a>.
     </div>
-    <ul class="list-unstyled">
-        <li th:each="entry : ${artists}" class="index-row d-flex justify-content-between mb-2">
-            <a th:href="@{/artists/{artist}(artist=${entry.key})}" th:text="${entry.key}">Artist</a>
-            <span class="text-muted">(<span th:text="${entry.value.size()}">0</span>)</span>
-        </li>
-    </ul>
+
+    <!--
+      Homepage artist tree (rethinking the main page for scale -- see
+      SongBrowseController's class Javadoc): a letter-grouped, expandable
+      index instead of one flat list, artists as "folders" and songs as
+      "files". Server-rendered fully expanded (aria-expanded="true",
+      .song-list has no .collapsed class) so it's a complete, navigable
+      page with no JS at all; static/js/artist-tree.js (added alongside
+      the toolbar above it) then collapses everything on load and layers
+      on the actual expand/collapse/search interactivity.
+    -->
+    <div class="tree-card" th:if="${totalArtists > 0}">
+        <div class="tree-scroll" id="artistTree">
+            <div th:each="group : ${artistTree}">
+                <div class="letter-heading" th:text="${group.letter()}">A</div>
+                <div th:each="entry : ${group.artists()}">
+                    <div class="artist-row" data-artist-row tabindex="0" role="button" aria-expanded="true">
+                        <span class="twisty" aria-hidden="true">&#9654;</span>
+                        <span class="folder-icon" aria-hidden="true">&#9638;</span>
+                        <a class="artist-name" data-artist-name
+                           th:href="@{/artists/{artist}(artist=${entry.artist()})}"
+                           th:text="${entry.artist()}">Artist</a>
+                        <span class="song-count" th:text="'(' + ${entry.songs().size()} + ')'">(0)</span>
+                    </div>
+                    <div class="song-list" data-song-list>
+                        <a class="song-row" th:each="song : ${entry.songs()}"
+                           th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}">
+                            <span class="file-icon" aria-hidden="true">&#9834;</span>
+                            <span class="song-title" data-song-title th:text="${song.title()}">Title</span>
+                            <span class="song-views" th:text="${song.views()}">0</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 <script th:src="@{/js/theme-toggle.js}"></script>
 </body>
