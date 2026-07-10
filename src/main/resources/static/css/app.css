@@ -206,6 +206,25 @@ h1, h2, h3,
     opacity: 0.8;
 }
 
+/* Song page control rows (Transpose/Zoom/Auto-scroll): real feedback --
+   the -/+ buttons looked "jagged" across the three rows, each one glued
+   immediately to the end of its own label, so they landed at a
+   different x position per row ("Transpose:" vs "Zoom:" vs
+   "Auto-scroll:" are all different lengths, and the Zoom buttons show
+   an extra "A" -- "A-"/"A+" vs plain "-"/"+"). Giving the label and the
+   step buttons a shared fixed width turns both into real columns: labels
+   stay left-aligned (unchanged), but now the buttons after them start
+   -- and, being the same width themselves, end -- at the same x on
+   every row. */
+.control-label {
+    display: inline-block;
+    min-width: 6.5rem;
+}
+
+.control-step-btn {
+    min-width: 2.25rem;
+}
+
 /* Chord-diagram reference page (com.vinoigitare.chords.ChordDiagramRenderer
    builds the actual <svg> per diagram; this is just the card/grid layout
    and the SVG's stroke/fill colors, which have to be set here since an
