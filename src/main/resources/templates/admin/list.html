@@ -7,7 +7,17 @@
     <!-- TODO: unauthenticated -- see AdminController class Javadoc. -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h4 mb-0" th:text="#{admin.allSongs}">All Songs</h1>
-        <a class="btn btn-primary btn-sm" th:href="@{/admin/new}" th:text="#{admin.newSong}">New Song</a>
+        <div class="d-flex gap-2">
+            <a class="btn btn-primary btn-sm" th:href="@{/admin/new}" th:text="#{admin.newSong}">New Song</a>
+            <!-- Spring Security's default logout (admin-auth plan, step 3):
+                 POST /logout, redirects to /login?logout on success -- login.html
+                 already handles that param (see its comment). th:action, not a
+                 plain action attribute, so the CSRF token auto-injects the same
+                 way it does on the delete form below. -->
+            <form th:action="@{/logout}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-outline-secondary btn-sm" th:text="#{admin.logout}">Log out</button>
+            </form>
+        </div>
     </div>
     <div class="table-responsive">
         <table class="table table-sm align-middle">
