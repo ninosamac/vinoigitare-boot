@@ -44,4 +44,37 @@ public enum Genre {
     public static Optional<Genre> fromSlug(String slug) {
         return Arrays.stream(values()).filter(genre -> genre.slug.equals(slug)).findFirst();
     }
+
+    /**
+     * Resolves a raw {@link com.vinoigitare.model.Song#genre()} value to
+     * its canonical {@code Genre}, tolerant of every form that value has
+     * ever taken on disk: the slug (what {@code AdminController} stores
+     * going forward), the current English label (what it stored before
+     * that), or the original Serbian label text {@code SongImporter}
+     * assigned before the site-wide English i18n switch -- e.g. a song
+     * imported back then still has the literal text {@code "Strano"}
+     * sitting in its genre column.
+     *
+     * <p>A real bug found in testing: without this, a song edited after
+     * that switch ended up with genre {@code "Foreign"} while an
+     * untouched older song still had {@code "Strano"} -- two different
+     * strings for what's the same category, so genre browsing and the
+     * admin list silently treated them as different genres. Case-
+     * insensitive slug matching alone happens to cover the old Serbian
+     * text too, since e.g. {@code "Strano"} and the {@code "strano"}
+     * slug differ only in case -- no separate legacy-label table needed.
+     * Callers that display the result should show {@link #label()}, not
+     * echo the raw stored value, so old and new rows read identically
+     * regardless of which form is still on disk; the value only actually
+     * normalizes to the slug once that row is next saved through the
+     * admin form.
+     */
+    public static Optional<Genre> resolve(String storedValue) {
+        if (storedValue == null || storedValue.isBlank()) {
+            return Optional.empty();
+        }
+        return Arrays.stream(values())
+                .filter(genre -> genre.slug.equalsIgnoreCase(storedValue) || genre.label.equalsIgnoreCase(storedValue))
+                .findFirst();
+    }
 }

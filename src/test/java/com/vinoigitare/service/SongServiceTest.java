@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import com.vinoigitare.model.Genre;
 import com.vinoigitare.model.Song;
 import com.vinoigitare.storage.SongRepository;
 
@@ -66,7 +67,7 @@ class SongServiceTest {
         repository.save(new Song(null, "D Artist", "Title", null, null, "chords", null, 0L));
 
         SongService service = new SongService(repository);
-        List<Song> popRock = service.loadByGenre("Pop/Rock");
+        List<Song> popRock = service.loadByGenre(Genre.POP_ROCK);
 
         assertThat(popRock).extracting(Song::artist).containsExactly("A Artist", "A Artist", "B Artist");
         assertThat(popRock).extracting(Song::title).containsExactly("A Title", "Z Title", "Title");
@@ -79,7 +80,24 @@ class SongServiceTest {
 
         SongService service = new SongService(repository);
 
-        assertThat(service.loadByGenre("Pop/Rock")).isEmpty();
+        assertThat(service.loadByGenre(Genre.POP_ROCK)).isEmpty();
+    }
+
+    @Test
+    void loadByGenreAlsoMatchesTheOriginalSerbianLabelTextFromBeforeTheI18nSwitch() {
+        // Real bug found in testing: SongImporter assigned genres using
+        // Genre.label() at import time, which was Serbian text ("Strano")
+        // before the site-wide English i18n switch -- a song imported back
+        // then still has that literal text stored, while genre.label() is
+        // "Foreign" now. Both must count as Genre.STRANO (see Genre.resolve).
+        InMemorySongRepository repository = new InMemorySongRepository();
+        repository.save(new Song(null, "Old Artist", "Old Song", null, "Strano", "chords", null, 0L));
+        repository.save(new Song(null, "New Artist", "New Song", null, "Foreign", "chords", null, 0L));
+
+        SongService service = new SongService(repository);
+
+        assertThat(service.loadByGenre(Genre.STRANO)).extracting(Song::artist)
+                .containsExactlyInAnyOrder("Old Artist", "New Artist");
     }
 
     @Test

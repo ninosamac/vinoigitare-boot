@@ -1,5 +1,7 @@
 package com.vinoigitare.web;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,9 +36,28 @@ public class AdminController {
         this.songService = songService;
     }
 
+    /**
+     * @param song       the underlying song
+     * @param genreLabel the current, canonical display label for {@code
+     *                   song.genre()} (resolved via {@link Genre#resolve},
+     *                   not the raw stored value -- see that method's
+     *                   Javadoc for why those can differ) or {@code null}
+     *                   if no genre is assigned. Computed here rather than
+     *                   in the template: calling {@code Genre.resolve(...)}
+     *                   from inside admin/list.html's {@code th:each} would
+     *                   hit the same restricted-expression guard {@code
+     *                   ChordDiagramController} already worked around (see
+     *                   its Javadoc).
+     */
+    public record SongRow(Song song, String genreLabel) {
+    }
+
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("songs", songService.loadAll());
+        List<SongRow> rows = songService.loadAll().stream()
+                .map(song -> new SongRow(song, Genre.resolve(song.genre()).map(Genre::label).orElse(null)))
+                .toList();
+        model.addAttribute("songs", rows);
         return "admin/list";
     }
 
@@ -60,7 +81,16 @@ public class AdminController {
     public String editForm(@PathVariable String id, Model model) {
         Song song = songService.load(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Song not found: " + id));
-        String genre = song.genre() == null ? "" : song.genre();
+        // Genre.resolve(...), not song.genre() directly: the select's
+        // options now use slugs as their value (see admin/form.html), but
+        // a song saved before that change -- or imported before the
+        // English i18n switch -- may still have the display label (or
+        // even the old Serbian label text) sitting in this column. Without
+        // resolving to the slug here, th:field wouldn't match any option
+        // for those rows, the dropdown would silently show "(no genre)",
+        // and saving would then erase the genre entirely. Saving after
+        // this also normalizes the stored value to the slug going forward.
+        String genre = Genre.resolve(song.genre()).map(Genre::slug).orElse("");
         model.addAttribute("songForm", new SongForm(song.artist(), song.title(), song.chords(), genre));
         model.addAttribute("isNew", false);
         model.addAttribute("originalId", id);

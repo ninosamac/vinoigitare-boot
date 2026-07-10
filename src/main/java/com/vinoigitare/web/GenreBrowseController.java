@@ -45,7 +45,7 @@ public class GenreBrowseController {
     public String genres(Model model) {
         Map<Genre, Integer> songCountByGenre = new java.util.LinkedHashMap<>();
         for (Genre genre : Genre.values()) {
-            songCountByGenre.put(genre, songService.loadByGenre(genre.label()).size());
+            songCountByGenre.put(genre, songService.loadByGenre(genre).size());
         }
         model.addAttribute("songCountByGenre", songCountByGenre);
         return "genres";
@@ -54,7 +54,7 @@ public class GenreBrowseController {
     @GetMapping("/{genreSlug}")
     public String letters(@PathVariable String genreSlug, Model model) {
         Genre genre = genreFor(genreSlug);
-        List<Song> songs = songService.loadByGenre(genre.label());
+        List<Song> songs = songService.loadByGenre(genre);
 
         TreeSet<Character> letters = new TreeSet<>();
         for (Song song : songs) {
@@ -73,7 +73,7 @@ public class GenreBrowseController {
         char letterChar = firstLetter(letter);
 
         Map<String, Long> songCountByArtist = new TreeMap<>();
-        for (Song song : songService.loadByGenre(genre.label())) {
+        for (Song song : songService.loadByGenre(genre)) {
             if (firstLetter(song.artist()) == letterChar) {
                 songCountByArtist.merge(song.artist(), 1L, Long::sum);
             }

@@ -20,7 +20,7 @@
             <label class="form-label" th:text="#{admin.genre}">Genre</label>
             <select class="form-select" th:field="*{genre}">
                 <option value="" th:text="#{admin.noGenre}">(no genre)</option>
-                <option th:each="g : ${genres}" th:value="${g.label()}" th:text="${g.label()}">Genre</option>
+                <option th:each="g : ${genres}" th:value="${g.slug()}" th:text="${g.label()}">Genre</option>
             </select>
         </div>
         <div class="mb-3">

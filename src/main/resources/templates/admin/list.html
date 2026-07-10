@@ -20,14 +20,14 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="song : ${songs}">
-                <td th:text="${song.artist()}">Artist</td>
-                <td th:text="${song.title()}">Title</td>
-                <td th:text="${song.genre()} ?: '-'">Genre</td>
+            <tr th:each="row : ${songs}">
+                <td th:text="${row.song().artist()}">Artist</td>
+                <td th:text="${row.song().title()}">Title</td>
+                <td th:text="${row.genreLabel()} ?: '-'">Genre</td>
                 <td class="text-end text-nowrap">
-                    <a class="btn btn-sm btn-outline-secondary" th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}" th:text="#{admin.view}">View</a>
-                    <a class="btn btn-sm btn-outline-secondary" th:href="@{/admin/edit/{id}(id=${song.id()})}" th:text="#{admin.edit}">Edit</a>
-                    <form th:action="@{/admin/delete/{id}(id=${song.id()})}" method="post" class="d-inline"
+                    <a class="btn btn-sm btn-outline-secondary" th:href="@{/akordi/{id}/{slug}(id=${row.song().id()},slug=${row.song().slug()})}" th:text="#{admin.view}">View</a>
+                    <a class="btn btn-sm btn-outline-secondary" th:href="@{/admin/edit/{id}(id=${row.song().id()})}" th:text="#{admin.edit}">Edit</a>
+                    <form th:action="@{/admin/delete/{id}(id=${row.song().id()})}" method="post" class="d-inline"
                           th:attr="data-confirm-delete=#{admin.confirmDelete}" data-delete-form>
                         <button type="submit" class="btn btn-sm btn-outline-danger" th:text="#{admin.delete}">Delete</button>
                     </form>

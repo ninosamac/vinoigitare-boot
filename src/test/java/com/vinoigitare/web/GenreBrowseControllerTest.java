@@ -31,10 +31,10 @@ class GenreBrowseControllerTest {
 
     @Test
     void genreIndexListsAllThreeGenresWithCounts() throws Exception {
-        given(songService.loadByGenre("Pop/Rock")).willReturn(List.of(
+        given(songService.loadByGenre(Genre.POP_ROCK)).willReturn(List.of(
                 new Song("Marko Markovic", "Probna pesma", "chords")));
-        given(songService.loadByGenre("Folk")).willReturn(List.of());
-        given(songService.loadByGenre("Foreign")).willReturn(List.of());
+        given(songService.loadByGenre(Genre.NARODNO)).willReturn(List.of());
+        given(songService.loadByGenre(Genre.STRANO)).willReturn(List.of());
 
         mockMvc.perform(get("/genres"))
                 .andExpect(status().isOk())
@@ -45,7 +45,7 @@ class GenreBrowseControllerTest {
 
     @Test
     void lettersPageListsDistinctFirstLettersForGenre() throws Exception {
-        given(songService.loadByGenre("Pop/Rock")).willReturn(List.of(
+        given(songService.loadByGenre(Genre.POP_ROCK)).willReturn(List.of(
                 new Song("Marko Markovic", "Probna pesma", "chords"),
                 new Song("Đorđe Đokić", "Šašava priča", "chords")));
 
@@ -63,7 +63,7 @@ class GenreBrowseControllerTest {
 
     @Test
     void artistsForLetterListsMatchingArtistsWithSongCounts() throws Exception {
-        given(songService.loadByGenre("Pop/Rock")).willReturn(List.of(
+        given(songService.loadByGenre(Genre.POP_ROCK)).willReturn(List.of(
                 new Song("Marko Markovic", "Probna pesma", "chords"),
                 new Song("Marko Markovic", "Druga pesma", "chords"),
                 new Song("Ana Anic", "Treca pesma", "chords")));
