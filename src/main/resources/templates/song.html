@@ -13,6 +13,23 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title th:text="${song.artist()} + ' - ' + ${song.title()} + ' - Vino i gitare'">Song - Vino i gitare</title>
+    <!--
+      Real bug found in testing: this page has its own <head> (see the
+      comment above) instead of going through fragments :: head(title),
+      so it was missing the theme-restore script that fragment carries --
+      meaning a stored dark/light choice was silently ignored on every
+      song page, falling back to default (previously prefers-color-scheme,
+      now always light) instead. Every page needs this script, so it's
+      duplicated here rather than only living in the shared fragment.
+    -->
+    <script>
+        (function () {
+            var stored = localStorage.getItem("vinoigitare.theme");
+            if (stored === "dark") {
+                document.documentElement.setAttribute("data-bs-theme", "dark");
+            }
+        })();
+    </script>
     <!-- Read by static/js/display-controls.js so the auto-scroll toggle's
          start/stop button text comes from the message bundle instead of
          being hardcoded in JS, which has no access to Thymeleaf messages. -->

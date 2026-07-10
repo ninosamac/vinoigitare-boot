@@ -4,16 +4,24 @@
  * The actual dark-mode CSS (app.css) responds to Bootstrap's own
  * data-bs-theme attribute on <html> -- reused rather than inventing a
  * separate attribute so Bootstrap's own components repaint too, not just
- * this app's custom rules. Three states in storage terms, but only two
- * the user picks between directly:
- *   - no stored preference: prefers-color-scheme decides (see app.css's
- *     `:root:not([data-bs-theme])` media query block)
- *   - "dark" / "light" stored: explicit override, wins either direction
+ * this app's custom rules.
  *
- * The stored preference is also applied synchronously in <head> (see
- * fragments.html), before this file loads, so there's no flash of the
- * wrong theme -- this file only needs to handle the click itself and
- * keep the button's own label in sync.
+ * Light by default; dark only when explicitly chosen via this button,
+ * persisted in localStorage. Deliberately does NOT also follow
+ * prefers-color-scheme -- an earlier version did, and it caused a real
+ * bug: song.html has its own <head> (doesn't go through fragments ::
+ * head, for SEO reasons) and was missing the theme-restore script the
+ * other pages have, so navigating to a song page silently fell back to
+ * the OS preference instead of the visitor's actual stored choice,
+ * making the theme appear to randomly flip mid-navigation. One clear
+ * rule -- explicit choice or light, nothing else -- avoids that whole
+ * class of bug.
+ *
+ * The stored preference is also applied synchronously in <head> (every
+ * page needs its own copy of that inline script now, see fragments.html
+ * and song.html), before this file loads, so there's no flash of dark
+ * while this file loads -- this file only needs to handle the click
+ * itself and keep the button's own label in sync.
  */
 (function () {
     "use strict";
@@ -26,13 +34,7 @@
     }
 
     function effectiveTheme() {
-        var explicit = document.documentElement.getAttribute("data-bs-theme");
-        if (explicit === "light" || explicit === "dark") {
-            return explicit;
-        }
-        var prefersDark = typeof window.matchMedia === "function"
-            && window.matchMedia("(prefers-color-scheme: dark)").matches;
-        return prefersDark ? "dark" : "light";
+        return document.documentElement.getAttribute("data-bs-theme") === "dark" ? "dark" : "light";
     }
 
     function applyTheme(theme) {

@@ -6,17 +6,24 @@
    (transpose value, chord-line tint). See the design pitch discussed
    with Nino for the two rejected directions (Vinska Karta, Ploča).
 
-   Dark mode ("notebook at night"): auto-detected via
-   prefers-color-scheme, overridable either direction via a toggle
-   (static/js/theme-toggle.js) that sets data-bs-theme on <html> and
-   persists the choice in localStorage -- reusing Bootstrap 5.3's own
-   attribute (rather than inventing a separate one) means Bootstrap's
-   own components repaint too, not just this file's custom rules.
-   Token indirection is what makes this cheap: every component rule
-   below reads from the --paper/--ink/etc. custom properties (or the
-   --bs-* aliases further down, which themselves read from those same
-   tokens), never a literal color -- so only the token values need to
-   change per mode, not every rule that uses them.
+   Dark mode ("notebook at night"): light by default, switched only by
+   the toggle button (static/js/theme-toggle.js), which sets
+   data-bs-theme="dark" on <html> and persists the choice in
+   localStorage -- reusing Bootstrap 5.3's own attribute (rather than
+   inventing a separate one) means Bootstrap's own components repaint
+   too, not just this file's custom rules. Deliberately does NOT also
+   respond to prefers-color-scheme: an earlier version did, and it
+   produced a confusing bug in practice -- a page with its own <head>
+   (song.html, for SEO reasons) was missing the theme-restore script the
+   other pages have, so it silently fell back to the OS preference
+   instead of the visitor's actual stored choice, making the theme
+   appear to "randomly" flip when navigating to a song page. Simpler and
+   more predictable to have exactly one thing control this. Token
+   indirection is what makes switching cheap regardless: every component
+   rule below reads from the --paper/--ink/etc. custom properties (or
+   the --bs-* aliases further down, which themselves read from those
+   same tokens), never a literal color -- so only the token values need
+   to change per mode, not every rule that uses them.
 
    Mobile-first: base rules target the smallest screen; the one
    width-based @media query widens things back up, it doesn't shrink
@@ -56,28 +63,9 @@
     --bs-primary-rgb: 47, 93, 80;
 }
 
-/* Automatic: respected only when the visitor hasn't overridden the
-   choice via the toggle (see the plain :root[data-bs-theme] blocks
-   below, which win over this because they're more specific). */
-@media (prefers-color-scheme: dark) {
-    :root:not([data-bs-theme]) {
-        --paper: #201e19;
-        --paper-rule: #38352c;
-        --card: #2a2721;
-        --ink: #ece7d9;
-        --ink-muted: #a39d8c;
-        --accent: #6fbf9f;
-        --accent-2: #e0836b;
-        --line: #38352c;
-        --nav-bg: #14130f;
-        --nav-ink: #ece7d9;
-        --nav-ink-muted: rgba(236, 231, 217, 0.75);
-        --bs-primary-rgb: 111, 191, 159;
-    }
-}
-
-/* Explicit override via the toggle -- wins regardless of OS preference
-   in either direction. */
+/* Explicit override via the toggle -- the only way this changes now
+   (see the comment at the top of this file for why prefers-color-scheme
+   auto-detection was removed). */
 :root[data-bs-theme="dark"] {
     --paper: #201e19;
     --paper-rule: #38352c;
@@ -91,21 +79,6 @@
     --nav-ink: #ece7d9;
     --nav-ink-muted: rgba(236, 231, 217, 0.75);
     --bs-primary-rgb: 111, 191, 159;
-}
-
-:root[data-bs-theme="light"] {
-    --paper: #faf6ec;
-    --paper-rule: #d9d2ba;
-    --card: #fdfbf5;
-    --ink: #2a2822;
-    --ink-muted: #6b675c;
-    --accent: #2f5d50;
-    --accent-2: #a8402f;
-    --line: #d9d2ba;
-    --nav-bg: #2a2822;
-    --nav-ink: #faf6ec;
-    --nav-ink-muted: rgba(250, 246, 236, 0.75);
-    --bs-primary-rgb: 47, 93, 80;
 }
 
 body {
@@ -213,6 +186,64 @@ h1, h2, h3,
 .theme-toggle-btn:focus {
     color: var(--nav-ink);
     opacity: 0.8;
+}
+
+/* Chord-diagram reference page (com.vinoigitare.chords.ChordDiagramRenderer
+   builds the actual <svg> per diagram; this is just the card/grid layout
+   and the SVG's stroke/fill colors, which have to be set here since an
+   inline SVG's shapes don't otherwise inherit the page's CSS custom
+   properties by default the way HTML text does). */
+.chord-diagram-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 0.75rem;
+}
+
+.chord-diagram-card {
+    background-color: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    text-align: center;
+}
+
+.chord-diagram-name {
+    font-family: Georgia, "Iowan Old Style", "Book Antiqua", Palatino, serif;
+    font-weight: 700;
+    font-style: italic;
+    margin-bottom: 0.25rem;
+}
+
+.chord-diagram-svg {
+    width: 100%;
+    height: auto;
+}
+
+.chord-diagram-string,
+.chord-diagram-fret {
+    stroke: var(--ink-muted);
+    stroke-width: 1;
+}
+
+.chord-diagram-nut {
+    stroke: var(--ink);
+    stroke-width: 2.5;
+}
+
+.chord-diagram-dot {
+    fill: var(--accent);
+}
+
+.chord-diagram-barre {
+    stroke: var(--accent);
+    stroke-width: 8;
+    stroke-linecap: round;
+    opacity: 0.55;
+}
+
+.chord-diagram-marker {
+    fill: var(--ink-muted);
+    font-size: 10px;
 }
 
 @media (max-width: 576px) {

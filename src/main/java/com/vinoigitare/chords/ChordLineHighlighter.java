@@ -31,7 +31,17 @@ import org.springframework.web.util.HtmlUtils;
 public class ChordLineHighlighter {
 
     public String render(String chords) {
-        String[] lines = chords.split("\n", -1);
+        // Split on any line-ending style, not just "\n": a browser <textarea>
+        // submits CRLF, so admin-entered chords are stored with "\r\n" while
+        // imported .tab files use plain "\n" -- splitting on "\n" alone left
+        // a stray trailing "\r" on every CRLF-sourced line, which survived
+        // escaping and got embedded literally in the output HTML. The
+        // browser's own HTML parser then normalizes that lone "\r" into a
+        // line break of its own (HTML5 input-stream preprocessing), on top
+        // of the "\n" already appended below -- a real bug found in testing:
+        // an extra blank row between every chord line and the lyrics under
+        // it, for any song added or edited through the admin form.
+        String[] lines = chords.split("\r\n|\r|\n", -1);
         StringBuilder html = new StringBuilder(chords.length() + 64);
         for (int i = 0; i < lines.length; i++) {
             // The explicit-encoding overload, not the no-arg one: the

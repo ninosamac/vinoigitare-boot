@@ -10,18 +10,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title th:text="${title} + ' - Vino i gitare'">Vino i gitare</title>
     <!--
-      Applies a stored dark/light override (if any) to <html> before first
-      paint -- inline and synchronous, not in transpose.js/display-controls.js
-      (which load at the end of <body>), specifically so there's no flash of
-      the wrong theme while those load. No stored value = no attribute = the
-      prefers-color-scheme media query in app.css decides, same as if this
-      script didn't run at all.
+      Applies a stored dark override (if any) to <html> before first paint
+      -- inline and synchronous, not in theme-toggle.js (which loads at
+      the end of <body>), specifically so there's no flash of dark while
+      that loads. No stored value = light, always -- there's no
+      prefers-color-scheme detection; the theme only ever changes via the
+      toggle button, on purpose (see theme-toggle.js's header comment for
+      why that changed from the first version of this feature).
+
+      IMPORTANT if you're duplicating this script elsewhere (song.html
+      has its own copy, since it doesn't use this fragment's <head> --
+      see its comment for why): every page needs this, not just the ones
+      that go through this fragment, or a stored dark preference will be
+      silently ignored on any page missing it -- exactly the bug this
+      script's introduction into song.html separately was fixing.
     -->
     <script>
         (function () {
-            var stored = localStorage.getItem("vinoigitare.theme");
-            if (stored === "light" || stored === "dark") {
-                document.documentElement.setAttribute("data-bs-theme", stored);
+            if (localStorage.getItem("vinoigitare.theme") === "dark") {
+                document.documentElement.setAttribute("data-bs-theme", "dark");
             }
         })();
     </script>
@@ -53,6 +60,7 @@
         <div class="navbar-nav flex-row align-items-center">
             <a class="nav-link me-2" th:href="@{/}" th:text="#{nav.artists}">Artists</a>
             <a class="nav-link me-2" th:href="@{/genres}" th:text="#{nav.genres}">Genres</a>
+            <a class="nav-link me-2" th:href="@{/chord-diagrams}" th:text="#{nav.chordDiagrams}">Chords</a>
             <a class="nav-link me-2" th:href="@{/admin}" th:text="#{nav.admin}">Admin</a>
             <!--
               static/js/theme-toggle.js sets the glyph/aria-label on load

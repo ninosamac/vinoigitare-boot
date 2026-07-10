@@ -106,7 +106,12 @@ public final class ChordTransposer {
         if (semitones == 0) {
             return text;
         }
-        String[] lines = text.split("\n", -1);
+        // Split on any line-ending style, not just "\n" -- see the identical
+        // comment in ChordLineHighlighter.render() for why: admin-entered
+        // chords come from a browser <textarea>, which submits CRLF, and a
+        // stray trailing "\r" left on each line caused a doubled line break
+        // (PDF rendering goes through this method too, so it shared the bug).
+        String[] lines = text.split("\r\n|\r|\n", -1);
         StringBuilder result = new StringBuilder(text.length());
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
