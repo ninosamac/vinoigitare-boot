@@ -43,7 +43,11 @@
   differs here.
 -->
 <body data-base-font-rem="1.6">
-<div class="live-bar d-flex justify-content-between align-items-center px-3 py-2 no-print">
+<!-- .container here for the same reason as fragments :: nav -- see that
+     fragment's comment: keeps this bar's width matching the page content
+     below it (<main class="container">) on wide screens instead of
+     spanning the full viewport, while staying full-width on mobile. -->
+<div class="live-bar container d-flex justify-content-between align-items-center py-2 no-print">
     <a class="live-bar-exit" th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}"
        th:text="'&larr; ' + #{song.exitLiveView}">&larr; Exit live view</a>
     <div class="d-flex align-items-center gap-2">

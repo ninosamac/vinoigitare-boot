@@ -43,33 +43,46 @@
     <link rel="stylesheet" th:href="@{/css/app.css}"/>
 </head>
 <body>
-<nav th:fragment="nav" class="navbar navbar-expand navbar-dark mb-3">
-    <div class="container-fluid flex-wrap">
-        <a class="navbar-brand brand-mark" th:href="@{/}">Vino i gitare</a>
+<!--
+  Real feedback: on an ultra-wide monitor, a full-bleed .container-fluid
+  navbar reads as much wider than the page content below it (<main
+  class="container">), which caps out at a fixed max-width. Using
+  .container directly on <nav> itself (not as a nested wrapper div, the
+  usual Bootstrap pattern) makes the whole bar -- background included --
+  match that same max-width and center the same way, on every page, while
+  staying full-width below the sm breakpoint exactly like the page
+  content does (.container has no max-width at all until sm, so mobile is
+  unaffected). This works without any extra flex utility classes because
+  .navbar's own base rules already set display:flex/flex-wrap/align-items/
+  justify-content -- that's normally only applied a second time to a
+  nested .container child; putting .container straight on the .navbar
+  element means it already has everything it needs from the one rule.
+-->
+<nav th:fragment="nav" class="navbar navbar-expand navbar-dark mb-3 container">
+    <a class="navbar-brand brand-mark" th:href="@{/}">Vino i gitare</a>
+    <!--
+      Search box, submits GET /search?q=... (SearchController). Present
+      in every page via this shared fragment. th:value falls back to
+      empty when the current page has no "query" model attribute
+      (Thymeleaf evaluates an undefined variable to null, not an error).
+    -->
+    <form class="d-flex flex-grow-1 order-3 order-md-0 mt-2 mt-md-0 mx-md-3" style="max-width: 360px;"
+          th:action="@{/search}" method="get" role="search">
+        <input class="form-control form-control-sm" type="search" name="q"
+               th:placeholder="#{search.placeholder}" th:value="${query != null ? query : ''}"/>
+    </form>
+    <div class="navbar-nav flex-row align-items-center">
+        <a class="nav-link me-2" th:href="@{/}" th:text="#{nav.artists}">Artists</a>
+        <a class="nav-link me-2" th:href="@{/genres}" th:text="#{nav.genres}">Genres</a>
+        <a class="nav-link me-2" th:href="@{/chord-diagrams}" th:text="#{nav.chordDiagrams}">Chords</a>
+        <a class="nav-link me-2" th:href="@{/admin}" th:text="#{nav.admin}">Admin</a>
         <!--
-          Search box, submits GET /search?q=... (SearchController). Present
-          in every page via this shared fragment. th:value falls back to
-          empty when the current page has no "query" model attribute
-          (Thymeleaf evaluates an undefined variable to null, not an error).
+          static/js/theme-toggle.js sets the glyph/aria-label on load
+          (reflecting whatever theme is actually active, whether that
+          came from the stored override above or prefers-color-scheme)
+          and again on every click.
         -->
-        <form class="d-flex flex-grow-1 order-3 order-md-0 mt-2 mt-md-0 mx-md-3" style="max-width: 360px;"
-              th:action="@{/search}" method="get" role="search">
-            <input class="form-control form-control-sm" type="search" name="q"
-                   th:placeholder="#{search.placeholder}" th:value="${query != null ? query : ''}"/>
-        </form>
-        <div class="navbar-nav flex-row align-items-center">
-            <a class="nav-link me-2" th:href="@{/}" th:text="#{nav.artists}">Artists</a>
-            <a class="nav-link me-2" th:href="@{/genres}" th:text="#{nav.genres}">Genres</a>
-            <a class="nav-link me-2" th:href="@{/chord-diagrams}" th:text="#{nav.chordDiagrams}">Chords</a>
-            <a class="nav-link me-2" th:href="@{/admin}" th:text="#{nav.admin}">Admin</a>
-            <!--
-              static/js/theme-toggle.js sets the glyph/aria-label on load
-              (reflecting whatever theme is actually active, whether that
-              came from the stored override above or prefers-color-scheme)
-              and again on every click.
-            -->
-            <button type="button" class="btn btn-sm theme-toggle-btn" data-theme-toggle>&#9789;</button>
-        </div>
+        <button type="button" class="btn btn-sm theme-toggle-btn" data-theme-toggle>&#9789;</button>
     </div>
 </nav>
 
