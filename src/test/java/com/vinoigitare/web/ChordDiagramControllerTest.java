@@ -39,12 +39,16 @@ class ChordDiagramControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    void pageListsAllFourteenNaturalChordsAsSvgDiagrams() throws Exception {
+    void pageListsChordsFromEverySectionAsSvgDiagrams() throws Exception {
         mockMvc.perform(get("/chord-diagrams"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Chord Diagrams")))
+                .andExpect(content().string(containsString("Major 7th")))
                 .andExpect(content().string(containsString(">C<")))
                 .andExpect(content().string(containsString(">Hm<")))
+                .andExpect(content().string(containsString(">C#<")))
+                .andExpect(content().string(containsString(">G7<")))
+                .andExpect(content().string(containsString(">Cdim<")))
                 .andExpect(content().string(containsString("<svg")));
     }
 }

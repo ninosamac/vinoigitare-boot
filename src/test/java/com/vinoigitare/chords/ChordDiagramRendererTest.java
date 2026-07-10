@@ -71,6 +71,27 @@ class ChordDiagramRendererTest {
     }
 
     @Test
+    void baseFretGreaterThanOneShowsAPositionLabelAndNoThickNut() {
+        // C#: A-shape barre at (absolute) fret 4 -- too high to fit a
+        // window starting at the nut, so it's shown as a shifted window
+        // with a "4fr" label instead, like a printed chord book would.
+        ChordDiagram cSharp = new ChordDiagram("C#", new int[] {-1, 4, 6, 6, 6, 4}, 4, 4);
+
+        String svg = renderer.render(cSharp);
+
+        assertThat(svg).doesNotContain("chord-diagram-nut");
+        assertThat(svg).contains(">4fr<");
+    }
+
+    @Test
+    void baseFretOfOneIsIndistinguishableFromTheImplicitDefault() {
+        ChordDiagram explicit = new ChordDiagram("C", new int[] {-1, 3, 2, 0, 1, 0}, 0, 1);
+        ChordDiagram implicit = new ChordDiagram("C", new int[] {-1, 3, 2, 0, 1, 0}, 0);
+
+        assertThat(renderer.render(explicit)).isEqualTo(renderer.render(implicit));
+    }
+
+    @Test
     void chordNameIsEscapedInTheAriaLabel() {
         ChordDiagram weird = new ChordDiagram("<script>", new int[] {0, 0, 0, 0, 0, 0}, 0);
 

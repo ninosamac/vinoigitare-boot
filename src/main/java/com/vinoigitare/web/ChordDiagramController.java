@@ -31,6 +31,10 @@ public class ChordDiagramController {
     public record RenderedDiagram(String name, String svg) {
     }
 
+    /** @param labelKey message-bundle key for the section heading, resolved in the template via {@code #{...}} */
+    public record RenderedSection(String labelKey, List<RenderedDiagram> diagrams) {
+    }
+
     @GetMapping("/chord-diagrams")
     public String chordDiagrams(Model model) {
         // Rendered here (plain Java), not via a Thymeleaf expression in
@@ -38,11 +42,13 @@ public class ChordDiagramController {
         // from inside chord-diagrams.html's th:each loop hit the same
         // Thymeleaf restricted-expression guard the songContent fragment
         // did (see ChordDiagramRenderer's Javadoc) -- so the template
-        // just gets a plain list of already-rendered (name, svg) pairs.
-        List<RenderedDiagram> rendered = ChordDiagramCatalog.all().stream()
-                .map(this::render)
+        // just gets a plain list of already-rendered (name, svg) pairs,
+        // grouped into sections.
+        List<RenderedSection> sections = ChordDiagramCatalog.sections().stream()
+                .map(section -> new RenderedSection(section.labelKey(),
+                        section.chords().stream().map(this::render).toList()))
                 .toList();
-        model.addAttribute("diagrams", rendered);
+        model.addAttribute("sections", sections);
         return "chord-diagrams";
     }
 

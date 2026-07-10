@@ -5,9 +5,11 @@ import org.springframework.web.util.HtmlUtils;
 
 /**
  * Renders a {@link ChordDiagram} as a small self-contained SVG fretboard
- * diagram: 6 strings, 5 frets, open/muted markers above the nut, dots for
- * fretted notes, and a barre bar when the diagram says it's a barre chord
- * ({@link ChordDiagram#barreFret()} &gt; 0).
+ * diagram: 6 strings, a 5-fret window, open/muted markers above the nut
+ * (or a position label instead, if the window doesn't start at the nut --
+ * see {@link ChordDiagram#baseFret()}), dots for fretted notes, and a
+ * barre bar when the diagram says it's a barre chord ({@link
+ * ChordDiagram#barreFret()} &gt; 0).
  *
  * <p>A Spring bean, called directly from {@code ChordDiagramController}
  * (in Java, not from the template): calling a bean method via {@code
@@ -26,30 +28,35 @@ public class ChordDiagramRenderer {
     private static final int FRETS_SHOWN = 5;
     private static final int MARGIN_LEFT = 15;
     private static final int MARGIN_TOP = 26;
+    private static final int MARGIN_RIGHT = 22;
     private static final int STRING_SPACING = 16;
     private static final int FRET_SPACING = 18;
     private static final int DOT_RADIUS = 5;
-    private static final int WIDTH = MARGIN_LEFT * 2 + STRING_SPACING * (STRING_COUNT - 1);
+    private static final int WIDTH = MARGIN_LEFT + STRING_SPACING * (STRING_COUNT - 1) + MARGIN_RIGHT;
     private static final int HEIGHT = MARGIN_TOP + FRET_SPACING * FRETS_SHOWN + 14;
 
     public String render(ChordDiagram diagram) {
         int[] frets = diagram.frets();
+        int baseFret = diagram.baseFret();
         StringBuilder svg = new StringBuilder(1024);
         svg.append("<svg viewBox=\"0 0 ").append(WIDTH).append(' ').append(HEIGHT)
                 .append("\" class=\"chord-diagram-svg\" role=\"img\" aria-label=\"")
                 .append(HtmlUtils.htmlEscape(diagram.name(), "UTF-8")).append(" chord diagram\">");
 
-        appendGrid(svg);
+        appendGrid(svg, baseFret);
         if (diagram.barreFret() > 0) {
-            appendBarre(svg, frets, diagram.barreFret());
+            appendBarre(svg, frets, diagram.barreFret(), baseFret);
         }
-        appendMarkersAndDots(svg, frets);
+        appendMarkersAndDots(svg, frets, baseFret);
+        if (baseFret > 1) {
+            appendPositionLabel(svg, baseFret);
+        }
 
         svg.append("</svg>");
         return svg.toString();
     }
 
-    private void appendGrid(StringBuilder svg) {
+    private void appendGrid(StringBuilder svg, int baseFret) {
         // Strings (vertical lines).
         for (int s = 0; s < STRING_COUNT; s++) {
             int x = stringX(s);
@@ -57,10 +64,14 @@ public class ChordDiagramRenderer {
                     .append("\" x2=\"").append(x).append("\" y2=\"").append(MARGIN_TOP + FRET_SPACING * FRETS_SHOWN)
                     .append("\" class=\"chord-diagram-string\"/>");
         }
-        // Frets (horizontal lines); the top one (the nut) is drawn thicker.
+        // Frets (horizontal lines); the top one is drawn thicker as the
+        // nut, but only when this window actually starts at the nut --
+        // otherwise (baseFret > 1) it's just another fret line, and the
+        // position label (appendPositionLabel) makes clear this isn't
+        // fret 0.
         for (int f = 0; f <= FRETS_SHOWN; f++) {
             int y = MARGIN_TOP + FRET_SPACING * f;
-            String cls = f == 0 ? "chord-diagram-nut" : "chord-diagram-fret";
+            String cls = (f == 0 && baseFret == 1) ? "chord-diagram-nut" : "chord-diagram-fret";
             svg.append("<line x1=\"").append(stringX(0)).append("\" y1=\"").append(y)
                     .append("\" x2=\"").append(stringX(STRING_COUNT - 1)).append("\" y2=\"").append(y)
                     .append("\" class=\"").append(cls).append("\"/>");
@@ -75,7 +86,7 @@ public class ChordDiagramRenderer {
      * inference alone is ambiguous (open D coincidentally shares a fret
      * across two strings without being a barre).
      */
-    private void appendBarre(StringBuilder svg, int[] frets, int barreFret) {
+    private void appendBarre(StringBuilder svg, int[] frets, int barreFret, int baseFret) {
         int leftmost = -1;
         int rightmost = -1;
         for (int s = 0; s < STRING_COUNT; s++) {
@@ -89,13 +100,13 @@ public class ChordDiagramRenderer {
         if (leftmost == -1) {
             return;
         }
-        int y = fretDotY(barreFret);
+        int y = fretDotY(displayFret(barreFret, baseFret));
         svg.append("<line x1=\"").append(stringX(leftmost)).append("\" y1=\"").append(y)
                 .append("\" x2=\"").append(stringX(rightmost)).append("\" y2=\"").append(y)
                 .append("\" class=\"chord-diagram-barre\"/>");
     }
 
-    private void appendMarkersAndDots(StringBuilder svg, int[] frets) {
+    private void appendMarkersAndDots(StringBuilder svg, int[] frets, int baseFret) {
         for (int s = 0; s < STRING_COUNT; s++) {
             int fret = frets[s];
             int x = stringX(s);
@@ -106,17 +117,35 @@ public class ChordDiagramRenderer {
                 svg.append("<text x=\"").append(x).append("\" y=\"").append(MARGIN_TOP - 10)
                         .append("\" class=\"chord-diagram-marker\" text-anchor=\"middle\">&#9675;</text>");
             } else {
-                svg.append("<circle cx=\"").append(x).append("\" cy=\"").append(fretDotY(fret))
+                svg.append("<circle cx=\"").append(x).append("\" cy=\"").append(fretDotY(displayFret(fret, baseFret)))
                         .append("\" r=\"").append(DOT_RADIUS).append("\" class=\"chord-diagram-dot\"/>");
             }
         }
+    }
+
+    /**
+     * Small "Nfr" label to the right of the grid, the standard printed-
+     * chord-book convention for marking that the diagram's window starts
+     * at fret N rather than at the nut.
+     */
+    private void appendPositionLabel(StringBuilder svg, int baseFret) {
+        int x = stringX(STRING_COUNT - 1) + 8;
+        int y = fretDotY(1) + 4;
+        svg.append("<text x=\"").append(x).append("\" y=\"").append(y)
+                .append("\" class=\"chord-diagram-marker\" text-anchor=\"start\">")
+                .append(baseFret).append("fr</text>");
+    }
+
+    /** Absolute fret N, drawn as if the window starts at {@code baseFret}. */
+    private int displayFret(int absoluteFret, int baseFret) {
+        return absoluteFret - baseFret + 1;
     }
 
     private int stringX(int stringIndex) {
         return MARGIN_LEFT + STRING_SPACING * stringIndex;
     }
 
-    private int fretDotY(int fret) {
-        return MARGIN_TOP + (int) Math.round(FRET_SPACING * (fret - 0.5));
+    private int fretDotY(int displayFret) {
+        return MARGIN_TOP + (int) Math.round(FRET_SPACING * (displayFret - 0.5));
     }
 }
