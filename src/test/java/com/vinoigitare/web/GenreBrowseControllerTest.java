@@ -6,12 +6,14 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.vinoigitare.model.Genre;
 import com.vinoigitare.model.Song;
 import com.vinoigitare.service.SongService;
+import com.vinoigitare.security.SecurityConfig;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.BDDMockito.given;
@@ -19,8 +21,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+// See SearchControllerTest's comment: @WebMvcTest needs the real
+// SecurityConfig imported explicitly, or it falls back to
+// "authenticate everything" and 401s these otherwise-public routes.
 @Tag("fast")
 @WebMvcTest(GenreBrowseController.class)
+@Import(SecurityConfig.class)
 class GenreBrowseControllerTest {
 
     @Autowired

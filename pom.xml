@@ -47,6 +47,22 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
+		<!-- Admin-auth plan (~/knowledge/projects/vinoigitare/admin-auth-plan.md):
+		     a single admin credential gating /admin/** only, everything else
+		     stays public. thymeleaf-extras-springsecurity6 is what makes the
+		     existing admin/list.html and admin/form.html th:action forms
+		     auto-inject a CSRF token; without it, Spring Security's default CSRF
+		     protection 403s every one of those forms the moment this dependency
+		     is added, since none of them carry a token today. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.thymeleaf.extras</groupId>
+			<artifactId>thymeleaf-extras-springsecurity6</artifactId>
+		</dependency>
+
 		<!-- Self-hosted Bootstrap 5 (WebJar), served automatically by Spring
 		     Boot's default /webjars/** mapping. Chosen over a CDN link so the
 		     app has no runtime dependency on an external host, which matters
@@ -92,6 +108,11 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

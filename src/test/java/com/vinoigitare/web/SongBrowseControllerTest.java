@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.vinoigitare.chords.ChordLineHighlighter;
 import com.vinoigitare.model.Song;
+import com.vinoigitare.security.SecurityConfig;
 import com.vinoigitare.service.SongService;
 
 import static org.hamcrest.Matchers.containsString;
@@ -34,9 +35,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // @Import(ChordLineHighlighter.class) here did not make it resolvable to
 // Thymeleaf's @beanName SpEL resolver in this slice, for reasons not
 // fully tracked down -- this is the more standard pattern anyway).
+// SecurityConfig also needs importing explicitly, same as every other
+// public-route @WebMvcTest (see SearchControllerTest's comment) -- without
+// it this slice falls back to "authenticate everything" and 401s.
 @Tag("fast")
 @WebMvcTest(SongBrowseController.class)
-@Import(SongBrowseControllerTest.ExtraBeans.class)
+@Import({SongBrowseControllerTest.ExtraBeans.class, SecurityConfig.class})
 class SongBrowseControllerTest {
 
     @TestConfiguration

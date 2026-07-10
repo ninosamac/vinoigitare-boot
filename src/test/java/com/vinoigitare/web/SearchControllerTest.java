@@ -6,11 +6,13 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.vinoigitare.model.Song;
 import com.vinoigitare.search.SearchService;
+import com.vinoigitare.security.SecurityConfig;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.BDDMockito.given;
@@ -18,8 +20,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+// @WebMvcTest doesn't pick up the real SecurityConfig bean automatically --
+// without importing it, the slice falls back to "authenticate everything",
+// 401ing this route even though it's meant to be public. Importing the
+// actual config (not a test-only stand-in) means this test verifies the
+// real permitAll rule, not an assumption about it.
 @Tag("fast")
 @WebMvcTest(SearchController.class)
+@Import(SecurityConfig.class)
 class SearchControllerTest {
 
     @Autowired

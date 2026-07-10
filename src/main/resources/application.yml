@@ -23,6 +23,17 @@ spring:
   sql:
     init:
       mode: always
+  # Admin-auth plan (~/knowledge/projects/vinoigitare/admin-auth-plan.md):
+  # a single admin credential gating /admin/** (see
+  # com.vinoigitare.security.SecurityConfig), sourced from env vars the
+  # same way VINOIGITARE_DB/VINOIGITARE_HOME already are above -- the
+  # "changeme" default only matters for local dev convenience; a real
+  # deployment sets VINOIGITARE_ADMIN_PASSWORD in the environment, never
+  # committed here.
+  security:
+    user:
+      name: ${VINOIGITARE_ADMIN_USER:admin}
+      password: ${VINOIGITARE_ADMIN_PASSWORD:changeme}
 
 vinoigitare:
   # Directory containing song files. Overridable via the VINOIGITARE_HOME
