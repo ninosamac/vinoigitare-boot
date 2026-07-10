@@ -6,13 +6,21 @@
    (transpose value, chord-line tint). See the design pitch discussed
    with Nino for the two rejected directions (Vinska Karta, Ploča).
 
-   Deliberately single-theme (light/paper) for now, matching the
-   physical-notebook metaphor -- a dark-mode "notebook at night"
-   variant is a natural follow-up, not done here (see the migration
-   plan's Phase 6 checklist, which lists it as a separate item).
+   Dark mode ("notebook at night"): auto-detected via
+   prefers-color-scheme, overridable either direction via a toggle
+   (static/js/theme-toggle.js) that sets data-bs-theme on <html> and
+   persists the choice in localStorage -- reusing Bootstrap 5.3's own
+   attribute (rather than inventing a separate one) means Bootstrap's
+   own components repaint too, not just this file's custom rules.
+   Token indirection is what makes this cheap: every component rule
+   below reads from the --paper/--ink/etc. custom properties (or the
+   --bs-* aliases further down, which themselves read from those same
+   tokens), never a literal color -- so only the token values need to
+   change per mode, not every rule that uses them.
 
    Mobile-first: base rules target the smallest screen; the one
-   @media query widens things back up, it doesn't shrink them down.
+   width-based @media query widens things back up, it doesn't shrink
+   them down.
    ============================================================ */
 
 :root {
@@ -25,6 +33,15 @@
     --accent-2: #a8402f; /* red pen -- the one "active/annotation" accent */
     --line: #d9d2ba;
 
+    /* The navbar is deliberately always a dark "ink bar" in both modes
+       (a permanent header, not something that inverts with the page) --
+       kept as its own tokens rather than reusing --ink/--paper directly,
+       since --ink flips to a *light* color in dark mode and would break
+       this if the navbar rules referenced it. */
+    --nav-bg: #2a2822;
+    --nav-ink: #faf6ec;
+    --nav-ink-muted: rgba(250, 246, 236, 0.75);
+
     /* Bootstrap 5.3 theming hooks: retint components through Bootstrap's
        own variables rather than fighting each utility class individually. */
     --bs-body-bg: var(--paper);
@@ -36,6 +53,58 @@
     --bs-link-color: var(--accent);
     --bs-link-hover-color: var(--accent-2);
     --bs-primary: var(--accent);
+    --bs-primary-rgb: 47, 93, 80;
+}
+
+/* Automatic: respected only when the visitor hasn't overridden the
+   choice via the toggle (see the plain :root[data-bs-theme] blocks
+   below, which win over this because they're more specific). */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme]) {
+        --paper: #201e19;
+        --paper-rule: #38352c;
+        --card: #2a2721;
+        --ink: #ece7d9;
+        --ink-muted: #a39d8c;
+        --accent: #6fbf9f;
+        --accent-2: #e0836b;
+        --line: #38352c;
+        --nav-bg: #14130f;
+        --nav-ink: #ece7d9;
+        --nav-ink-muted: rgba(236, 231, 217, 0.75);
+        --bs-primary-rgb: 111, 191, 159;
+    }
+}
+
+/* Explicit override via the toggle -- wins regardless of OS preference
+   in either direction. */
+:root[data-bs-theme="dark"] {
+    --paper: #201e19;
+    --paper-rule: #38352c;
+    --card: #2a2721;
+    --ink: #ece7d9;
+    --ink-muted: #a39d8c;
+    --accent: #6fbf9f;
+    --accent-2: #e0836b;
+    --line: #38352c;
+    --nav-bg: #14130f;
+    --nav-ink: #ece7d9;
+    --nav-ink-muted: rgba(236, 231, 217, 0.75);
+    --bs-primary-rgb: 111, 191, 159;
+}
+
+:root[data-bs-theme="light"] {
+    --paper: #faf6ec;
+    --paper-rule: #d9d2ba;
+    --card: #fdfbf5;
+    --ink: #2a2822;
+    --ink-muted: #6b675c;
+    --accent: #2f5d50;
+    --accent-2: #a8402f;
+    --line: #d9d2ba;
+    --nav-bg: #2a2822;
+    --nav-ink: #faf6ec;
+    --nav-ink-muted: rgba(250, 246, 236, 0.75);
     --bs-primary-rgb: 47, 93, 80;
 }
 
@@ -59,22 +128,22 @@ h1, h2, h3,
 }
 
 .navbar {
-    background-color: var(--ink);
+    background-color: var(--nav-bg);
 }
 
 .brand-mark {
     font-style: italic;
     font-weight: 700;
-    color: var(--paper) !important;
+    color: var(--nav-ink) !important;
 }
 
 .navbar .nav-link {
-    color: rgba(250, 246, 236, 0.75) !important;
+    color: var(--nav-ink-muted) !important;
 }
 
 .navbar .nav-link:hover,
 .navbar .nav-link:focus {
-    color: var(--paper) !important;
+    color: var(--nav-ink) !important;
 }
 
 /* Listing rows (artist index, genre browse, search results, admin table)
@@ -127,6 +196,23 @@ h1, h2, h3,
 .chord-line {
     color: var(--accent-2);
     font-weight: 700;
+}
+
+/* Dark/light toggle (static/js/theme-toggle.js sets its glyph/aria-label).
+   Sits in the always-dark nav bar in both modes, so it's styled against
+   --nav-ink rather than the page's --ink, which would be invisible-ish on
+   a dark navbar in light mode. */
+.theme-toggle-btn {
+    color: var(--nav-ink);
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0.25rem 0.5rem;
+}
+
+.theme-toggle-btn:hover,
+.theme-toggle-btn:focus {
+    color: var(--nav-ink);
+    opacity: 0.8;
 }
 
 @media (max-width: 576px) {

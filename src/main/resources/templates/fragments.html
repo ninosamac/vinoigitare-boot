@@ -9,6 +9,29 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title th:text="${title} + ' - Vino i gitare'">Vino i gitare</title>
+    <!--
+      Applies a stored dark/light override (if any) to <html> before first
+      paint -- inline and synchronous, not in transpose.js/display-controls.js
+      (which load at the end of <body>), specifically so there's no flash of
+      the wrong theme while those load. No stored value = no attribute = the
+      prefers-color-scheme media query in app.css decides, same as if this
+      script didn't run at all.
+    -->
+    <script>
+        (function () {
+            var stored = localStorage.getItem("vinoigitare.theme");
+            if (stored === "light" || stored === "dark") {
+                document.documentElement.setAttribute("data-bs-theme", stored);
+            }
+        })();
+    </script>
+    <!-- Read by static/js/theme-toggle.js, same reasoning as the
+         auto-scroll button's i18n-* meta tags in song.html: the toggle's
+         label/aria-label text depends on which theme is CURRENTLY active,
+         and plain JS has no access to Spring's MessageSource to look that
+         up itself. -->
+    <meta name="i18n-theme-switch-to-dark" th:content="#{theme.switchToDark}"/>
+    <meta name="i18n-theme-switch-to-light" th:content="#{theme.switchToLight}"/>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}"/>
     <link rel="stylesheet" th:href="@{/css/app.css}"/>
 </head>
@@ -27,10 +50,17 @@
             <input class="form-control form-control-sm" type="search" name="q"
                    th:placeholder="#{search.placeholder}" th:value="${query != null ? query : ''}"/>
         </form>
-        <div class="navbar-nav flex-row">
+        <div class="navbar-nav flex-row align-items-center">
             <a class="nav-link me-2" th:href="@{/}" th:text="#{nav.artists}">Artists</a>
             <a class="nav-link me-2" th:href="@{/genres}" th:text="#{nav.genres}">Genres</a>
-            <a class="nav-link" th:href="@{/admin}" th:text="#{nav.admin}">Admin</a>
+            <a class="nav-link me-2" th:href="@{/admin}" th:text="#{nav.admin}">Admin</a>
+            <!--
+              static/js/theme-toggle.js sets the glyph/aria-label on load
+              (reflecting whatever theme is actually active, whether that
+              came from the stored override above or prefers-color-scheme)
+              and again on every click.
+            -->
+            <button type="button" class="btn btn-sm theme-toggle-btn" data-theme-toggle>&#9789;</button>
         </div>
     </div>
 </nav>
