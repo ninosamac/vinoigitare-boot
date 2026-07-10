@@ -99,6 +99,7 @@
            th:href="@{/akordi/{id}/pdf(id=${song.id()})}"
            th:attr="data-pdf-base-href=@{/akordi/{id}/pdf(id=${song.id()})}" th:text="#{song.downloadPdf}">Download PDF</a>
         <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()" th:text="#{song.print}">Print</button>
+        <a class="btn btn-outline-secondary btn-sm" th:href="@{/akordi/{id}/live(id=${song.id()})}" th:text="#{song.liveView}">Live view</a>
     </div>
 </main>
 <script th:src="@{/js/transpose.js}"></script>

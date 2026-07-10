@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  Phase 7: full-screen "performance view" -- minimal chrome (no navbar,
+  no search box) and a larger default font, for actually playing a song
+  off a music stand rather than reading it at a desk.
+
+  Writes its own <head> rather than going through fragments :: head(title),
+  same reasoning as song.html: this page needs several extra <meta> tags
+  (auto-scroll labels, fullscreen labels) beyond that fragment's fixed
+  (title) parameter, and changing that signature would touch every other
+  caller (index/artist/search/admin/genres/song all call it positionally).
+-->
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${song.artist()} + ' - ' + ${song.title()} + ' - Vino i gitare'">Song - Vino i gitare</title>
+    <!-- Every page needs its own copy of this restore script if it doesn't
+         go through fragments :: head -- see song.html's comment for the
+         real bug this fixes (a stored dark/light choice being silently
+         ignored on a page missing it). -->
+    <script>
+        (function () {
+            if (localStorage.getItem("vinoigitare.theme") === "dark") {
+                document.documentElement.setAttribute("data-bs-theme", "dark");
+            }
+        })();
+    </script>
+    <meta name="i18n-theme-switch-to-dark" th:content="#{theme.switchToDark}"/>
+    <meta name="i18n-theme-switch-to-light" th:content="#{theme.switchToLight}"/>
+    <meta name="i18n-auto-scroll-start" th:content="#{song.autoScrollStart}"/>
+    <meta name="i18n-auto-scroll-stop" th:content="#{song.autoScrollStop}"/>
+    <meta name="i18n-fullscreen-enter" th:content="#{song.fullscreenEnter}"/>
+    <meta name="i18n-fullscreen-exit" th:content="#{song.fullscreenExit}"/>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/app.css}"/>
+</head>
+<!--
+  data-base-font-rem: read by static/js/display-controls.js, which
+  otherwise defaults to the normal song page's smaller base size -- see
+  that file's comment. The font-size *step* itself still shares the one
+  localStorage key the normal song page uses; only the starting point
+  differs here.
+-->
+<body data-base-font-rem="1.6">
+<div class="live-bar d-flex justify-content-between align-items-center px-3 py-2 no-print">
+    <a class="live-bar-exit" th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}"
+       th:text="'&larr; ' + #{song.exitLiveView}">&larr; Exit live view</a>
+    <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-outline-light" data-fullscreen-toggle th:text="#{song.fullscreenEnter}">Fullscreen</button>
+        <button type="button" class="btn btn-sm theme-toggle-btn" data-theme-toggle>&#9789;</button>
+    </div>
+</div>
+<main class="container">
+    <!-- Same control rows and data-* attributes as song.html, verbatim --
+         transpose.js/display-controls.js don't care which page they're on. -->
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2 mt-2 no-print">
+        <span class="text-muted small" th:text="#{song.transpose}">Transpose:</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-transpose-down th:aria-label="#{song.transposeDown}">&minus;</button>
+        <span data-transpose-display class="fw-semibold" style="min-width: 2em; text-align: center;">0</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-transpose-up th:aria-label="#{song.transposeUp}">+</button>
+
+        <span class="text-muted small ms-md-3" th:text="#{song.fontSize}">Text size:</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-font-decrease th:aria-label="#{song.fontSmaller}">A&minus;</button>
+        <span data-font-display class="fw-semibold" style="min-width: 2em; text-align: center;">0</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-font-increase th:aria-label="#{song.fontLarger}">A+</button>
+    </div>
+
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3 no-print">
+        <span class="text-muted small" th:text="#{song.autoScroll}">Auto-scroll:</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-scroll-slower th:aria-label="#{song.scrollSlower}">&minus;</button>
+        <span data-scroll-speed-display class="fw-semibold" style="min-width: 1.5em; text-align: center;">3</span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-scroll-faster th:aria-label="#{song.scrollFaster}">+</button>
+        <button type="button" class="btn btn-outline-primary btn-sm" data-scroll-toggle aria-pressed="false" th:text="#{song.autoScrollStart}">Auto-scroll</button>
+    </div>
+
+    <!-- th:with on its own wrapper element, not the th:replace element itself --
+         see song.html's comment: th:replace runs before a same-element th:with
+         would be in scope. -->
+    <div th:with="highlightedChords=${@chordLineHighlighter.render(song.chords())}">
+        <div th:replace="~{fragments :: songContent(${song}, ${highlightedChords})}"></div>
+    </div>
+</main>
+<script th:src="@{/js/transpose.js}"></script>
+<script th:src="@{/js/display-controls.js}"></script>
+<script th:src="@{/js/theme-toggle.js}"></script>
+<script th:src="@{/js/live-view.js}"></script>
+</body>
+</html>

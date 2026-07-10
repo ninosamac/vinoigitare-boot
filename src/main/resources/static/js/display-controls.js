@@ -18,15 +18,53 @@
 
     var MIN_FONT_STEP = -3;
     var MAX_FONT_STEP = 5;
-    var BASE_FONT_SIZE_REM = 0.95; // matches .song-chords base font-size in app.css
+    var DEFAULT_BASE_FONT_SIZE_REM = 0.95; // matches .song-chords base font-size in app.css
     var FONT_STEP_REM = 0.1;
+
+    // The live/performance view (song-live.html) wants a larger starting
+    // size -- it's meant to be read from a music stand, not a desk -- via
+    // <body data-base-font-rem="..."> rather than a second copy of this
+    // whole file. The font-size *step* itself still comes from the one
+    // shared localStorage key either way, since "I like text a bit
+    // bigger" is a general reading preference, not a per-page one.
+    function baseFontSizeRem() {
+        var override = document.body.getAttribute("data-base-font-rem");
+        var parsed = override === null ? NaN : parseFloat(override);
+        return isNaN(parsed) ? DEFAULT_BASE_FONT_SIZE_REM : parsed;
+    }
 
     var MIN_SCROLL_SPEED = 1;
     var MAX_SCROLL_SPEED = 10;
     var DEFAULT_SCROLL_SPEED = 3;
-    // Pixels per animation frame per speed unit, tuned so speed 3 is a
-    // comfortable reading pace at a ~60fps refresh rate.
-    var SCROLL_PIXELS_PER_SPEED_UNIT = 0.15;
+
+    // Real bug report: speed 10 (the max) was still barely fast enough to
+    // keep up with an average song. A first fix just scaled up a flat
+    // px/frame constant, but that has a second bug baked in: the live
+    // view's larger default font (and anyone's own font-size +/- choice)
+    // means more pixels per line, so the same dial position would scroll
+    // fewer *lines* per second at a bigger font -- the dial wouldn't mean
+    // the same thing on both pages. Fix (suggested by Nino): define speed
+    // as lines-per-second and measure the chords block's own actual
+    // line-height at scroll time, so "speed 5" scrolls roughly the same
+    // number of lines/second regardless of font size. Chosen so speed 1
+    // is a slow, readable pace (~6.7s/line) and speed 10 gives real
+    // headroom above a typical singing pace (~0.4s/line).
+    var MIN_LINES_PER_SECOND = 0.15;
+    var MAX_LINES_PER_SECOND = 2.5;
+
+    function linesPerSecond(speed) {
+        var t = (speed - MIN_SCROLL_SPEED) / (MAX_SCROLL_SPEED - MIN_SCROLL_SPEED);
+        return MIN_LINES_PER_SECOND + t * (MAX_LINES_PER_SECOND - MIN_LINES_PER_SECOND);
+    }
+
+    function chordsLineHeightPx(chordsBlock) {
+        var computed = parseFloat(window.getComputedStyle(chordsBlock).lineHeight);
+        // A unitless/keyword line-height (e.g. "normal") resolves to NaN
+        // here rather than a px value -- app.css always sets an explicit
+        // one today, but fall back to a reasonable multiple of the font
+        // size rather than silently not scrolling at all if that changes.
+        return isNaN(computed) ? parseFloat(window.getComputedStyle(chordsBlock).fontSize) * 1.4 : computed;
+    }
 
     function clamp(value, min, max) {
         return Math.max(min, Math.min(max, value));
@@ -50,7 +88,7 @@
         var step = clamp(readNumber(FONT_SIZE_KEY, 0), MIN_FONT_STEP, MAX_FONT_STEP);
 
         function render() {
-            var size = BASE_FONT_SIZE_REM + step * FONT_STEP_REM;
+            var size = baseFontSizeRem() + step * FONT_STEP_REM;
             chordsBlock.style.fontSize = size + "rem";
             if (display) {
                 display.textContent = (step > 0 ? "+" : "") + step;
@@ -80,7 +118,8 @@
         var slowerButton = document.querySelector("[data-scroll-slower]");
         var fasterButton = document.querySelector("[data-scroll-faster]");
         var speedDisplay = document.querySelector("[data-scroll-speed-display]");
-        if (!toggleButton) {
+        var chordsBlock = document.querySelector(".song-chords");
+        if (!toggleButton || !chordsBlock) {
             return;
         }
 
@@ -95,6 +134,7 @@
         var scrolling = false;
         var animationFrameId = null;
         var carryOverPixels = 0; // sub-pixel remainder, so low speeds still visibly move over time
+        var lastTimestamp = null; // requestAnimationFrame timestamp of the previous step, for a real elapsed-time delta
 
         function renderSpeed() {
             if (speedDisplay) {
@@ -113,11 +153,23 @@
             }
         }
 
-        function step() {
+        function step(timestamp) {
             if (!scrolling) {
                 return;
             }
-            var pixels = speed * SCROLL_PIXELS_PER_SPEED_UNIT + carryOverPixels;
+            // Real elapsed time since the last frame, not an assumed
+            // fixed frame rate -- keeps the lines-per-second target
+            // accurate regardless of the display's actual refresh rate
+            // (a 60Hz monitor, a 120Hz phone, or a throttled background
+            // tab all pass the same real seconds between frames).
+            if (lastTimestamp === null) {
+                lastTimestamp = timestamp;
+            }
+            var deltaSeconds = (timestamp - lastTimestamp) / 1000;
+            lastTimestamp = timestamp;
+
+            var pixelsPerSecond = linesPerSecond(speed) * chordsLineHeightPx(chordsBlock);
+            var pixels = pixelsPerSecond * deltaSeconds + carryOverPixels;
             var wholePixels = Math.floor(pixels);
             carryOverPixels = pixels - wholePixels;
             window.scrollBy(0, wholePixels);
@@ -135,6 +187,7 @@
                 return;
             }
             scrolling = true;
+            lastTimestamp = null; // discard any stale delta from before a stop
             toggleButton.textContent = stopLabel;
             toggleButton.setAttribute("aria-pressed", "true");
             animationFrameId = window.requestAnimationFrame(step);

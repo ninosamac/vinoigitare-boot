@@ -78,6 +78,22 @@ public class SongBrowseController {
     }
 
     /**
+     * Phase 7: full-screen "performance view" -- large font, auto-scroll,
+     * and minimal chrome (no navbar/search box), for actually playing a
+     * song from a music stand rather than reading it at a desk. Counts as
+     * a view the same as the normal song page, since it's still a real
+     * page load of the song, not a derived artifact like the PDF download.
+     */
+    @GetMapping("/akordi/{id}/live")
+    public String liveView(@PathVariable String id, Model model) {
+        Song song = songService.load(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Song not found: " + id));
+        songService.recordView(id);
+        model.addAttribute("song", song);
+        return "song-live";
+    }
+
+    /**
      * Phase 4f (SEO): "Artist - Title: chords and lyrics." (via the
      * {@code seo.chordsAndLyrics} message key, {@code messages.properties}
      * -- English by default, {@code messages_sr.properties} keeps the

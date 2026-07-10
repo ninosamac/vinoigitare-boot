@@ -119,6 +119,24 @@ h1, h2, h3,
     color: var(--nav-ink) !important;
 }
 
+/* Live/performance view's slim top bar (song-live.html) -- same dark
+   "ink bar" treatment as .navbar (reuses the same --nav-* tokens) but
+   without a real <nav>, since this page deliberately has no navbar or
+   search box. */
+.live-bar {
+    background-color: var(--nav-bg);
+}
+
+.live-bar-exit {
+    color: var(--nav-ink-muted);
+    text-decoration: none;
+}
+
+.live-bar-exit:hover,
+.live-bar-exit:focus {
+    color: var(--nav-ink);
+}
+
 /* Listing rows (artist index, genre browse, search results, admin table)
    styled like index cards -- a left accent rule instead of a full border,
    evoking a card-catalog drawer. Applied via .index-row, added to each

@@ -120,6 +120,33 @@ class SongBrowseControllerTest {
     }
 
     @Test
+    void liveViewRendersChordsAndHasNoNavbar() throws Exception {
+        Song song = new Song("Marko Markovic", "Probna pesma", "C G\nline one");
+        given(songService.load(song.id())).willReturn(Optional.of(song));
+
+        mockMvc.perform(get("/akordi/{id}/live", song.id()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("<pre")))
+                .andExpect(content().string(containsString("line one")))
+                .andExpect(content().string(containsString("data-fullscreen-toggle")))
+                // No shared nav fragment on this page -- it's deliberately
+                // chrome-free (see the class Javadoc on the controller method).
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("navbar-brand"))));
+    }
+
+    @Test
+    void liveViewRecordsAViewOnSuccessAndReturns404WhenSongIsMissing() throws Exception {
+        Song song = new Song("Marko Markovic", "Probna pesma", "chords");
+        given(songService.load(song.id())).willReturn(Optional.of(song));
+        given(songService.load("999")).willReturn(Optional.empty());
+
+        mockMvc.perform(get("/akordi/{id}/live", song.id())).andExpect(status().isOk());
+        then(songService).should().recordView(song.id());
+
+        mockMvc.perform(get("/akordi/{id}/live", "999")).andExpect(status().isNotFound());
+    }
+
+    @Test
     void songViewIncludesMetaDescriptionAndCanonicalLink() throws Exception {
         Song song = new Song("Marko Markovic", "Probna pesma", "C G\nOvo je stvarni tekst pesme.");
         given(songService.load(song.id())).willReturn(Optional.of(song));
