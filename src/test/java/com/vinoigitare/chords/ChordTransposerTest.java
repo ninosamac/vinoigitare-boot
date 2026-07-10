@@ -99,6 +99,35 @@ class ChordTransposerTest {
     }
 
     @Test
+    void isChordLineTrueForHyphenatedFlatAlterationAndNumericWalkingBass() {
+        // Real bug found in testing: a song added through the admin form
+        // used these two notations, neither recognized by the original
+        // grammar -- one unrecognized token failed the WHOLE line, so the
+        // whole first paragraph's chord lines were misdetected as lyrics.
+        // See CHORD_PATTERN's comment for the full explanation.
+        assertThat(ChordTransposer.isChordLine("F#m7-5")).isTrue();
+        assertThat(ChordTransposer.isChordLine("H7/3-4")).isTrue();
+        assertThat(ChordTransposer.isChordLine("H7/4-3")).isTrue();
+        assertThat(ChordTransposer.isChordLine("Em                C    Am   F#m7-5     H7/4-3")).isTrue();
+        assertThat(ChordTransposer.isChordLine("Em          Am   D7                    G H7/3-4")).isTrue();
+    }
+
+    @Test
+    void transposeShiftsTheRootOfAHyphenatedFlatAlterationChord() {
+        // F# up 2 semitones = G# (index 6 + 2 = 8); the "m7-5" suffix is
+        // carried through unchanged, same as any other quality suffix.
+        assertThat(ChordTransposer.transpose("F#m7-5", 2)).isEqualTo("G#m7-5");
+    }
+
+    @Test
+    void transposeCarriesTheNumericWalkingBassAnnotationThroughUnchanged() {
+        // The "/3-4" is a scale-degree annotation, not a note -- it isn't
+        // transposed, only the H7 root/quality before it is (H up 2 = C#).
+        assertThat(ChordTransposer.transpose("H7/3-4", 2)).isEqualTo("C#7/3-4");
+        assertThat(ChordTransposer.transpose("H7/4-3", 0)).isEqualTo("H7/4-3");
+    }
+
+    @Test
     void singleChordLineAboveAMuchLongerLyricLineStillTransposes() {
         // The common real case: a short chord line ("A") sitting above a
         // much longer lyric line must still be recognized as a chord line

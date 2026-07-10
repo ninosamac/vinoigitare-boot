@@ -28,7 +28,11 @@
     var NATURAL_INDEX = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 10, H: 11 };
 
     // Mirrors ChordTransposer.CHORD_PATTERN exactly (group numbers match).
-    var CHORD_PATTERN = /^([A-H])(#|b)?((?:m|maj7|m7|7|sus[24]|dim|aug|add9|5|6|9|11|13)*)(?:\/([A-H])(#|b)?)?$/;
+    // Group 6 (a bare-numeric walking-bass annotation like "/3-4") and the
+    // "-5"/"-9"/"-11"/"-13" quality alternatives exist for the same real
+    // bug the Java side's comment documents in full -- see that file.
+    var CHORD_PATTERN =
+        /^([A-H])(#|b)?((?:m|maj7|m7|7|sus[24]|dim|aug|add9|5|6|9|11|13|-5|-9|-11|-13)*)(?:\/([A-H])(#|b)?)?(\/[0-9]+(?:-[0-9]+)?)?$/;
 
     function transposeRoot(letter, accidental, semitones) {
         var index = NATURAL_INDEX[letter];
@@ -49,11 +53,14 @@
         var root = transposeRoot(match[1], match[2], semitones);
         var suffix = match[3] || "";
         var bassRoot = match[4];
+        // Group 6 is never transposed -- it's a bare scale-degree
+        // annotation, not a note (see the CHORD_PATTERN comment).
+        var numericAnnotation = match[6] || "";
         if (!bassRoot) {
-            return root + suffix;
+            return root + suffix + numericAnnotation;
         }
         var bass = transposeRoot(bassRoot, match[5], semitones);
-        return root + suffix + "/" + bass;
+        return root + suffix + "/" + bass + numericAnnotation;
     }
 
     function isChordLine(line) {

@@ -10,10 +10,18 @@ import java.util.regex.Pattern;
  * <p><b>Chord grammar.</b> A single chord token looks like a root letter
  * (A-H, German/ex-YU convention -- see below), an optional accidental
  * (# or b), an optional quality suffix (m, maj7, m7, 7, sus2, sus4, dim,
- * aug, add9, 5, 6, 9, 11, 13), and an optional slash-bass (e.g. {@code
- * G/H}). This mirrors the plan's suggested pattern:
+ * aug, add9, 5, 6, 9, 11, 13, or a hyphenated flat alteration like -5/-9/
+ * -11/-13, e.g. {@code F#m7-5}), and an optional slash-bass -- either a
+ * real bass note (e.g. {@code G/H}, transposed along with the root) or a
+ * bare numeric annotation (e.g. {@code H7/3-4}), which some real
+ * songbooks use to mark a walking bass under an otherwise static chord;
+ * that one is carried through verbatim on transpose rather than treated
+ * as a note, since it isn't naming a pitch. This mirrors the plan's
+ * suggested pattern:
  * {@code ^[A-HB](#|b)?(m|maj7|m7|7|sus[24]|dim|aug|add9|5|6|9|11|13)*
- * (/[A-HB](#|b)?)?$}.
+ * (/[A-HB](#|b)?)?$}, extended for the two real-world notations above
+ * (found in an actual song added through the admin form -- see {@link
+ * #CHORD_PATTERN}'s own comment for the exact tokens that motivated it).
  *
  * <p><b>H vs B.</b> The ex-YU corpus uses German note naming, where
  * {@code H} is what English calls B-natural and {@code B} is what English
@@ -61,9 +69,22 @@ public final class ChordTransposer {
     // (?:...)* in its own capturing group captures the full matched
     // substring, not just the last repetition -- a Java-regex-specific
     // gotcha worth flagging for future maintainers). Group 4/5: optional
-    // slash-bass root + accidental.
+    // slash-bass root + accidental. Group 6: optional bare-numeric
+    // walking-bass annotation (e.g. "/3-4") -- a real bug found in
+    // testing: a song added through the admin form used "F#m7-5" (a
+    // flat-5 alteration written with a hyphen instead of "b") and
+    // "H7/3-4"/"H7/4-3" (walking bass under a static chord), neither of
+    // which the original grammar recognized, so isChordLine rejected
+    // those lines outright -- one unrecognized token failed the WHOLE
+    // line, not just that token. "-5"/"-9"/"-11"/"-13" join the quality
+    // alternation (group 3) to fix the first; group 6 is a second, entirely
+    // separate optional slash-suffix to fix the second, deliberately NOT
+    // reusing groups 4/5 -- transposeChord() transposes whatever those
+    // capture as if it were a note letter, which a bare scale-degree
+    // number isn't.
     private static final Pattern CHORD_PATTERN = Pattern.compile(
-            "^([A-H])(#|b)?((?:m|maj7|m7|7|sus[24]|dim|aug|add9|5|6|9|11|13)*)(?:/([A-H])(#|b)?)?$");
+            "^([A-H])(#|b)?((?:m|maj7|m7|7|sus[24]|dim|aug|add9|5|6|9|11|13|-5|-9|-11|-13)*)"
+                    + "(?:/([A-H])(#|b)?)?(/[0-9]+(?:-[0-9]+)?)?$");
 
     private ChordTransposer() {
     }
@@ -205,11 +226,16 @@ public final class ChordTransposer {
         String root = transposeRoot(matcher.group(1), matcher.group(2), semitones);
         String suffix = matcher.group(3) == null ? "" : matcher.group(3);
         String bassRoot = matcher.group(4);
+        // Group 6 (a bare-numeric walking-bass annotation, e.g. "/3-4") is
+        // never transposed -- it isn't naming a pitch, so there's nothing
+        // to shift -- just carried through verbatim, whichever of group
+        // 4/6 (they're mutually exclusive in practice) is present.
+        String numericAnnotation = matcher.group(6) == null ? "" : matcher.group(6);
         if (bassRoot == null) {
-            return root + suffix;
+            return root + suffix + numericAnnotation;
         }
         String bass = transposeRoot(bassRoot, matcher.group(5), semitones);
-        return root + suffix + "/" + bass;
+        return root + suffix + "/" + bass + numericAnnotation;
     }
 
     private static String transposeRoot(String letter, String accidental, int semitones) {
