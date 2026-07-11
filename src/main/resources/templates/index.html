@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head(#{nav.artists})}"></head>
+<head th:replace="~{fragments :: head(#{nav.home})}"></head>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 <main class="container">
     <div class="d-flex justify-content-between align-items-baseline mb-1 flex-wrap">
-        <h1 class="h4 mb-0" th:text="#{home.artists}">Collection</h1>
+        <h1 class="h4 mb-0" th:text="#{home.treeTitle}">Collection</h1>
         <span class="text-muted small" th:if="${totalArtists > 0}"
               th:text="#{home.treeStats(${totalArtists},${totalSongs})}">0 artists · 0 songs</span>
     </div>
