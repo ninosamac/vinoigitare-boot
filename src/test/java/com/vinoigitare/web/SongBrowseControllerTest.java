@@ -1,5 +1,6 @@
 package com.vinoigitare.web;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -65,6 +66,24 @@ class SongBrowseControllerTest {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Marko Markovic")));
+    }
+
+    @Test
+    void indexGroupsArtistsByFirstLetterAndReportsTotals() throws Exception {
+        Map<String, List<Song>> byArtist = new LinkedHashMap<>();
+        byArtist.put("Ana Anic", List.of(new Song("Ana Anic", "Solo Song", "chords")));
+        byArtist.put("Marko Markovic",
+                List.of(new Song("Marko Markovic", "First Song", "chords"),
+                        new Song("Marko Markovic", "Second Song", "chords")));
+        given(songService.loadAllGroupedByArtist()).willReturn(byArtist);
+
+        mockMvc.perform(get("/"))
+                .andExpect(status().isOk())
+                // One letter-heading per distinct first letter, not one per artist.
+                .andExpect(content().string(containsString("letter-heading\">A<")))
+                .andExpect(content().string(containsString("letter-heading\">M<")))
+                .andExpect(content().string(containsString("2 artists")))
+                .andExpect(content().string(containsString("3 songs")));
     }
 
     @Test

@@ -93,6 +93,27 @@ class SongServiceTest {
     }
 
     @Test
+    void loadAllGroupedByArtistOrdersArtistsCaseInsensitivelyAndSongsByTitle() {
+        // Real bug found while building the homepage artist tree: a plain
+        // TreeMap::new (natural String order) sorts by raw character code,
+        // so any uppercase-starting name lands before every lowercase one
+        // regardless of actual alphabetical order -- "ana anic" would sort
+        // after "Zarko Z", not next to "Ana Anic" where a reader expects
+        // it. See SongService#loadAllGroupedByArtist's Javadoc.
+        InMemorySongRepository repository = new InMemorySongRepository();
+        repository.save(new Song(null, "ana anic", "Song", null, null, "chords", null, 0L));
+        repository.save(new Song(null, "Zarko Z", "Song", null, null, "chords", null, 0L));
+        repository.save(new Song(null, "Marko Markovic", "Z Title", null, null, "chords", null, 0L));
+        repository.save(new Song(null, "Marko Markovic", "A Title", null, null, "chords", null, 0L));
+
+        SongService service = new SongService(repository, mirror());
+        Map<String, List<Song>> grouped = service.loadAllGroupedByArtist();
+
+        assertThat(grouped.keySet()).containsExactly("ana anic", "Marko Markovic", "Zarko Z");
+        assertThat(grouped.get("Marko Markovic")).extracting(Song::title).containsExactly("A Title", "Z Title");
+    }
+
+    @Test
     void loadByGenreExcludesSongsWithNoGenreAssigned() {
         InMemorySongRepository repository = new InMemorySongRepository();
         repository.save(new Song("Artist", "Title", "chords")); // genre defaults to null
