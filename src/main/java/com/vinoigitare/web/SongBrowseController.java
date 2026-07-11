@@ -35,9 +35,8 @@ import com.vinoigitare.service.SongService;
  * canonical slug -- the lookup is by id alone, same lenient approach
  * pesmarica.rs itself appears to take.
  *
- * <p>Phase 4e: the homepage also shows "newest" and "popular" lists, and
- * every successful song-page load (not the PDF download, not admin) counts
- * as one view.
+ * <p>Phase 4e: every successful song-page load (not the PDF download, not
+ * admin) counts as one view.
  *
  * <p><b>Homepage artist tree (rethinking the main page for scale):</b> the
  * old homepage was a single flat, unsectioned artist list -- fine for a
@@ -55,8 +54,6 @@ import com.vinoigitare.service.SongService;
  */
 @Controller
 public class SongBrowseController {
-
-    private static final int HOMEPAGE_LIST_SIZE = 5;
 
     private final SongService songService;
     private final MessageSource messageSource;
@@ -80,8 +77,6 @@ public class SongBrowseController {
         model.addAttribute("artistTree", buildArtistTree(songsByArtist));
         model.addAttribute("totalArtists", songsByArtist.size());
         model.addAttribute("totalSongs", songsByArtist.values().stream().mapToInt(List::size).sum());
-        model.addAttribute("newestSongs", songService.loadNewest(HOMEPAGE_LIST_SIZE));
-        model.addAttribute("popularSongs", songService.loadMostViewed(HOMEPAGE_LIST_SIZE));
         return "index";
     }
 

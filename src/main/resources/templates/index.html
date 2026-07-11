@@ -4,33 +4,6 @@
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 <main class="container">
-    <!-- Phase 4e: newest/popular, mirroring pesmarica.rs's homepage lists. -->
-    <div class="row mb-4" th:if="${!newestSongs.isEmpty() or !popularSongs.isEmpty()}">
-        <div class="col-md-6 mb-3 mb-md-0" th:if="${!newestSongs.isEmpty()}">
-            <h2 class="h6 text-muted" th:text="#{home.newest}">Newest</h2>
-            <ul class="list-unstyled">
-                <li th:each="song : ${newestSongs}" class="index-row d-flex justify-content-between mb-2">
-                    <a th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}">
-                        <span th:text="${song.artist()}">Artist</span> &ndash;
-                        <span th:text="${song.title()}">Title</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-        <div class="col-md-6" th:if="${!popularSongs.isEmpty()}">
-            <h2 class="h6 text-muted" th:text="#{home.popular}">Most Popular</h2>
-            <ul class="list-unstyled">
-                <li th:each="song : ${popularSongs}" class="index-row d-flex justify-content-between mb-2">
-                    <a th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}">
-                        <span th:text="${song.artist()}">Artist</span> &ndash;
-                        <span th:text="${song.title()}">Title</span>
-                    </a>
-                    <span class="text-muted">(<span th:text="${song.views()}">0</span>)</span>
-                </li>
-            </ul>
-        </div>
-    </div>
-
     <div class="d-flex justify-content-between align-items-baseline mb-1 flex-wrap">
         <h1 class="h4 mb-0" th:text="#{home.artists}">Artists</h1>
         <span class="text-muted small" th:if="${totalArtists > 0}"

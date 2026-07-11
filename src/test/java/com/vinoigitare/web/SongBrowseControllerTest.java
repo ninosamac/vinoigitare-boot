@@ -129,20 +129,6 @@ class SongBrowseControllerTest {
     }
 
     @Test
-    void indexShowsNewestAndPopularWhenPresent() throws Exception {
-        Song newest = new Song("New Artist", "New Song", "chords");
-        Song popular = new Song("Pop Artist", "Popular Song", "chords");
-        given(songService.loadAllGroupedByArtist()).willReturn(Map.of());
-        given(songService.loadNewest(5)).willReturn(List.of(newest));
-        given(songService.loadMostViewed(5)).willReturn(List.of(popular));
-
-        mockMvc.perform(get("/"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("New Song")))
-                .andExpect(content().string(containsString("Popular Song")));
-    }
-
-    @Test
     void liveViewRendersChordsAndHasNoNavbar() throws Exception {
         Song song = new Song("Marko Markovic", "Probna pesma", "C G\nline one");
         given(songService.load(song.id())).willReturn(Optional.of(song));

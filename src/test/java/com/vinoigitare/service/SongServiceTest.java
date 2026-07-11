@@ -5,7 +5,6 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -138,48 +137,6 @@ class SongServiceTest {
 
         assertThat(service.loadByGenre(Genre.STRANO)).extracting(Song::artist)
                 .containsExactlyInAnyOrder("Old Artist", "New Artist");
-    }
-
-    @Test
-    void loadNewestOrdersByCreatedAtDescendingAndExcludesNullCreatedAt() {
-        InMemorySongRepository repository = new InMemorySongRepository();
-        Instant now = Instant.now();
-        repository.save(new Song("1", "Artist", "Oldest", "oldest", null, "chords", now.minusSeconds(300), 0L));
-        repository.save(new Song("2", "Artist", "Newest", "newest", null, "chords", now, 0L));
-        repository.save(new Song("3", "Artist", "Middle", "middle", null, "chords", now.minusSeconds(100), 0L));
-        repository.save(new Song("Artist", "No Timestamp", "chords")); // createdAt null via 3-arg ctor
-
-        SongService service = new SongService(repository, mirror());
-        List<Song> newest = service.loadNewest(10);
-
-        assertThat(newest).extracting(Song::title).containsExactly("Newest", "Middle", "Oldest");
-    }
-
-    @Test
-    void loadNewestRespectsLimit() {
-        InMemorySongRepository repository = new InMemorySongRepository();
-        Instant now = Instant.now();
-        for (int i = 0; i < 5; i++) {
-            repository.save(new Song(String.valueOf(i), "Artist", "Title" + i, "slug" + i, null, "chords",
-                    now.minusSeconds(i), 0L));
-        }
-
-        SongService service = new SongService(repository, mirror());
-
-        assertThat(service.loadNewest(2)).hasSize(2);
-    }
-
-    @Test
-    void loadMostViewedOrdersByViewsDescending() {
-        InMemorySongRepository repository = new InMemorySongRepository();
-        repository.save(new Song("1", "Artist", "Low", "low", null, "chords", null, 2L));
-        repository.save(new Song("2", "Artist", "High", "high", null, "chords", null, 10L));
-        repository.save(new Song("3", "Artist", "Mid", "mid", null, "chords", null, 5L));
-
-        SongService service = new SongService(repository, mirror());
-        List<Song> popular = service.loadMostViewed(10);
-
-        assertThat(popular).extracting(Song::title).containsExactly("High", "Mid", "Low");
     }
 
     @Test

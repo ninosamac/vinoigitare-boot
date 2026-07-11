@@ -124,26 +124,4 @@ public class SongService {
     public void recordView(String id) {
         repository.incrementViews(id);
     }
-
-    /**
-     * The {@code limit} most recently created songs (Phase 4e), newest
-     * first. Songs with no {@link Song#createdAt()} (only possible for
-     * file-backed songs that were never routed through the database) are
-     * excluded, since there's no meaningful "newest" ordering for them.
-     */
-    public List<Song> loadNewest(int limit) {
-        return repository.findAll().stream()
-                .filter(song -> song.createdAt() != null)
-                .sorted(Comparator.comparing(Song::createdAt).reversed())
-                .limit(limit)
-                .collect(Collectors.toList());
-    }
-
-    /** The {@code limit} most-viewed songs (Phase 4e), highest view count first. */
-    public List<Song> loadMostViewed(int limit) {
-        return repository.findAll().stream()
-                .sorted(Comparator.comparingLong(Song::views).reversed())
-                .limit(limit)
-                .collect(Collectors.toList());
-    }
 }
