@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.vinoigitare.model.Genre;
 import com.vinoigitare.model.Song;
 import com.vinoigitare.storage.SongRepository;
 import com.vinoigitare.storage.TabFileMirror;
@@ -94,23 +93,6 @@ public class SongService {
         return repository.findAll().stream()
                 .filter(song -> song.artist().equals(artist))
                 .sorted(Comparator.comparing(Song::title, String.CASE_INSENSITIVE_ORDER))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Songs in the given genre (Phase 4c). Matched via {@link
-     * Genre#resolve(String)}, not raw string equality against {@link
-     * Song#genre()} -- that field can hold the current slug, the current
-     * label, or (for songs untouched since before the English i18n
-     * switch) the original Serbian label text, and all three need to
-     * count as the same genre. Songs with no genre assigned never match
-     * any genre.
-     */
-    public List<Song> loadByGenre(Genre genre) {
-        return repository.findAll().stream()
-                .filter(song -> Genre.resolve(song.genre()).filter(genre::equals).isPresent())
-                .sorted(Comparator.comparing(Song::artist, String.CASE_INSENSITIVE_ORDER)
-                        .thenComparing(Song::title, String.CASE_INSENSITIVE_ORDER))
                 .collect(Collectors.toList());
     }
 
