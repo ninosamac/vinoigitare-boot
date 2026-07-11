@@ -45,38 +45,71 @@
       Homepage artist tree (rethinking the main page for scale -- see
       SongBrowseController's class Javadoc): a letter-grouped, expandable
       index instead of one flat list, artists as "folders" and songs as
-      "files". Server-rendered fully expanded (aria-expanded="true",
-      .song-list has no .collapsed class) so it's a complete, navigable
-      page with no JS at all; static/js/artist-tree.js (added alongside
-      the toolbar above it) then collapses everything on load and layers
-      on the actual expand/collapse/search interactivity.
+      "files". Server-rendered fully expanded (aria-expanded="true", no
+      hide-class on any .song-list) so it's a complete, navigable page
+      with no JS at all; static/js/artist-tree.js collapses everything on
+      load and layers on the actual expand/collapse/search interactivity
+      described in the toolbar below -- that toolbar is inert without
+      the script (search box does nothing, buttons do nothing), which is
+      an acceptable no-JS degradation since every song is already visible
+      without needing to search for it in that case.
     -->
-    <div class="tree-card" th:if="${totalArtists > 0}">
-        <div class="tree-scroll" id="artistTree">
-            <div th:each="group : ${artistTree}">
-                <div class="letter-heading" th:text="${group.letter()}">A</div>
-                <div th:each="entry : ${group.artists()}">
-                    <div class="artist-row" data-artist-row tabindex="0" role="button" aria-expanded="true">
-                        <span class="twisty" aria-hidden="true">&#9654;</span>
-                        <span class="folder-icon" aria-hidden="true">&#9638;</span>
-                        <a class="artist-name" data-artist-name
-                           th:href="@{/artists/{artist}(artist=${entry.artist()})}"
-                           th:text="${entry.artist()}">Artist</a>
-                        <span class="song-count" th:text="'(' + ${entry.songs().size()} + ')'">(0)</span>
-                    </div>
-                    <div class="song-list" data-song-list>
-                        <a class="song-row" th:each="song : ${entry.songs()}"
-                           th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}">
-                            <span class="file-icon" aria-hidden="true">&#9834;</span>
-                            <span class="song-title" data-song-title th:text="${song.title()}">Title</span>
-                            <span class="song-views" th:text="${song.views()}">0</span>
-                        </a>
+    <div th:if="${totalArtists > 0}">
+        <div class="tree-toolbar">
+            <div class="tree-search-box">
+                <input type="search" id="artistTreeFilter" class="form-control form-control-sm"
+                       th:placeholder="#{home.filterPlaceholder}" autocomplete="off"/>
+            </div>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="expandAllBtn"
+                    th:text="#{home.expandAll}">Expand all</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="collapseAllBtn"
+                    th:text="#{home.collapseAll}">Collapse all</button>
+        </div>
+        <div class="tree-card">
+            <div class="tree-scroll" id="artistTree">
+                <div th:each="group : ${artistTree}">
+                    <div class="letter-heading" th:text="${group.letter()}">A</div>
+                    <div th:each="entry : ${group.artists()}">
+                        <!--
+                          The row itself is the toggle target (large, easy
+                          to click/tap at any point along it) -- the artist
+                          name is deliberately plain text here, not a link,
+                          since a flex-grow link filling most of the row's
+                          width left nowhere comfortable left to click for
+                          toggling (a real bug, found live: clicks kept
+                          landing on the link and navigating away instead
+                          of expanding). The one real link in this row is
+                          the small arrow at the end, to the existing
+                          standalone artist page -- a deliberately small,
+                          separate target, not competing with the toggle.
+                        -->
+                        <div class="artist-row" data-artist-row tabindex="0" role="button" aria-expanded="true">
+                            <span class="twisty" aria-hidden="true">&#9654;</span>
+                            <span class="folder-icon" aria-hidden="true">&#9638;</span>
+                            <span class="artist-name" data-artist-name th:text="${entry.artist()}">Artist</span>
+                            <span class="song-count" th:text="'(' + ${entry.songs().size()} + ')'">(0)</span>
+                            <a class="artist-open-link" data-artist-open-link
+                               th:href="@{/artists/{artist}(artist=${entry.artist()})}"
+                               th:aria-label="#{home.viewArtistPage(${entry.artist()})}">&#8599;</a>
+                        </div>
+                        <div class="song-list" data-song-list>
+                            <a class="song-row" th:each="song : ${entry.songs()}"
+                               th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}">
+                                <span class="file-icon" aria-hidden="true">&#9834;</span>
+                                <span class="song-title" data-song-title th:text="${song.title()}">Title</span>
+                                <span class="song-views" th:text="${song.views()}">0</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
+            </div>
+            <div class="tree-empty-state d-none" id="artistTreeEmptyState" th:text="#{home.noMatches}">
+                No artists or songs match that filter.
             </div>
         </div>
     </div>
 </main>
 <script th:src="@{/js/theme-toggle.js}"></script>
+<script th:src="@{/js/artist-tree.js}"></script>
 </body>
 </html>
