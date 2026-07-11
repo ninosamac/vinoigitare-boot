@@ -122,6 +122,30 @@ h1, h2, h3 {
     color: var(--nav-ink) !important;
 }
 
+@media (max-width: 767.98px) {
+    /* Real bug found via a mobile screenshot: the search box was
+       crushed to ~68px wide, cut off to "Searc", instead of moving to
+       its own line below Home/Genres/Chords/Admin as the form's
+       existing .mt-2 (mobile-only top margin) clearly intended.
+       Root cause: .navbar-expand (used here so the nav links never
+       collapse behind a hamburger button -- see the .container comment
+       above) sets flex-wrap: nowrap *unconditionally*, not just above
+       some breakpoint, so at any width where the row's content doesn't
+       fit, items get flex-shrunk in place rather than wrapped. Restore
+       wrapping below md, where there isn't room for everything on one
+       line anyway. flex-basis: 100% on the form (Bootstrap's own trick,
+       see .navbar-collapse in bootstrap.css) then guarantees it takes a
+       full line to itself once wrapping is possible, rather than
+       potentially sharing a partial one. */
+    .navbar.navbar-expand {
+        flex-wrap: wrap;
+    }
+
+    .navbar form {
+        flex-basis: 100%;
+    }
+}
+
 /* Live/performance view's slim top bar (song-live.html) -- same dark
    "ink bar" treatment as .navbar (reuses the same --nav-* tokens) but
    without a real <nav>, since this page deliberately has no navbar or
