@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(#{about.title})}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <h1 class="h4 mb-3" th:text="#{about.title}">About</h1>
+
+    <section class="mb-4">
+        <h2 class="h6 text-uppercase text-muted mb-2" th:text="#{about.motivationHeading}">Why this exists</h2>
+        <p th:text="#{about.motivationBody}">Placeholder motivation text.</p>
+    </section>
+
+    <section class="mb-4">
+        <h2 class="h6 text-uppercase text-muted mb-2" th:text="#{about.privacyHeading}">Privacy</h2>
+        <p th:text="#{about.privacyBody}">Placeholder privacy text.</p>
+    </section>
+
+    <section class="mb-4">
+        <h2 class="h6 text-uppercase text-muted mb-2" th:text="#{about.supportHeading}">Support</h2>
+        <p th:text="#{about.supportBody}">Placeholder support text.</p>
+        <!--
+          TODO (Stage 3, see about-page-and-genre-removal-plan.md): wire up
+          the real Ko-fi/Buy Me a Coffee URL once Nino picks one and confirms
+          a handle -- href="#" is a deliberate placeholder, not a real link.
+        -->
+        <a class="btn btn-primary" href="#" th:text="#{about.supportButton}">Buy me a coffee</a>
+    </section>
+</main>
+<script th:src="@{/js/theme-toggle.js}"></script>
+</body>
+</html>
