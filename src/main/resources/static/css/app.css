@@ -90,13 +90,12 @@ body {
     background-color: var(--paper);
 }
 
-/* Manuscript serif for headings and the brand mark -- plays against the
-   monospace chords rather than competing with it; system font stack only
-   (the artifact/CSS here can't fetch a webfont, and this project already
+/* Manuscript serif for headings -- plays against the monospace chords
+   rather than competing with it; system font stack only (the
+   artifact/CSS here can't fetch a webfont, and this project already
    favors self-hosted-or-nothing over CDN dependencies -- see Bootstrap's
    own WebJar packaging). */
-h1, h2, h3,
-.brand-mark {
+h1, h2, h3 {
     font-family: Georgia, "Iowan Old Style", "Book Antiqua", Palatino, serif;
 }
 
@@ -104,13 +103,17 @@ h1, h2, h3,
     background-color: var(--nav-bg);
 }
 
-.brand-mark {
-    font-style: italic;
-    font-weight: 700;
-    color: var(--nav-ink) !important;
-}
-
 .navbar .nav-link {
+    /* "Home" (the leftmost link, replacing the old serif "Vino i gitare"
+       brand mark) is a plain .nav-link too, not .navbar-brand -- styled
+       identically to Genres/Chords/Admin rather than as a separate,
+       differently-treated element. Padding set explicitly (matching
+       Bootstrap's own resolved 0.5rem/0.5rem for .navbar-nav .nav-link,
+       verified via computed styles) rather than relying on its
+       .navbar-nav-scoped --bs-navbar-nav-link-padding-x variable, since
+       this rule also has to reach a .nav-link that isn't nested inside
+       a .navbar-nav. */
+    padding: 0.5rem;
     color: var(--nav-ink-muted) !important;
 }
 

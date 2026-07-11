@@ -59,7 +59,7 @@
   element means it already has everything it needs from the one rule.
 -->
 <nav th:fragment="nav" class="navbar navbar-expand navbar-dark mb-3 container">
-    <a class="navbar-brand brand-mark" th:href="@{/}">Vino i gitare</a>
+    <a class="nav-link me-2" th:href="@{/}" th:text="#{nav.home}">Home</a>
     <!--
       Search box, submits GET /search?q=... (SearchController). Present
       in every page via this shared fragment. th:value falls back to
