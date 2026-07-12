@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 "/", "/artists/**", "/akordi/**", "/search",
-                                "/chord-diagrams", "/about", "/sitemap.xml",
+                                "/chord-diagrams", "/about", "/sitemap.xml", "/robots.txt",
                                 "/css/**", "/js/**", "/webjars/**",
                                 "/actuator/health", "/login")
                         .permitAll()

@@ -1,6 +1,41 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head(#{nav.home})}"></head>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  SEO (2026-07-12): this page writes its own <head> rather than going
+  through fragments :: head(title) -- same reasoning as song.html's own
+  comment on this: it needs a meta description and canonical link that
+  most other pages don't, and changing the shared fragment's parameter
+  list would touch every other page's template call site. A little
+  markup duplication (viewport/theme-restore script/bootstrap+app.css)
+  is the same trade-off already made there.
+-->
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="#{home.pageTitle} + ' - Vino i gitare'">Vino i gitare</title>
+    <meta name="description" th:content="#{home.metaDescription}"/>
+    <link rel="canonical" href="https://vinoigitare.com/"/>
+    <!-- Open Graph: not a Google ranking factor, but what Facebook/X/
+         WhatsApp/Slack show in a link preview when this URL gets shared --
+         worth having since that's a real, if indirect, traffic/backlink
+         source for a brand-new site with nothing else pointing at it yet. -->
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content="Vino i gitare"/>
+    <meta property="og:url" content="https://vinoigitare.com/"/>
+    <meta property="og:title" th:content="#{home.pageTitle}"/>
+    <meta property="og:description" th:content="#{home.metaDescription}"/>
+    <script>
+        (function () {
+            if (localStorage.getItem("vinoigitare.theme") === "dark") {
+                document.documentElement.setAttribute("data-bs-theme", "dark");
+            }
+        })();
+    </script>
+    <meta name="i18n-theme-switch-to-dark" th:content="#{theme.switchToDark}"/>
+    <meta name="i18n-theme-switch-to-light" th:content="#{theme.switchToLight}"/>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/app.css}"/>
+</head>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 <main class="container">

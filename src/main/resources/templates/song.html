@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <!--
   Phase 4f (SEO): this page writes its own <head> rather than going
   through fragments :: head(title) -- it needs a meta description and a
@@ -36,7 +36,17 @@
     <meta name="i18n-auto-scroll-start" th:content="#{song.autoScrollStart}"/>
     <meta name="i18n-auto-scroll-stop" th:content="#{song.autoScrollStop}"/>
     <meta name="description" th:content="${metaDescription}"/>
-    <link rel="canonical" th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}"/>
+    <!-- Absolute, not relative -- Google tolerates a relative canonical
+         but recommends absolute for clarity; cheap to get right since the
+         domain is a fixed, known value. -->
+    <link rel="canonical" th:href="'https://vinoigitare.com' + @{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}"/>
+    <!-- Open Graph -- see index.html's comment on why this is worth
+         having even though it's not a Google ranking factor. -->
+    <meta property="og:type" content="music.song"/>
+    <meta property="og:site_name" content="Vino i gitare"/>
+    <meta property="og:url" th:content="'https://vinoigitare.com' + @{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}"/>
+    <meta property="og:title" th:content="${song.artist()} + ' - ' + ${song.title()}"/>
+    <meta property="og:description" th:content="${metaDescription}"/>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}"/>
     <link rel="stylesheet" th:href="@{/css/app.css}"/>
 </head>

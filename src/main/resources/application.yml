@@ -1,3 +1,19 @@
+# Real SEO bug found and fixed (2026-07-12): in production this app sits
+# behind Caddy, which terminates HTTPS and proxies to this app over plain
+# HTTP on localhost -- Caddy does send X-Forwarded-Proto: https on every
+# request, but Spring Boot ignores forwarded headers by default (a
+# deliberate security default: trusting them blindly would let a client
+# spoof its own scheme/host if the app were ever exposed directly). Without
+# this, every absolute URL this app builds from the incoming request
+# (HttpServletRequest.getScheme(), and everything built from it --
+# SitemapController's sitemap.xml, most visibly) reports "http", even
+# though every real visitor is on https. "framework" tells Spring itself
+# to read and honor those headers, which is the right level of trust here
+# since Caddy is this app's only path to the internet (UFW blocks direct
+# access to the app's own port from outside).
+server:
+  forward-headers-strategy: framework
+
 spring:
   application:
     name: vinoigitare-boot
