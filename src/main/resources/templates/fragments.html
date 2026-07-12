@@ -76,28 +76,56 @@
         <a class="nav-link me-2" th:href="@{/about}" th:text="#{nav.about}">About</a>
         <a class="nav-link me-2" th:href="@{/admin}" th:text="#{nav.admin}">Admin</a>
         <!--
-          Language switcher (2026-07-12, see com.vinoigitare.web.LocaleConfig):
-          a bare "?lang=xx" href, not th:href="@{...(lang=xx)}" -- a
-          query-only href is resolved by the browser against the CURRENT
-          page, so switching language on a song page stays on that song
-          page. The one tradeoff: it replaces the whole query string, so
-          switching language while on a search-results page (?q=...) does
-          lose that query -- accepted as a minor, rare edge case rather
-          than threading the current query string through every page's
-          own template just to preserve it.
+          Preferences dropdown (2026-07-12): the theme toggle and language
+          switcher used to be two separate always-visible nav controls --
+          consolidated into one button + a small anchored dropdown panel
+          (not a modal/full-screen popup, deliberately -- see
+          static/js/preferences-menu.js's header comment), so the navbar
+          itself only has one extra item instead of four.
+
+          static/js/preferences-menu.js owns open/close/outside-click/
+          escape-key handling only. The actual controls inside are
+          untouched: static/js/theme-toggle.js still just looks up
+          [data-theme-toggle] wherever that button now lives, and the
+          language links are still plain "?lang=xx" anchor navigation,
+          not JS -- see the original comment on that (kept below) for why
+          a bare query-only href is used rather than a Thymeleaf @{...} URL.
         -->
-        <div class="lang-switch" aria-label="Language">
-            <a href="?lang=en" class="lang-link" th:classappend="${#locale.language == 'en'} ? ' active'">EN</a>
-            <a href="?lang=hr" class="lang-link" th:classappend="${#locale.language == 'hr'} ? ' active'">HR</a>
-            <a href="?lang=sr" class="lang-link" th:classappend="${#locale.language == 'sr'} ? ' active'">SR</a>
+        <div class="preferences" data-preferences>
+            <button type="button" class="btn btn-sm preferences-toggle-btn" data-preferences-toggle
+                    aria-haspopup="true" aria-expanded="false" th:aria-label="#{nav.preferences}">&#9881;</button>
+            <div class="preferences-panel" data-preferences-panel hidden>
+                <div class="preferences-row">
+                    <span class="preferences-label" th:text="#{preferences.theme}">Theme</span>
+                    <!--
+                      static/js/theme-toggle.js sets the glyph/aria-label on
+                      load (reflecting whatever theme is actually active,
+                      whether that came from the stored override above or
+                      prefers-color-scheme) and again on every click.
+                    -->
+                    <button type="button" class="btn btn-sm theme-toggle-btn" data-theme-toggle>&#9789;</button>
+                </div>
+                <div class="preferences-row">
+                    <span class="preferences-label" th:text="#{preferences.language}">Language</span>
+                    <!--
+                      A bare "?lang=xx" href, not th:href="@{...(lang=xx)}"
+                      -- a query-only href is resolved by the browser
+                      against the CURRENT page, so switching language on a
+                      song page stays on that song page. The one tradeoff:
+                      it replaces the whole query string, so switching
+                      language while on a search-results page (?q=...) does
+                      lose that query -- accepted as a minor, rare edge
+                      case rather than threading the current query string
+                      through every page's own template just to preserve it.
+                    -->
+                    <div class="lang-switch" aria-label="Language">
+                        <a href="?lang=en" class="lang-link" th:classappend="${#locale.language == 'en'} ? ' active'">EN</a>
+                        <a href="?lang=hr" class="lang-link" th:classappend="${#locale.language == 'hr'} ? ' active'">HR</a>
+                        <a href="?lang=sr" class="lang-link" th:classappend="${#locale.language == 'sr'} ? ' active'">SR</a>
+                    </div>
+                </div>
+            </div>
         </div>
-        <!--
-          static/js/theme-toggle.js sets the glyph/aria-label on load
-          (reflecting whatever theme is actually active, whether that
-          came from the stored override above or prefers-color-scheme)
-          and again on every click.
-        -->
-        <button type="button" class="btn btn-sm theme-toggle-btn" data-theme-toggle>&#9789;</button>
     </div>
 </nav>
 
