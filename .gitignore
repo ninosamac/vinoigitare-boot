@@ -8,6 +8,14 @@ target/
 # Generated H2 database files (Phase 4a) -- runtime data, not source.
 /data/vinoigitare-db*
 
+# The song collection moved to its own dedicated git repo (2026-07-12,
+# Nino's call: .tab files are the actual collection, this app's own repo
+# just reads them; see ~/knowledge/projects/vinoigitare/dev-cheatsheet.md).
+# Untracked here via `git rm -r --cached data/songs` -- the files
+# themselves are untouched on disk, just no longer part of this repo's
+# history going forward.
+/data/songs/
+
 ### STS ###
 .apt_generated
 .classpath
