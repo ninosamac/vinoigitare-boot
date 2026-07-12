@@ -36,9 +36,9 @@ class SitemapControllerTest {
 
     @Test
     void sitemapListsHomepageAndEverySongUrl() throws Exception {
-        Song song1 = new Song("1", "Marko Markovic", "Probna pesma", "marko-markovic--probna-pesma", null,
+        Song song1 = new Song("1", "Marko Markovic", "Probna pesma", "marko-markovic--probna-pesma",
                 "chords", null, 0L);
-        Song song2 = new Song("2", "Đorđe Đokić", "Šašava priča", "dorde-dokic--sasava-prica", null,
+        Song song2 = new Song("2", "Đorđe Đokić", "Šašava priča", "dorde-dokic--sasava-prica",
                 "chords", null, 0L);
         given(songService.loadAll()).willReturn(List.of(song1, song2));
 

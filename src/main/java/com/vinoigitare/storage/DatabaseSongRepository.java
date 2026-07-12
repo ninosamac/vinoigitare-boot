@@ -60,7 +60,7 @@ public class DatabaseSongRepository implements SongRepository {
             return Optional.empty();
         }
         List<Song> rows = jdbcTemplate.query(
-                "SELECT id, artist, title, slug, genre, chords, created_at, views FROM song WHERE id = ?",
+                "SELECT id, artist, title, slug, chords, created_at, views FROM song WHERE id = ?",
                 ROW_MAPPER, numericId);
         return rows.stream().findFirst();
     }
@@ -68,7 +68,7 @@ public class DatabaseSongRepository implements SongRepository {
     @Override
     public List<Song> findAll() {
         return jdbcTemplate.query(
-                "SELECT id, artist, title, slug, genre, chords, created_at, views FROM song ORDER BY artist, title",
+                "SELECT id, artist, title, slug, chords, created_at, views FROM song ORDER BY artist, title",
                 ROW_MAPPER);
     }
 
@@ -96,30 +96,29 @@ public class DatabaseSongRepository implements SongRepository {
             // an actual view (see its Javadoc for why), but save() should
             // not silently ignore fields it claims to accept either way.
             jdbcTemplate.update(
-                    "UPDATE song SET artist = ?, title = ?, slug = ?, genre = ?, chords = ?, views = ? WHERE id = ?",
-                    song.artist(), song.title(), song.slug(), song.genre(), song.chords(), song.views(), numericId);
-            return new Song(song.id(), song.artist(), song.title(), song.slug(), song.genre(), song.chords(),
+                    "UPDATE song SET artist = ?, title = ?, slug = ?, chords = ?, views = ? WHERE id = ?",
+                    song.artist(), song.title(), song.slug(), song.chords(), song.views(), numericId);
+            return new Song(song.id(), song.artist(), song.title(), song.slug(), song.chords(),
                     createdAt, song.views());
         }
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO song (artist, title, slug, genre, chords, created_at, views) "
-                            + "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO song (artist, title, slug, chords, created_at, views) "
+                            + "VALUES (?, ?, ?, ?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS);
             statement.setString(1, song.artist());
             statement.setString(2, song.title());
             statement.setString(3, song.slug());
-            statement.setString(4, song.genre());
-            statement.setString(5, song.chords());
-            statement.setTimestamp(6, Timestamp.from(createdAt));
-            statement.setLong(7, song.views());
+            statement.setString(4, song.chords());
+            statement.setTimestamp(5, Timestamp.from(createdAt));
+            statement.setLong(6, song.views());
             return statement;
         }, keyHolder);
 
         long generatedId = keyHolder.getKey().longValue();
-        return new Song(String.valueOf(generatedId), song.artist(), song.title(), song.slug(), song.genre(),
+        return new Song(String.valueOf(generatedId), song.artist(), song.title(), song.slug(),
                 song.chords(), createdAt, song.views());
     }
 
@@ -170,7 +169,6 @@ public class DatabaseSongRepository implements SongRepository {
                 rs.getString("artist"),
                 rs.getString("title"),
                 rs.getString("slug"),
-                rs.getString("genre"),
                 rs.getString("chords"),
                 rs.getTimestamp("created_at").toInstant(),
                 rs.getLong("views"));

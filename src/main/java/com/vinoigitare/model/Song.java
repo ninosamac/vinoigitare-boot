@@ -9,7 +9,11 @@ import java.util.regex.Pattern;
 /**
  * A song: an artist, a title, and the chords/lyrics text blob, plus the
  * fields Phase 4a's database backing added: a repository-specific id, a
- * URL slug, a genre, a creation timestamp, and a view counter.
+ * URL slug, a creation timestamp, and a view counter. (Genre was added in
+ * Phase 4c and removed again entirely on 2026-07-12 -- it was assigned
+ * round-robin at import time purely so the public genre-browsing tab
+ * (also since removed) had something in every category, never a real,
+ * human-curated attribute.)
  *
  * <p>Ported from the old {@code Vinoigitare_Model} {@code Song} class. The
  * old class was a mutable Java 7 bean; here it's a record, since songs are
@@ -39,8 +43,6 @@ import java.util.regex.Pattern;
  *             "marko-markovic--probna-pesma"}, matching pesmarica.rs's own
  *             {@code Artist-Name--Song-Title} convention. Auto-derived
  *             from artist/title if not supplied.
- * @param genre nullable; one of the pesmarica-style categories (Pop/Rock,
- *              Narodno, Strano) once Phase 4c wires it up.
  * @param createdAt nullable for file-backed songs, which have no real
  *                  creation timestamp; set for database-backed songs.
  * @param views view counter; 0 until Phase 4e wires up counting.
@@ -50,7 +52,6 @@ public record Song(
         String artist,
         String title,
         String slug,
-        String genre,
         String chords,
         Instant createdAt,
         long views) {
@@ -75,13 +76,13 @@ public record Song(
      * Back-compat constructor matching the pre-Phase-4a shape: {@link #id()}
      * defaults to the legacy {@code "artist - title"} derived string (via
      * the compact constructor above), {@link #slug()} is auto-derived, and
-     * genre/createdAt/views take their empty defaults. Used by {@code
+     * createdAt/views take their empty defaults. Used by {@code
      * TextFileSongRepository}, existing tests, and admin-created songs
      * before they're persisted to the database (where the database
      * repository assigns the real numeric id).
      */
     public Song(String artist, String title, String chords) {
-        this(null, artist, title, null, null, chords, null, 0L);
+        this(null, artist, title, null, chords, null, 0L);
     }
 
     /**

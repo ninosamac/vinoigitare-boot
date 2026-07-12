@@ -14,7 +14,6 @@ class SongTest {
 
         assertThat(song.id()).isEqualTo("Marko Markovic - Probna pesma");
         assertThat(song.slug()).isEqualTo("marko-markovic--probna-pesma");
-        assertThat(song.genre()).isNull();
         assertThat(song.createdAt()).isNull();
         assertThat(song.views()).isZero();
     }
@@ -37,11 +36,10 @@ class SongTest {
 
     @Test
     void explicitIdAndSlugAreRespected() {
-        Song song = new Song("42", "Marko Markovic", "Probna pesma", "custom-slug", "Pop/Rock", "chords", null, 5L);
+        Song song = new Song("42", "Marko Markovic", "Probna pesma", "custom-slug", "chords", null, 5L);
 
         assertThat(song.id()).isEqualTo("42");
         assertThat(song.slug()).isEqualTo("custom-slug");
-        assertThat(song.genre()).isEqualTo("Pop/Rock");
         assertThat(song.views()).isEqualTo(5L);
     }
 

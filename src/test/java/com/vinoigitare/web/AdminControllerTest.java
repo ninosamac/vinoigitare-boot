@@ -119,7 +119,7 @@ class AdminControllerTest {
     @Test
     @WithMockUser
     void editFormShowsExistingSongWhenAuthenticated() throws Exception {
-        Song song = new Song("1", "Marko Markovic", "Probna pesma", "probna-pesma", null, "C G", null, 0L);
+        Song song = new Song("1", "Marko Markovic", "Probna pesma", "probna-pesma", "C G", null, 0L);
         given(songService.load("1")).willReturn(Optional.of(song));
 
         mockMvc.perform(get("/admin/edit/{id}", "1"))

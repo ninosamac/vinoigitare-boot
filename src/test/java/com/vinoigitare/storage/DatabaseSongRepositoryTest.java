@@ -97,7 +97,7 @@ class DatabaseSongRepositoryTest extends AbstractSpringBootTest {
         DatabaseSongRepository repository = newRepository();
         Song saved = repository.save(new Song("Marko Markovic", "Probna pesma", "old chords"));
 
-        Song updated = new Song(saved.id(), saved.artist(), saved.title(), saved.slug(), saved.genre(),
+        Song updated = new Song(saved.id(), saved.artist(), saved.title(), saved.slug(),
                 "new chords", saved.createdAt(), saved.views());
         repository.save(updated);
 
@@ -185,7 +185,7 @@ class DatabaseSongRepositoryTest extends AbstractSpringBootTest {
         assertThat(withViews.views()).isEqualTo(1L);
 
         Song updated = new Song(withViews.id(), withViews.artist(), withViews.title(), withViews.slug(),
-                withViews.genre(), "changed chords", withViews.createdAt(), withViews.views());
+                "changed chords", withViews.createdAt(), withViews.views());
         repository.save(updated);
 
         assertThat(repository.findById(saved.id()).orElseThrow().views()).isEqualTo(1L);

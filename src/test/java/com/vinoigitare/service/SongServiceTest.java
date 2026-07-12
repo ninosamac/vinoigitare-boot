@@ -68,7 +68,7 @@ class SongServiceTest {
         public void incrementViews(String id) {
             Song song = songs.get(id);
             if (song != null) {
-                songs.put(id, new Song(song.id(), song.artist(), song.title(), song.slug(), song.genre(),
+                songs.put(id, new Song(song.id(), song.artist(), song.title(), song.slug(),
                         song.chords(), song.createdAt(), song.views() + 1));
             }
         }
@@ -83,10 +83,10 @@ class SongServiceTest {
         // after "Zarko Z", not next to "Ana Anic" where a reader expects
         // it. See SongService#loadAllGroupedByArtist's Javadoc.
         InMemorySongRepository repository = new InMemorySongRepository();
-        repository.save(new Song(null, "ana anic", "Song", null, null, "chords", null, 0L));
-        repository.save(new Song(null, "Zarko Z", "Song", null, null, "chords", null, 0L));
-        repository.save(new Song(null, "Marko Markovic", "Z Title", null, null, "chords", null, 0L));
-        repository.save(new Song(null, "Marko Markovic", "A Title", null, null, "chords", null, 0L));
+        repository.save(new Song(null, "ana anic", "Song", null, "chords", null, 0L));
+        repository.save(new Song(null, "Zarko Z", "Song", null, "chords", null, 0L));
+        repository.save(new Song(null, "Marko Markovic", "Z Title", null, "chords", null, 0L));
+        repository.save(new Song(null, "Marko Markovic", "A Title", null, "chords", null, 0L));
 
         SongService service = new SongService(repository, mirror());
         Map<String, List<Song>> grouped = service.loadAllGroupedByArtist();
@@ -98,7 +98,7 @@ class SongServiceTest {
     @Test
     void recordViewDelegatesToRepositoryIncrementViews() {
         InMemorySongRepository repository = new InMemorySongRepository();
-        Song saved = repository.save(new Song("1", "Artist", "Title", "slug", null, "chords", null, 0L));
+        Song saved = repository.save(new Song("1", "Artist", "Title", "slug", "chords", null, 0L));
         SongService service = new SongService(repository, mirror());
 
         service.recordView(saved.id());
@@ -116,7 +116,7 @@ class SongServiceTest {
         // constructor derives the legacy "artist - title" form -- never a
         // real database row id, which is exactly what tells store() this
         // is a new song, not an edit (see its Javadoc).
-        service.store(new Song(null, "Test Artist", "Test Title", null, null, "C G\nSome lyrics", null, 0L));
+        service.store(new Song(null, "Test Artist", "Test Title", null, "C G\nSome lyrics", null, 0L));
 
         assertThat(tabFileContent("Test Artist - Test Title.tab")).isEqualTo("C G\nSome lyrics");
     }
@@ -125,10 +125,10 @@ class SongServiceTest {
     void storingAnEditedSongOverwritesTheSameTabFile() {
         InMemorySongRepository repository = new InMemorySongRepository();
         Song original = repository.save(
-                new Song("1", "Test Artist", "Test Title", "test-artist--test-title", null, "old chords", null, 0L));
+                new Song("1", "Test Artist", "Test Title", "test-artist--test-title", "old chords", null, 0L));
         SongService service = new SongService(repository, mirror());
 
-        service.store(new Song(original.id(), original.artist(), original.title(), original.slug(), null,
+        service.store(new Song(original.id(), original.artist(), original.title(), original.slug(),
                 "new chords", null, 0L));
 
         assertThat(tabFileContent("Test Artist - Test Title.tab")).isEqualTo("new chords");
@@ -138,11 +138,11 @@ class SongServiceTest {
     void storingASongWithAChangedArtistOrTitleMovesItsTabFile() {
         InMemorySongRepository repository = new InMemorySongRepository();
         Song original = repository.save(
-                new Song("1", "Old Artist", "Old Title", "old-artist--old-title", null, "chords", null, 0L));
+                new Song("1", "Old Artist", "Old Title", "old-artist--old-title", "chords", null, 0L));
         SongService service = new SongService(repository, mirror());
 
         service.store(
-                new Song(original.id(), "New Artist", "New Title", null, null, original.chords(), null, 0L));
+                new Song(original.id(), "New Artist", "New Title", null, original.chords(), null, 0L));
 
         assertThat(tempSongsDir.resolve("Old Artist - Old Title.tab")).doesNotExist();
         assertThat(tabFileContent("New Artist - New Title.tab")).isEqualTo("chords");

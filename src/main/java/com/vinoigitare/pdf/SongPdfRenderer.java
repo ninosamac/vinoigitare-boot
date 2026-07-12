@@ -85,7 +85,7 @@ public class SongPdfRenderer {
 
     private static Song withTransposedChords(Song song, int transposeSemitones) {
         String transposedChords = ChordTransposer.transpose(song.chords(), transposeSemitones);
-        return new Song(song.id(), song.artist(), song.title(), song.slug(), song.genre(), transposedChords,
+        return new Song(song.id(), song.artist(), song.title(), song.slug(), transposedChords,
                 song.createdAt(), song.views());
     }
 
