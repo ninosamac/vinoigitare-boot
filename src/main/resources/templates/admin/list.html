@@ -44,20 +44,7 @@
         </table>
     </div>
 </main>
-<script>
-    // Thymeleaf deliberately rejects free-form string expressions in
-    // th:onsubmit/th:onclick (XSS guard: "Only variable expressions
-    // returning numbers or booleans are allowed in this context") -- the
-    // confirmation message has to come in via a data-* attribute and be
-    // read from here instead, per that restriction's own suggested fix.
-    document.querySelectorAll("[data-delete-form]").forEach(function (form) {
-        form.addEventListener("submit", function (event) {
-            if (!window.confirm(form.getAttribute("data-confirm-delete"))) {
-                event.preventDefault();
-            }
-        });
-    });
-</script>
+<script th:src="@{/js/delete-confirm.js}"></script>
 <script th:src="@{/js/theme-toggle.js}"></script>
 <script th:src="@{/js/preferences-menu.js}"></script>
 </body>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <!--
   Phase 4f (SEO): this page writes its own <head> rather than going
   through fragments :: head(title) -- it needs a meta description and a
@@ -123,10 +123,27 @@
            th:href="@{/akordi/{id}/pdf(id=${song.id()})}"
            th:attr="data-pdf-base-href=@{/akordi/{id}/pdf(id=${song.id()})}" th:text="#{song.downloadPdf}">Download PDF</a>
         <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()" th:text="#{song.print}">Print</button>
+        <!-- Admin-only, reusing AdminController's existing edit/delete
+             routes and the same admin.edit/admin.delete/admin.confirmDelete
+             message keys and data-delete-form confirmation convention as
+             admin/list.html (see static/js/delete-confirm.js) -- this is
+             just a second, in-context place to reach them while reading a
+             song, not a new capability. sec:authorize reads the same
+             session Spring Security already tracks (only /admin/** routes
+             are actually gated, per SecurityConfig, so an admin who has
+             logged in stays "authenticated" on every public page too). -->
+        <span sec:authorize="isAuthenticated()">
+            <a class="btn btn-outline-secondary btn-sm" th:href="@{/admin/edit/{id}(id=${song.id()})}" th:text="#{admin.edit}">Edit</a>
+            <form th:action="@{/admin/delete/{id}(id=${song.id()})}" method="post" class="d-inline"
+                  th:attr="data-confirm-delete=#{admin.confirmDelete}" data-delete-form>
+                <button type="submit" class="btn btn-outline-danger btn-sm" th:text="#{admin.delete}">Delete</button>
+            </form>
+        </span>
     </div>
 </main>
 <script th:src="@{/js/transpose.js}"></script>
 <script th:src="@{/js/display-controls.js}"></script>
+<script th:src="@{/js/delete-confirm.js}"></script>
 <script th:src="@{/js/theme-toggle.js}"></script>
 <script th:src="@{/js/preferences-menu.js}"></script>
 </body>
