@@ -12,11 +12,10 @@ import org.springframework.web.bind.annotation.GetMapping;
  * in {@code about.html} via message-bundle keys.
  *
  * <p>Replaces the removed public Genres browsing tab in the nav (see
- * {@code ~/knowledge/projects/vinoigitare/about-page-and-genre-removal-plan.md}
- * -- Stage 2 of that plan). Placeholder copy for the motivation/privacy/
- * support sections ships first so the page and its layout can be reviewed
- * before real content (Ko-fi handle, final wording) is confirmed -- see
- * that plan doc's open questions.
+ * {@code ~/knowledge/projects/vinoigitare/about-page-and-genre-removal-plan.md}).
+ * All content is now real, final copy: motivation, privacy, and a plain
+ * (not floating-widget) link to Nino's actual Ko-fi page, confirmed
+ * 2026-07-12.
  */
 @Controller
 public class AboutController {

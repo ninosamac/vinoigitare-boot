@@ -63,11 +63,16 @@
         <h2 class="h6 text-uppercase text-muted mb-2" th:text="#{about.supportHeading}">Support</h2>
         <p th:text="#{about.supportBody}">Placeholder support text.</p>
         <!--
-          TODO (Stage 3, see about-page-and-genre-removal-plan.md): wire up
-          the real Ko-fi/Buy Me a Coffee URL once Nino picks one and confirms
-          a handle -- href="#" is a deliberate placeholder, not a real link.
+          Plain static link (Nino's choice over Ko-fi's floating overlay
+          widget, 2026-07-12) -- opens in a new tab so leaving to support
+          the project never navigates the visitor away from the song
+          they were reading. rel="noopener noreferrer": target="_blank"
+          without it lets the opened page access window.opener and
+          reach back into this one (a real, if obscure, security/privacy
+          gap the "noopener" keyword exists specifically to close).
         -->
-        <a class="btn btn-primary" href="#" th:text="#{about.supportButton}">Buy me a coffee</a>
+        <a class="btn btn-primary" href="https://ko-fi.com/ninosamac" target="_blank" rel="noopener noreferrer"
+           th:text="#{about.supportButton}">Buy me a coffee</a>
     </section>
 </main>
 <script th:src="@{/js/theme-toggle.js}"></script>

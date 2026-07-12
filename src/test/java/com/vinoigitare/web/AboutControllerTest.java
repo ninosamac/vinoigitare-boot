@@ -33,6 +33,12 @@ class AboutControllerTest {
                 .andExpect(content().string(containsString("Privacy")))
                 .andExpect(content().string(containsString("Support")))
                 .andExpect(content().string(containsString("Buy me a coffee")))
+                // Real Ko-fi link (plain link, not the floating overlay
+                // widget -- Nino's choice), opening in a new tab with
+                // rel="noopener noreferrer" so the opened page can't reach
+                // back into this one via window.opener.
+                .andExpect(content().string(containsString("href=\"https://ko-fi.com/ninosamac\"")))
+                .andExpect(content().string(containsString("rel=\"noopener noreferrer\"")))
                 // The original 2000 foreword: kept verbatim in Croatian/Bosnian
                 // regardless of site locale (see about.html's comment on this),
                 // so it must render even under the English-default bundle.
