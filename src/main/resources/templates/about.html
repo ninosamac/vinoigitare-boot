@@ -8,7 +8,50 @@
 
     <section class="mb-4">
         <h2 class="h6 text-uppercase text-muted mb-2" th:text="#{about.motivationHeading}">Why this exists</h2>
-        <p th:text="#{about.motivationBody}">Placeholder motivation text.</p>
+        <p th:text="#{about.motivationBody}">Motivation text.</p>
+    </section>
+
+    <!--
+      The original Vinoigitare book (the physical/PDF songbook this whole
+      project is modeled on) had its own foreword, written by Nino in
+      2000. Kept verbatim, in the original Croatian/Bosnian, regardless of
+      site locale -- it's a quoted historical document, not UI copy, so it
+      deliberately does NOT go through messages.properties/messages_sr.properties
+      the way every other string on this page does. Only the section
+      heading (a real i18n label) uses a message key.
+    -->
+    <section class="mb-4">
+        <h2 class="h6 text-uppercase text-muted mb-2" th:text="#{about.forewordHeading}">Foreword from the original 2000 edition</h2>
+        <blockquote class="blockquote">
+            <p>Zbirka akorda Vino i Gitare nastala je kao rezultat moje težnje da na jednom mjestu
+                prikupim i složim akorde nađene u raznim arhivama na Internetu. Postoji čitav niz web
+                site-ova na kojima se, redovito ili ne, osvježavaju ove arhive, i pretpostavljam da nije lako
+                imati zbirku akorda koja je ujedno i potpuna i uredna. Svaki gitarista koji se bavi zabavnim
+                pjesmama s područja nekadašnje Jugoslavije znat će cijeniti papirnu verziju akorda i
+                tekstova svojih omiljenih pjesama, naročito u onim trenucima tuluma ili gaže kad se
+                problem prisjetiti čak i vlastitog repertoara, a kamoli akorda za dotične pjesme. Mislim da
+                će ova knjiga, koja osim akorda i tekstova za brojne pjesme sadrži i tablicu hvatova za
+                najčešće korištene akorde, umnogome pomoći mnogim gitaristima, kako početnicima, tako
+                i onim iskusnijim, te im omogućiti brže savladavanje novog repertoara, kao i opušteniji
+                nastup pred uvijek kritičnom publikom.</p>
+            <p>U prvom redu moram se zahvaliti svim onim vrijednim ljudima koji su skidali akorde
+                za pjesme koje ovdje možete naći i zatim ih nesebično podijelili s Internet populacijom
+                gitarista. Također se zahvaljujem webmasterima koji te akorde prikupljaju i nude na svojim
+                site-ovima u obliku uređenih arhiva koje sam ja, kao što se može vidjeti, vrijedno obišao.</p>
+            <p>Ovo je, mogli bismo reći, radna verzija knjige i nadam se da će knjiga vremenom
+                biti redovno upotpunjavana i ispravljana. Naravno da to ne ovisi samo o mome trudu u
+                skidanju pjesama i prikupljanju slobodno objavljenih akorda na Internetu, nego
+                prvenstveno o prilozima, primjedbama, ispravkama i sugestijama koje će mi korisnici ove
+                knjige upućivati. Naravno, molim vas da svaku misao, kritiku, pohvalu ili prilog posvećen
+                ovoj knjizi pošaljete na moju e-mail adresu. Ne šaljite nikakve viruse, bombe, bojne otrove,
+                prijetnje i uvrede, šovinističke i nacionalističke parole i sl. jer vam za takvu vrstu problema
+                ne mogu ponuditi stručnu pomoć.</p>
+            <p>Još jednom se zahvaljujem ljudima koji nesebično dijele sa svijetom svoje znanje i
+                dobru volju, a na osnovu čega je i bilo moguće napraviti ovu knjigu i tako i dalje pridonijeti
+                kulturi druženja i muziciranja na ovim prostorima.</p>
+            <p>Naravno, ovo knjigu možete po volji kopirati i dijeliti s drugima.</p>
+            <footer class="blockquote-footer">Nino Samac<cite title="Split, kolovoz 2000."> &mdash; Split, kolovoz 2000.</cite></footer>
+        </blockquote>
     </section>
 
     <section class="mb-4">

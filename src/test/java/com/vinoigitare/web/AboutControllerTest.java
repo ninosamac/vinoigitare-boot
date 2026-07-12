@@ -26,12 +26,18 @@ class AboutControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    void pageIsPubliclyReachableAndListsAllThreeSections() throws Exception {
+    void pageIsPubliclyReachableAndListsAllFourSections() throws Exception {
         mockMvc.perform(get("/about"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Why this exists")))
                 .andExpect(content().string(containsString("Privacy")))
                 .andExpect(content().string(containsString("Support")))
-                .andExpect(content().string(containsString("Buy me a coffee")));
+                .andExpect(content().string(containsString("Buy me a coffee")))
+                // The original 2000 foreword: kept verbatim in Croatian/Bosnian
+                // regardless of site locale (see about.html's comment on this),
+                // so it must render even under the English-default bundle.
+                .andExpect(content().string(containsString("Foreword from the original 2000 edition")))
+                .andExpect(content().string(containsString("Zbirka akorda Vino i Gitare")))
+                .andExpect(content().string(containsString("Nino Samac")));
     }
 }
