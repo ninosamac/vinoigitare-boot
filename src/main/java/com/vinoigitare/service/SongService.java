@@ -61,7 +61,17 @@ public class SongService {
         return saved;
     }
 
+    /**
+     * Deletes the song from the database and its {@code .tab} file both --
+     * see {@link TabFileMirror#remove}'s Javadoc for why the file goes too,
+     * now that the {@code .tab} files are the actual collection and the
+     * database is just a rebuildable cache over them. Pushing that change
+     * to the collection's GitHub mirror is a separate, manual/periodic
+     * step (a script, not app code) -- see
+     * {@code ~/knowledge/projects/vinoigitare/dev-cheatsheet.md}.
+     */
     public void remove(String id) {
+        repository.findById(id).ifPresent(tabFileMirror::remove);
         repository.delete(id);
     }
 

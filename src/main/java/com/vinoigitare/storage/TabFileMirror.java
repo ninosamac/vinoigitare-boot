@@ -6,11 +6,21 @@ import com.vinoigitare.model.Song;
 
 /**
  * Keeps each database-backed song's flat-file {@code .tab} mirror in sync
- * whenever it's saved through {@link com.vinoigitare.service.SongService},
- * so the on-disk {@code .tab} store stays a genuine, current backup of the
- * database (the migration plan's own words: "{@code .tab} import/export
- * retained as backup format") rather than a one-time snapshot of whatever
- * existed at first import.
+ * whenever it's saved or deleted through {@link
+ * com.vinoigitare.service.SongService}, so the on-disk {@code .tab} store
+ * stays a genuine, current backup of the database (the migration plan's own
+ * words: "{@code .tab} import/export retained as backup format") rather
+ * than a one-time snapshot of whatever existed at first import.
+ *
+ * <p><b>Nino's framing (2026-07-12):</b> the {@code .tab} files are the
+ * actual collection; the database is a rebuildable cache over them ({@link
+ * SongImporter} already only imports when the database is empty, so
+ * deleting the DB file and restarting fully reconstructs it from these
+ * files). This class is what keeps that true for writes and deletes both.
+ * Pushing these files to their dedicated GitHub mirror is a separate,
+ * manual/periodic script rather than app code -- see {@code
+ * ~/knowledge/projects/vinoigitare/dev-cheatsheet.md} -- so that a slow
+ * network or GitHub outage can never affect an admin save/delete request.
  *
  * <p><b>Deliberately NOT hooked into {@link DatabaseSongRepository#save}
  * itself.</b> {@link SongImporter} calls that directly, bypassing {@code
@@ -52,5 +62,16 @@ public class TabFileMirror {
             fileRepository.delete(previous.artist() + " - " + previous.title());
         }
         fileRepository.save(new Song(saved.artist(), saved.title(), saved.chords()));
+    }
+
+    /**
+     * Deletes {@code song}'s {@code .tab} file. Companion to {@link
+     * #mirror}, for the other half of keeping the flat-file store a
+     * genuine mirror of the database: a song removed via the admin panel
+     * should really be gone, not leave an orphaned file behind that a
+     * future {@link SongImporter} run would just reimport.
+     */
+    public void remove(Song song) {
+        fileRepository.delete(song.artist() + " - " + song.title());
     }
 }
