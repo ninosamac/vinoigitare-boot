@@ -135,6 +135,8 @@
         var animationFrameId = null;
         var carryOverPixels = 0; // sub-pixel remainder, so low speeds still visibly move over time
         var lastTimestamp = null; // requestAnimationFrame timestamp of the previous step, for a real elapsed-time delta
+        var scrollYAtFrameStart = null; // window.scrollY captured just before the previous frame's scrollBy call
+        var previousWholePixels = 0; // whole pixels scrollBy'd during the previous frame
 
         function renderSpeed() {
             if (speedDisplay) {
@@ -168,17 +170,48 @@
             var deltaSeconds = (timestamp - lastTimestamp) / 1000;
             lastTimestamp = timestamp;
 
+            var currentScrollY = window.scrollY;
+
+            // Compare the scroll position now against what it was right
+            // before the *previous* frame's scrollBy call, once a full
+            // animation frame has had a chance to apply it -- reading
+            // window.scrollY synchronously right after calling
+            // window.scrollBy() in the same tick can read back a stale,
+            // pre-scroll value (confirmed while testing this fix), so the
+            // check has to span a frame boundary rather than a single call.
+            if (previousWholePixels > 0 && currentScrollY === scrollYAtFrameStart) {
+                stop();
+                return;
+            }
+
             var pixelsPerSecond = linesPerSecond(speed) * chordsLineHeightPx(chordsBlock);
             var pixels = pixelsPerSecond * deltaSeconds + carryOverPixels;
             var wholePixels = Math.floor(pixels);
             carryOverPixels = pixels - wholePixels;
-            window.scrollBy(0, wholePixels);
 
-            var atBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight - 1;
-            if (atBottom) {
-                stop();
-                return;
-            }
+            scrollYAtFrameStart = currentScrollY;
+            previousWholePixels = wholePixels;
+
+            // Real mobile bug report: auto-scroll worked in a desktop
+            // browser but not on a phone. Root cause: Bootstrap's reboot
+            // CSS sets `scroll-behavior: smooth` on :root (for regular
+            // anchor-link jumps), and that CSS property also governs the
+            // legacy two-argument window.scrollBy(x, y) call, not just the
+            // options-object form. With auto-scroll calling scrollBy every
+            // animation frame (~60x/second), each call kicked off a new
+            // smooth-scroll animation that the very next frame's call
+            // immediately interrupted -- confirmed locally (a single
+            // scrollTo() while scroll-behavior:smooth was active visibly
+            // animated over ~300ms instead of jumping instantly). Desktop
+            // Chrome mostly papers over rapid interrupted smooth-scroll
+            // animations; mobile Safari is well documented as handling
+            // that same interruption far worse, which is consistent with
+            // "works in browser, doesn't work on mobile". Passing an
+            // explicit behavior: "instant" bypasses scroll-behavior
+            // entirely, so every frame's move actually happens immediately
+            // as intended, regardless of what any CSS sets.
+            window.scrollBy({ top: wholePixels, left: 0, behavior: "instant" });
+
             animationFrameId = window.requestAnimationFrame(step);
         }
 
@@ -188,6 +221,8 @@
             }
             scrolling = true;
             lastTimestamp = null; // discard any stale delta from before a stop
+            scrollYAtFrameStart = null;
+            previousWholePixels = 0; // discard the previous run's last frame, so it isn't compared against this run's first
             toggleButton.textContent = stopLabel;
             toggleButton.setAttribute("aria-pressed", "true");
             animationFrameId = window.requestAnimationFrame(step);
