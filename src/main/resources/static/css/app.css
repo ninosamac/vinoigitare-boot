@@ -122,6 +122,36 @@ h1, h2, h3 {
     color: var(--nav-ink) !important;
 }
 
+/* Language switcher (2026-07-12) -- compact 2-letter codes rather than
+   full nav-link-sized buttons, so three of them together don't crowd
+   the already-tight mobile nav row any further than necessary. */
+.lang-switch {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    margin-right: 0.25rem;
+}
+
+.lang-link {
+    color: var(--nav-ink-muted);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.25rem 0.35rem;
+    border-radius: 0.25rem;
+}
+
+.lang-link:hover,
+.lang-link:focus {
+    color: var(--nav-ink);
+}
+
+.lang-link.active {
+    color: var(--accent);
+    background-color: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
 @media (max-width: 767.98px) {
     /* Real bug found via a mobile screenshot: the search box was
        crushed to ~68px wide, cut off to "Searc", instead of moving to

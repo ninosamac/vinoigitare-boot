@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <!--
   Shared fragments (head + nav) included by every page via
   th:replace="~{fragments :: head('Page title')}" / th:replace="~{fragments :: nav}".
@@ -75,6 +75,22 @@
         <a class="nav-link me-2" th:href="@{/chord-diagrams}" th:text="#{nav.chordDiagrams}">Chords</a>
         <a class="nav-link me-2" th:href="@{/about}" th:text="#{nav.about}">About</a>
         <a class="nav-link me-2" th:href="@{/admin}" th:text="#{nav.admin}">Admin</a>
+        <!--
+          Language switcher (2026-07-12, see com.vinoigitare.web.LocaleConfig):
+          a bare "?lang=xx" href, not th:href="@{...(lang=xx)}" -- a
+          query-only href is resolved by the browser against the CURRENT
+          page, so switching language on a song page stays on that song
+          page. The one tradeoff: it replaces the whole query string, so
+          switching language while on a search-results page (?q=...) does
+          lose that query -- accepted as a minor, rare edge case rather
+          than threading the current query string through every page's
+          own template just to preserve it.
+        -->
+        <div class="lang-switch" aria-label="Language">
+            <a href="?lang=en" class="lang-link" th:classappend="${#locale.language == 'en'} ? ' active'">EN</a>
+            <a href="?lang=hr" class="lang-link" th:classappend="${#locale.language == 'hr'} ? ' active'">HR</a>
+            <a href="?lang=sr" class="lang-link" th:classappend="${#locale.language == 'sr'} ? ' active'">SR</a>
+        </div>
         <!--
           static/js/theme-toggle.js sets the glyph/aria-label on load
           (reflecting whatever theme is actually active, whether that

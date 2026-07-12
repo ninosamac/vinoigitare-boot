@@ -17,15 +17,24 @@ server:
 spring:
   application:
     name: vinoigitare-boot
-  # English by default regardless of the browser's Accept-Language header
-  # -- "fixed" pins it; without this a Serbian-locale browser would get
-  # messages_sr.properties automatically, which defeats the point of
-  # having switched the default. Serbian is kept as a bundle (see
-  # messages_sr.properties) for a future language switcher, just not
-  # auto-selected by the browser.
-  mvc:
-    locale: en
-    locale-resolver: fixed
+  # English is still the default for a first-time visitor (a real language
+  # switcher landed 2026-07-12 -- see com.vinoigitare.web.LocaleConfig --
+  # so this is no longer "forced regardless of preference", just the
+  # starting point until someone actually picks English/Croatian/Serbian
+  # via the nav switcher, which then persists via a cookie). Deliberately
+  # NOT auto-selecting from the browser's Accept-Language header even now:
+  # a visitor's browser locale is a weak, often-wrong signal (shared/work
+  # computers, OS installed in a different language than the person reads,
+  # etc.) compared to an explicit choice, and Google's own crawler -- which
+  # sends no meaningful Accept-Language -- should consistently see the
+  # same English version every time it indexes a page.
+  #
+  # LocaleConfig defines its own LocaleResolver/LocaleChangeInterceptor
+  # beans, which is why there's no spring.mvc.locale(-resolver) property
+  # here any more -- a self-defined LocaleResolver bean takes precedence
+  # over this auto-configuration shortcut, so leaving the old properties
+  # in place would just be dead, misleading configuration.
+  #
   # Phase 4a: embedded H2, file-mode so data survives restarts. AUTO_SERVER
   # lets a second JVM (e.g. a one-off script, or running tests alongside a
   # live dev instance) connect to the same file without a lock error.
