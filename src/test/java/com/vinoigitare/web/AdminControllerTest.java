@@ -1,6 +1,5 @@
 package com.vinoigitare.web;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Tag;
@@ -55,12 +54,13 @@ class AdminControllerTest {
     @Test
     @WithMockUser
     void listSucceedsWhenAuthenticated() throws Exception {
-        Song song = new Song("Marko Markovic", "Probna pesma", "chords");
-        given(songService.loadAll()).willReturn(List.of(song));
-
+        // No song list on this page anymore (2026-07-12): editing/deleting
+        // now happens from the song page itself, so /admin no longer needs
+        // songService.loadAll() at all -- confirm it's never even called.
         mockMvc.perform(get("/admin"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Probna pesma")));
+                .andExpect(status().isOk());
+
+        then(songService).should(never()).loadAll();
     }
 
     @Test

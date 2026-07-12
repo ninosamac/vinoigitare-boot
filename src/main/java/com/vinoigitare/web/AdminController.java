@@ -43,8 +43,7 @@ public class AdminController {
     }
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("songs", songService.loadAll());
+    public String list() {
         return "admin/list";
     }
 
