@@ -8,6 +8,8 @@
 
     <section class="mb-4">
         <h2 class="h6 text-uppercase text-muted mb-2" th:text="#{about.motivationHeading}">Why this exists</h2>
+        <img th:src="@{/images/wine-and-guitar.jpg}" th:alt="#{about.motivationImageAlt}"
+             class="img-fluid rounded mb-3" style="width: 100%; max-height: 320px; object-fit: cover;"/>
         <p th:text="#{about.motivationBody}">Motivation text.</p>
     </section>
 
@@ -20,8 +22,17 @@
     -->
     <section class="mb-4">
         <h2 class="h6 text-uppercase text-muted mb-2" th:text="#{about.originalEditionHeading}">Original 2000 edition</h2>
-        <p th:text="#{about.originalEditionBody}">Placeholder original-edition text.</p>
-        <a class="btn btn-outline-primary" th:href="@{/downloads/Vino_i_gitare.pdf}" th:text="#{about.downloadOriginalPdf}">Download the original PDF</a>
+        <div class="d-flex flex-column flex-sm-row gap-3 align-items-center">
+            <!-- Cropped from pdf/Vino_i_gitare.pdf.png (a full-page PDF-viewer
+                 screenshot of the book's cover) down to just the cover
+                 artwork itself. -->
+            <img th:src="@{/images/vino-i-gitare-cover.png}" th:alt="#{about.originalEditionCoverAlt}"
+                 width="160" class="border rounded" style="max-width: 160px; height: auto;"/>
+            <div>
+                <p th:text="#{about.originalEditionBody}">Placeholder original-edition text.</p>
+                <a class="btn btn-outline-primary" th:href="@{/downloads/Vino_i_gitare.pdf}" th:text="#{about.downloadOriginalPdf}">Download the original PDF</a>
+            </div>
+        </div>
     </section>
 
     <section class="mb-4">

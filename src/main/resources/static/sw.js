@@ -15,6 +15,8 @@ const PRECACHE_URLS = [
     "/icons/favicon-32.png",
     "/icons/apple-touch-icon.png",
     "/manifest.json",
+    "/images/vino-i-gitare-cover.png",
+    "/images/wine-and-guitar.jpg",
 ];
 
 self.addEventListener("install", (event) => {
@@ -40,7 +42,8 @@ function isStaticAsset(pathname) {
         pathname.startsWith("/webjars/") ||
         pathname.startsWith("/css/") ||
         pathname.startsWith("/js/") ||
-        pathname.startsWith("/icons/")
+        pathname.startsWith("/icons/") ||
+        pathname.startsWith("/images/")
     );
 }
 

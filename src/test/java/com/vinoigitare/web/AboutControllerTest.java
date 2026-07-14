@@ -43,6 +43,8 @@ class AboutControllerTest {
                 // Original 2000 edition: a direct PDF download now, not a
                 // quoted foreword (see about.html's comment on this).
                 .andExpect(content().string(containsString("Original 2000 edition")))
-                .andExpect(content().string(containsString("href=\"/downloads/Vino_i_gitare.pdf\"")));
+                .andExpect(content().string(containsString("href=\"/downloads/Vino_i_gitare.pdf\"")))
+                .andExpect(content().string(containsString("src=\"/images/vino-i-gitare-cover.png\"")))
+                .andExpect(content().string(containsString("src=\"/images/wine-and-guitar.jpg\"")));
     }
 }
