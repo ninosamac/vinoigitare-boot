@@ -15,6 +15,7 @@ const PRECACHE_URLS = [
     "/icons/favicon-32.png",
     "/icons/apple-touch-icon.png",
     "/manifest.json",
+    "/images/nav-brand.png",
     "/images/vino-i-gitare-cover.png",
     "/images/wine-and-guitar.jpg",
 ];

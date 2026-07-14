@@ -10,8 +10,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title th:text="${title} + ' - Vino i gitare'">Vino i gitare</title>
     <!-- Real logo assets (logo/ at repo root), not placeholders -- also
-         duplicated into index.html/song.html/song-live.html's own <head>,
-         same trap as the SW registration script below. -->
+         duplicated into index.html/song.html/song-live.html/about.html's
+         own <head>, same trap as the SW registration script below. -->
     <link rel="icon" type="image/svg+xml" th:href="@{/icons/favicon.svg}"/>
     <link rel="icon" type="image/png" sizes="32x32" th:href="@{/icons/favicon-32.png}"/>
     <link rel="apple-touch-icon" th:href="@{/icons/apple-touch-icon.png}"/>
@@ -56,11 +56,12 @@
       with this page's own resources; feature-detected since older
       browsers have no navigator.serviceWorker.
 
-      Duplicated verbatim into index.html, song.html, and song-live.html's
-      own <head> (same reasoning, and same trap, as the theme-restore
-      script above -- those three pages write their own head instead of
-      using this fragment). Missing it on index.html once already, caught
-      by driving a real browser against it -- grepping for the literal
+      Duplicated verbatim into index.html, song.html, song-live.html, and
+      (2026-07-15, for its own meta description/canonical) about.html's own
+      <head> (same reasoning, and same trap, as the theme-restore script
+      above -- those four pages write their own head instead of using this
+      fragment). Missing it on index.html once already, caught by driving
+      a real browser against it -- grepping for the literal
       th:replace="~{fragments :: head(...)}" call, not just the string
       "fragments :: head" (several of these pages' own-head comments
       mention that string without using it), is what actually finds every
@@ -91,7 +92,21 @@
   element means it already has everything it needs from the one rule.
 -->
 <nav th:fragment="nav" class="navbar navbar-expand navbar-dark mb-3 container">
-    <a class="nav-link me-2" th:href="@{/}" th:text="#{nav.home}">Home</a>
+    <!--
+      Real logo lockup (logo/lockup-dark.png at the repo root) in place of
+      a plain "Home" text link -- cropped to just the mark + wordmark (the
+      "CHORDS - LYRICS - TABS" tagline underneath didn't fit legibly at
+      navbar height) and its near-black background keyed to transparent.
+      Deliberately always the -dark lockup variant, in both site themes:
+      the navbar itself is a fixed dark "ink bar" regardless of light/dark
+      mode (see this fragment's own comment above on --nav-bg), so the
+      light-background lockup would show a visible mismatched rectangle
+      here -- transparency is what actually makes it theme-independent,
+      not swapping files per theme.
+    -->
+    <a class="navbar-brand me-2 py-0" th:href="@{/}">
+        <img th:src="@{/images/nav-brand.png}" th:alt="#{nav.home}" style="height: 36px; width: auto;"/>
+    </a>
     <!--
       Search box, submits GET /search?q=... (SearchController). Present
       in every page via this shared fragment. th:value falls back to
