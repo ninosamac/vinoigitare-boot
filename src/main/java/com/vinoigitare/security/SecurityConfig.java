@@ -34,7 +34,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/", "/artists/**", "/akordi/**", "/search",
                                 "/chord-diagrams", "/about", "/offline", "/sitemap.xml", "/robots.txt",
-                                "/css/**", "/js/**", "/webjars/**", "/icons/**",
+                                "/css/**", "/js/**", "/webjars/**", "/icons/**", "/downloads/**",
                                 "/manifest.json", "/sw.js",
                                 "/actuator/health", "/login")
                         .permitAll()

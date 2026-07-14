@@ -39,11 +39,9 @@ class AboutControllerTest {
                 // back into this one via window.opener.
                 .andExpect(content().string(containsString("href=\"https://ko-fi.com/ninosamac\"")))
                 .andExpect(content().string(containsString("rel=\"noopener noreferrer\"")))
-                // The original 2000 foreword: kept verbatim in Croatian/Bosnian
-                // regardless of site locale (see about.html's comment on this),
-                // so it must render even under the English-default bundle.
-                .andExpect(content().string(containsString("Foreword from the original 2000 edition")))
-                .andExpect(content().string(containsString("Zbirka akorda Vino i Gitare")))
-                .andExpect(content().string(containsString("Nino Samac")));
+                // Original 2000 edition: a direct PDF download now, not a
+                // quoted foreword (see about.html's comment on this).
+                .andExpect(content().string(containsString("Original 2000 edition")))
+                .andExpect(content().string(containsString("href=\"/downloads/Vino_i_gitare.pdf\"")));
     }
 }
