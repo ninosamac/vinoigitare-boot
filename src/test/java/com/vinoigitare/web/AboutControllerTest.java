@@ -26,10 +26,11 @@ class AboutControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    void pageIsPubliclyReachableAndListsAllFourSections() throws Exception {
+    void pageIsPubliclyReachableAndListsAllFiveSections() throws Exception {
         mockMvc.perform(get("/about"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Why this exists")))
+                .andExpect(content().string(containsString("Install and use offline")))
                 .andExpect(content().string(containsString("Privacy")))
                 .andExpect(content().string(containsString("Support")))
                 .andExpect(content().string(containsString("Buy me a coffee")))
