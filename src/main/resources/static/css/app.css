@@ -656,6 +656,7 @@ h1, h2, h3 {
    only affects Ctrl+P / window.print() on the on-screen page. */
 @media print {
     nav,
+    footer,
     .no-print {
         display: none !important;
     }

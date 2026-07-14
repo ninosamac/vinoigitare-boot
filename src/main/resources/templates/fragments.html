@@ -177,6 +177,16 @@
 </nav>
 
 <!--
+  Included via th:replace="~{fragments :: footer}" near the end of <body>
+  on every page except song-live.html (full-screen performance view --
+  deliberately no chrome at all, see its own comment) and song-pdf.html
+  (printed/PDF output, not a browser page).
+-->
+<footer th:fragment="footer" class="container text-center text-muted small py-3 mt-4 border-top">
+    <p class="mb-0" th:text="#{footer.copyright(${#calendars.format(#calendars.createNow(), 'yyyy')})}">&copy; 2026 Vino i gitare. All rights reserved.</p>
+</footer>
+
+<!--
   Song title/artist/chords block, shared between the on-screen song page
   (song.html) and the print-oriented PDF template (song-pdf.html) so the
   chords-rendering markup exists in exactly one place.
