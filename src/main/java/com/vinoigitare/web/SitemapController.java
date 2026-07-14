@@ -42,6 +42,11 @@ public class SitemapController {
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
         appendUrl(xml, baseUrl + "/");
+        // /about is the only page hosting the original-edition PDF download
+        // -- listed explicitly (unlike the song URLs below, it isn't
+        // generated from any repository) so it's actually discoverable via
+        // the sitemap, not just reachable by nav link.
+        appendUrl(xml, baseUrl + "/about");
         for (Song song : songs) {
             appendUrl(xml, baseUrl + "/akordi/" + song.id() + "/" + song.slug());
         }

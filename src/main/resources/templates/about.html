@@ -1,6 +1,58 @@
 <!DOCTYPE html>
 <html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head(#{about.title})}"></head>
+<!--
+  SEO (2026-07-15): writes its own <head> rather than going through
+  fragments :: head(title), same reasoning as index.html/song.html/
+  song-live.html -- needs a meta description and canonical link the
+  shared fragment doesn't take params for. This is now a FOURTH page with
+  that duplication; see fragments.html's comment on the SW-registration
+  script for why (and grep for th:replace="~{fragments :: head(...)}"
+  specifically, not just the string, to find every page needing it).
+
+  The description below deliberately spells out "PDF" alongside the site
+  name -- this page is the only place the original-edition PDF download
+  lives, and matching that exact phrasing (title + meta description) is
+  what search engines match against a "vino i gitare pdf" query.
+-->
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="#{about.title} + ' - Vino i gitare'">About - Vino i gitare</title>
+    <meta name="description" th:content="#{about.metaDescription}"/>
+    <link rel="canonical" href="https://vinoigitare.com/about"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content="Vino i gitare"/>
+    <meta property="og:url" content="https://vinoigitare.com/about"/>
+    <meta property="og:title" th:content="#{about.title}"/>
+    <meta property="og:description" th:content="#{about.metaDescription}"/>
+    <script>
+        (function () {
+            if (localStorage.getItem("vinoigitare.theme") === "dark") {
+                document.documentElement.setAttribute("data-bs-theme", "dark");
+            }
+        })();
+    </script>
+    <meta name="i18n-theme-switch-to-dark" th:content="#{theme.switchToDark}"/>
+    <meta name="i18n-theme-switch-to-light" th:content="#{theme.switchToLight}"/>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/app.css}"/>
+    <!-- Duplicated from fragments :: head -- see that fragment's comment. -->
+    <link rel="icon" type="image/svg+xml" th:href="@{/icons/favicon.svg}"/>
+    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/icons/favicon-32.png}"/>
+    <link rel="apple-touch-icon" th:href="@{/icons/apple-touch-icon.png}"/>
+    <link rel="manifest" th:href="@{/manifest.json}"/>
+    <meta name="theme-color" content="#2f5d50"/>
+    <!-- Duplicated from fragments :: head -- see that fragment's comment
+         on the service-worker registration script; same "own <head>"
+         duplication trap as the theme-restore script above. -->
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", function () {
+                navigator.serviceWorker.register("/sw.js");
+            });
+        }
+    </script>
+</head>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
 <main class="container">

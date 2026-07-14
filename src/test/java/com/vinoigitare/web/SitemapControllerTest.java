@@ -35,7 +35,7 @@ class SitemapControllerTest {
     private SongService songService;
 
     @Test
-    void sitemapListsHomepageAndEverySongUrl() throws Exception {
+    void sitemapListsHomepageAboutPageAndEverySongUrl() throws Exception {
         Song song1 = new Song("1", "Marko Markovic", "Probna pesma", "marko-markovic--probna-pesma",
                 "chords", null, 0L);
         Song song2 = new Song("2", "Đorđe Đokić", "Šašava priča", "dorde-dokic--sasava-prica",
@@ -47,6 +47,10 @@ class SitemapControllerTest {
                 .andExpect(content().contentTypeCompatibleWith("application/xml"))
                 .andExpect(content().string(containsString("<urlset")))
                 .andExpect(content().string(containsString("<loc>http://localhost/</loc>")))
+                // /about hosts the original-edition PDF download and isn't
+                // generated from any repository, so it needs its own
+                // explicit sitemap entry -- see SitemapController's comment.
+                .andExpect(content().string(containsString("<loc>http://localhost/about</loc>")))
                 .andExpect(content().string(containsString("/akordi/1/marko-markovic--probna-pesma")))
                 .andExpect(content().string(containsString("/akordi/2/dorde-dokic--sasava-prica")));
     }
