@@ -33,8 +33,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 "/", "/artists/**", "/akordi/**", "/search",
-                                "/chord-diagrams", "/about", "/sitemap.xml", "/robots.txt",
-                                "/css/**", "/js/**", "/webjars/**",
+                                "/chord-diagrams", "/about", "/offline", "/sitemap.xml", "/robots.txt",
+                                "/css/**", "/js/**", "/webjars/**", "/icons/**",
+                                "/manifest.json", "/sw.js",
                                 "/actuator/health", "/login")
                         .permitAll()
                         .anyRequest().authenticated())

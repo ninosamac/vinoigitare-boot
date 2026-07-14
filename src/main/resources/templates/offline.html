@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(#{offline.title})}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <h1 class="h4 mb-3" th:text="#{offline.heading}">You're offline</h1>
+    <p th:text="#{offline.body}">Placeholder offline text.</p>
+</main>
+<script th:src="@{/js/theme-toggle.js}"></script>
+<script th:src="@{/js/preferences-menu.js}"></script>
+</body>
+</html>

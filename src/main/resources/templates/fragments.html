@@ -9,6 +9,14 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title th:text="${title} + ' - Vino i gitare'">Vino i gitare</title>
+    <!-- Real logo assets (logo/ at repo root), not placeholders -- also
+         duplicated into index.html/song.html/song-live.html's own <head>,
+         same trap as the SW registration script below. -->
+    <link rel="icon" type="image/svg+xml" th:href="@{/icons/favicon.svg}"/>
+    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/icons/favicon-32.png}"/>
+    <link rel="apple-touch-icon" th:href="@{/icons/apple-touch-icon.png}"/>
+    <link rel="manifest" th:href="@{/manifest.json}"/>
+    <meta name="theme-color" content="#2f5d50"/>
     <!--
       Applies a stored dark override (if any) to <html> before first paint
       -- inline and synchronous, not in theme-toggle.js (which loads at
@@ -41,6 +49,30 @@
     <meta name="i18n-theme-switch-to-light" th:content="#{theme.switchToLight}"/>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}"/>
     <link rel="stylesheet" th:href="@{/css/app.css}"/>
+    <!--
+      offline-support-plan.md. Registers static/sw.js, which then caches
+      song pages as they're visited (stale-while-revalidate) so they stay
+      readable offline. Deferred to the load event so it never competes
+      with this page's own resources; feature-detected since older
+      browsers have no navigator.serviceWorker.
+
+      Duplicated verbatim into index.html, song.html, and song-live.html's
+      own <head> (same reasoning, and same trap, as the theme-restore
+      script above -- those three pages write their own head instead of
+      using this fragment). Missing it on index.html once already, caught
+      by driving a real browser against it -- grepping for the literal
+      th:replace="~{fragments :: head(...)}" call, not just the string
+      "fragments :: head" (several of these pages' own-head comments
+      mention that string without using it), is what actually finds every
+      page needing this.
+    -->
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", function () {
+                navigator.serviceWorker.register("/sw.js");
+            });
+        }
+    </script>
 </head>
 <body>
 <!--
