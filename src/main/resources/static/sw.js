@@ -1,4 +1,16 @@
-const CACHE_NAME = "vinoigitare-v1";
+// Real bug found 2026-07-15: this stayed "vinoigitare-v1" through every
+// deploy since the PWA shipped, including several rounds of songbook.js
+// changes -- cache-first static assets (see isStaticAsset below) are
+// never re-fetched once cached under a given name, and activate's cleanup
+// only deletes caches whose NAME differs from the current CACHE_NAME, so
+// an unchanged name means the old, stale entries just persist forever.
+// Symptom: a visitor whose browser had already cached an old songbook.js
+// kept running it indefinitely -- new visible form fields rendered fine
+// (HTML itself is network-first, not cached), but the stale JS had no
+// idea they existed, so nothing it wired ever reached the server.
+// Bump this string whenever any cache-first static asset changes, or
+// returning visitors silently keep the old version.
+const CACHE_NAME = "vinoigitare-v2";
 
 const PRECACHE_URLS = [
     "/offline",
