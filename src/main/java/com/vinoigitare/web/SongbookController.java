@@ -77,9 +77,25 @@ public class SongbookController {
      *
      * <p>An empty or unparseable selection is a 400, not a rendered
      * empty-songbook PDF -- there's nothing useful to generate.
+     *
+     * @param bookTitle custom cover title (2026-07-15, Nino's request) --
+     *                   blank falls back to the default cover text,
+     *                   handled in {@link SongbookPdfRenderer}. Also used
+     *                   for the downloaded filename when present, so a
+     *                   visitor's own title shows up there too.
+     * @param includeChordDiagrams whether to include the chord-reference
+     *                              section (2026-07-15, Nino's request) --
+     *                              a plain "true"/"false" string, not a
+     *                              raw HTML checkbox value: {@code
+     *                              songbook.html}'s hidden field is always
+     *                              written explicitly by JS, sidestepping
+     *                              the usual unchecked-checkbox-submits-
+     *                              nothing ambiguity entirely.
      */
     @PostMapping(value = "/songbook/generate", produces = "application/pdf")
-    public ResponseEntity<byte[]> generate(@RequestParam String selection) {
+    public ResponseEntity<byte[]> generate(@RequestParam String selection,
+            @RequestParam(required = false) String bookTitle,
+            @RequestParam(defaultValue = "true") boolean includeChordDiagrams) {
         List<SelectionEntry> entries = parseSelection(selection);
         if (entries.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selection is empty");
@@ -87,9 +103,10 @@ public class SongbookController {
         List<SongbookItem> items = entries.stream()
                 .map(entry -> new SongbookItem(entry.id(), entry.transpose()))
                 .toList();
-        byte[] pdf = pdfRenderer.render(items);
+        byte[] pdf = pdfRenderer.render(items, bookTitle, includeChordDiagrams);
+        String fileName = (bookTitle == null || bookTitle.isBlank() ? "Vino i gitare" : bookTitle.trim()) + ".pdf";
         return ResponseEntity.ok()
-                .header("Content-Disposition", PdfDownloadFilenames.contentDispositionFor("Vino i gitare.pdf"))
+                .header("Content-Disposition", PdfDownloadFilenames.contentDispositionFor(fileName))
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf);
     }

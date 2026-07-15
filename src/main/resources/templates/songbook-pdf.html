@@ -204,7 +204,7 @@
 <body>
 <div class="cover">
     <img th:attr="src='data:image/png;base64,' + ${logoBase64}"/>
-    <h1 th:text="#{songbook.pdfCoverTitle}">Your personal songbook</h1>
+    <h1 th:text="${bookTitle} ?: #{songbook.pdfCoverTitle}">Your personal songbook</h1>
     <p th:text="#{songbook.pdfCoverSubtitle(${generatedOn}, ${songCount})}">Generated -- 0 songs</p>
 </div>
 
@@ -222,7 +222,7 @@
     <div th:replace="~{fragments :: songContent(${entry.song()}, ${entry.highlightedChords()})}"></div>
 </div>
 
-<div class="chord-diagrams">
+<div class="chord-diagrams" th:if="${includeChordDiagrams}">
     <h1 th:text="#{chordDiagrams.title}">Chord Diagrams</h1>
     <div th:replace="~{fragments :: chordDiagramSections(${sections})}"></div>
 </div>

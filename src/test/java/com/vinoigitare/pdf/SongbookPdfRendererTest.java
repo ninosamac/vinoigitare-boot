@@ -43,7 +43,7 @@ class SongbookPdfRendererTest extends AbstractSpringBootTest {
         byte[] pdf = renderer.render(List.of(
                 new SongbookItem(zSong.id(), 0),
                 new SongbookItem(aSong.id(), 2),
-                new SongbookItem("no-such-id", 0)));
+                new SongbookItem("no-such-id", 0)), null, true);
 
         assertThat(pdf).isNotEmpty();
         String text;
@@ -66,15 +66,54 @@ class SongbookPdfRendererTest extends AbstractSpringBootTest {
     }
 
     @Test
-    void includesTheChordDiagramReferenceSection() throws IOException {
+    void includesTheChordDiagramReferenceSectionByDefault() throws IOException {
         Song song = songService.store(new Song("Marko Markovic", "Probna pesma", "C\nlyrics"));
 
-        byte[] pdf = renderer.render(List.of(new SongbookItem(song.id(), 0)));
+        byte[] pdf = renderer.render(List.of(new SongbookItem(song.id(), 0)), null, true);
 
         String text;
         try (PDDocument document = PDDocument.load(pdf)) {
             text = new PDFTextStripper().getText(document);
         }
         assertThat(text).contains("Chord Diagrams");
+    }
+
+    @Test
+    void omitsTheChordDiagramSectionWhenNotWanted() throws IOException {
+        Song song = songService.store(new Song("Marko Markovic", "Probna pesma", "C\nlyrics"));
+
+        byte[] pdf = renderer.render(List.of(new SongbookItem(song.id(), 0)), null, false);
+
+        String text;
+        try (PDDocument document = PDDocument.load(pdf)) {
+            text = new PDFTextStripper().getText(document);
+        }
+        assertThat(text).doesNotContain("Chord Diagrams");
+    }
+
+    @Test
+    void usesCustomBookTitleOnTheCoverWhenGiven() throws IOException {
+        Song song = songService.store(new Song("Marko Markovic", "Probna pesma", "C\nlyrics"));
+
+        byte[] pdf = renderer.render(List.of(new SongbookItem(song.id(), 0)), "Marko's Setlist", true);
+
+        String text;
+        try (PDDocument document = PDDocument.load(pdf)) {
+            text = new PDFTextStripper().getText(document);
+        }
+        assertThat(text).contains("Marko's Setlist").doesNotContain("Your personal songbook");
+    }
+
+    @Test
+    void blankBookTitleFallsBackToTheDefaultCoverText() throws IOException {
+        Song song = songService.store(new Song("Marko Markovic", "Probna pesma", "C\nlyrics"));
+
+        byte[] pdf = renderer.render(List.of(new SongbookItem(song.id(), 0)), "   ", true);
+
+        String text;
+        try (PDDocument document = PDDocument.load(pdf)) {
+            text = new PDFTextStripper().getText(document);
+        }
+        assertThat(text).contains("Your personal songbook");
     }
 }

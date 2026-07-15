@@ -17,10 +17,33 @@
     </p>
 
     <!--
+      Book title + chord-diagrams toggle (2026-07-15, Nino's request):
+      both persisted in localStorage the same way the selection itself
+      is, via static/js/songbook.js -- but submitted as plain hidden
+      fields the same way the selection field already is, rather than
+      relying on the visible <input>/<checkbox> elements' own name
+      attributes. This sidesteps the classic unchecked-checkbox-submits-
+      nothing ambiguity entirely (an unchecked box sends no value at
+      all, so distinguishing "unchecked" from "field not present" needs
+      either a hidden-fallback-field convention or, simpler here since
+      JS is already driving the selection field the same way, just
+      always writing an explicit "true"/"false" string.
+    -->
+    <div class="mb-3">
+        <label class="form-label" for="songbookTitleInput" th:text="#{songbook.titleLabel}">Book title</label>
+        <input type="text" class="form-control" id="songbookTitleInput" data-songbook-title maxlength="60"
+               th:placeholder="#{songbook.pdfCoverTitle}"/>
+    </div>
+    <div class="form-check mb-3">
+        <input type="checkbox" class="form-check-input" id="songbookIncludeDiagramsInput" data-songbook-include-diagrams/>
+        <label class="form-check-label" for="songbookIncludeDiagramsInput" th:text="#{songbook.includeChordDiagramsLabel}">Include chord diagrams</label>
+    </div>
+
+    <!--
       A real form POST, not a GET link: the selection (id+transpose
       pairs) travels as a single form field, since a large songbook could
       realistically exceed a comfortable URL length as a query string.
-      static/js/songbook.js populates the hidden input from localStorage
+      static/js/songbook.js populates the hidden inputs from localStorage
       right before submit and disables the button when empty -- a plain
       disabled attribute, not the Bootstrap-CSS-only trick song.html's
       "Add to my songbook" area uses, since this is a real <button>, not
@@ -29,6 +52,8 @@
     -->
     <form method="post" th:action="@{/songbook/generate}" data-songbook-generate-form>
         <input type="hidden" name="selection" data-songbook-selection-field/>
+        <input type="hidden" name="bookTitle" data-songbook-title-field/>
+        <input type="hidden" name="includeChordDiagrams" data-songbook-include-diagrams-field/>
         <button type="submit" class="btn btn-primary" data-songbook-generate th:text="#{songbook.generatePdf}" disabled>Generate PDF</button>
     </form>
 </main>

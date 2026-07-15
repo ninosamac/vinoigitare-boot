@@ -12,6 +12,61 @@
     "use strict";
 
     var STORAGE_KEY = "vinoigitare.songbook";
+    var SETTINGS_KEY = "vinoigitare.songbook.settings";
+
+    function readSettings() {
+        try {
+            var raw = localStorage.getItem(SETTINGS_KEY);
+            var parsed = raw ? JSON.parse(raw) : {};
+            return {
+                title: typeof parsed.title === "string" ? parsed.title : "",
+                includeChordDiagrams: parsed.includeChordDiagrams !== false
+            };
+        } catch (e) {
+            return { title: "", includeChordDiagrams: true };
+        }
+    }
+
+    function writeSettings(settings) {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    }
+
+    function initSongbookSettings() {
+        var titleInput = document.querySelector("[data-songbook-title]");
+        var includeDiagramsInput = document.querySelector("[data-songbook-include-diagrams]");
+        var titleField = document.querySelector("[data-songbook-title-field]");
+        var includeDiagramsField = document.querySelector("[data-songbook-include-diagrams-field]");
+        if (!titleInput || !includeDiagramsInput) {
+            return;
+        }
+
+        function syncHiddenFields(settings) {
+            if (titleField) {
+                titleField.value = settings.title;
+            }
+            if (includeDiagramsField) {
+                includeDiagramsField.value = String(settings.includeChordDiagrams);
+            }
+        }
+
+        var settings = readSettings();
+        titleInput.value = settings.title;
+        includeDiagramsInput.checked = settings.includeChordDiagrams;
+        syncHiddenFields(settings);
+
+        titleInput.addEventListener("input", function () {
+            var updated = readSettings();
+            updated.title = titleInput.value;
+            writeSettings(updated);
+            syncHiddenFields(updated);
+        });
+        includeDiagramsInput.addEventListener("change", function () {
+            var updated = readSettings();
+            updated.includeChordDiagrams = includeDiagramsInput.checked;
+            writeSettings(updated);
+            syncHiddenFields(updated);
+        });
+    }
 
     function readSongbook() {
         try {
@@ -152,10 +207,12 @@
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", function () {
             initSongbookToggle();
+            initSongbookSettings();
             initSongbookPage();
         });
     } else {
         initSongbookToggle();
+        initSongbookSettings();
         initSongbookPage();
     }
 })();

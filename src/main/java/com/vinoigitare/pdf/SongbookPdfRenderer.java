@@ -88,12 +88,23 @@ public class SongbookPdfRenderer {
     public record SongEntry(Song song, String highlightedChords, int transposeSemitones) {
     }
 
-    public byte[] render(List<SongbookItem> items) {
-        String xhtml = renderXhtml(items);
+    /**
+     * @param bookTitle custom cover title -- null or blank falls back to
+     *                   the default {@code #{songbook.pdfCoverTitle}}
+     *                   message, resolved in the template itself (not
+     *                   here, since that's where every other message
+     *                   lookup for this document already happens)
+     * @param includeChordDiagrams whether to render the chord-reference
+     *                              section at all -- skips computing it
+     *                              entirely when false, not just hiding
+     *                              it in the template
+     */
+    public byte[] render(List<SongbookItem> items, String bookTitle, boolean includeChordDiagrams) {
+        String xhtml = renderXhtml(items, bookTitle, includeChordDiagrams);
         return toPdfBytes(xhtml);
     }
 
-    private String renderXhtml(List<SongbookItem> items) {
+    private String renderXhtml(List<SongbookItem> items, String bookTitle, boolean includeChordDiagrams) {
         List<SongEntry> entries = items.stream()
                 .map(this::resolve)
                 .flatMap(Optional::stream)
@@ -108,10 +119,12 @@ public class SongbookPdfRenderer {
 
         Context context = new Context();
         context.setVariable("entries", entries);
-        context.setVariable("sections", renderedChordSections());
+        context.setVariable("includeChordDiagrams", includeChordDiagrams);
+        context.setVariable("sections", includeChordDiagrams ? renderedChordSections() : List.of());
         context.setVariable("songCount", entries.size());
         context.setVariable("generatedOn", DateTimeFormatter.ofPattern("d MMMM yyyy").format(LocalDate.now()));
         context.setVariable("logoBase64", logoBase64());
+        context.setVariable("bookTitle", (bookTitle == null || bookTitle.isBlank()) ? null : bookTitle.trim());
         return templateEngine.process("songbook-pdf", context);
     }
 

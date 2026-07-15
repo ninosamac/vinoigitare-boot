@@ -21,6 +21,7 @@ import com.vinoigitare.service.SongService;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -97,7 +98,7 @@ class SongbookControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("http://localhost/login"));
 
-        then(pdfRenderer).should(never()).render(any());
+        then(pdfRenderer).should(never()).render(any(), any(), anyBoolean());
     }
 
     @Test
@@ -106,7 +107,7 @@ class SongbookControllerTest {
         mockMvc.perform(post("/songbook/generate").param("selection", "[]"))
                 .andExpect(status().isForbidden());
 
-        then(pdfRenderer).should(never()).render(any());
+        then(pdfRenderer).should(never()).render(any(), any(), anyBoolean());
     }
 
     @Test
@@ -115,7 +116,7 @@ class SongbookControllerTest {
         mockMvc.perform(post("/songbook/generate").with(csrf()).param("selection", "[]"))
                 .andExpect(status().isBadRequest());
 
-        then(pdfRenderer).should(never()).render(any());
+        then(pdfRenderer).should(never()).render(any(), any(), anyBoolean());
     }
 
     @Test
@@ -124,14 +125,14 @@ class SongbookControllerTest {
         mockMvc.perform(post("/songbook/generate").with(csrf()).param("selection", "not json"))
                 .andExpect(status().isBadRequest());
 
-        then(pdfRenderer).should(never()).render(any());
+        then(pdfRenderer).should(never()).render(any(), any(), anyBoolean());
     }
 
     @Test
     @WithMockUser
-    void generateReturnsPdfBytesForAValidSelection() throws Exception {
+    void generateReturnsPdfBytesForAValidSelectionWithDefaultTitleAndDiagrams() throws Exception {
         byte[] fakePdf = { 1, 2, 3 };
-        given(pdfRenderer.render(any())).willReturn(fakePdf);
+        given(pdfRenderer.render(any(), any(), anyBoolean())).willReturn(fakePdf);
 
         mockMvc.perform(post("/songbook/generate").with(csrf())
                         .param("selection", "[{\"id\":\"1\",\"transpose\":2},{\"id\":\"2\",\"transpose\":0}]"))
@@ -140,6 +141,24 @@ class SongbookControllerTest {
                 .andExpect(content().bytes(fakePdf))
                 .andExpect(header().string("Content-Disposition", containsString("Vino i gitare.pdf")));
 
-        then(pdfRenderer).should().render(eq(java.util.List.of(new SongbookItem("1", 2), new SongbookItem("2", 0))));
+        then(pdfRenderer).should().render(
+                eq(java.util.List.of(new SongbookItem("1", 2), new SongbookItem("2", 0))), eq(null), eq(true));
+    }
+
+    @Test
+    @WithMockUser
+    void generateWithCustomTitleUsesItForFilenameAndPassesItToTheRenderer() throws Exception {
+        byte[] fakePdf = { 1, 2, 3 };
+        given(pdfRenderer.render(any(), any(), anyBoolean())).willReturn(fakePdf);
+
+        mockMvc.perform(post("/songbook/generate").with(csrf())
+                        .param("selection", "[{\"id\":\"1\",\"transpose\":0}]")
+                        .param("bookTitle", "Marko's Setlist")
+                        .param("includeChordDiagrams", "false"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition", containsString("Marko's Setlist.pdf")));
+
+        then(pdfRenderer).should().render(
+                eq(java.util.List.of(new SongbookItem("1", 0))), eq("Marko's Setlist"), eq(false));
     }
 }
