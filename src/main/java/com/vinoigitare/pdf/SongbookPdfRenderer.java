@@ -17,6 +17,7 @@ import org.thymeleaf.context.Context;
 
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 
 import com.vinoigitare.chords.ChordDiagram;
 import com.vinoigitare.chords.ChordDiagramCatalog;
@@ -151,6 +152,11 @@ public class SongbookPdfRenderer {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             PdfRendererBuilder builder = new PdfRendererBuilder();
             builder.useFastMode();
+            // Without this, openhtmltopdf has no SVG rendering pipeline at
+            // all -- the chord-diagram SVGs rendered completely blank (not
+            // just wrongly styled) until this was added; see the
+            // openhtmltopdf-svg-support dependency's comment in pom.xml.
+            builder.useSVGDrawer(new BatikSVGDrawer());
             builder.withHtmlContent(xhtml, BASE_URI);
             builder.useFont(() -> classpathStream(MONO_REGULAR_RESOURCE), MONO_FAMILY, 400, FontStyle.NORMAL, true);
             builder.useFont(() -> classpathStream(MONO_BOLD_RESOURCE), MONO_FAMILY, 700, FontStyle.NORMAL, true);

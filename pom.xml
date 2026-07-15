@@ -83,6 +83,22 @@
 			<version>1.0.10</version>
 		</dependency>
 
+		<!-- Real bug found 2026-07-15: openhtmltopdf-pdfbox alone has NO SVG
+		     rendering support at all: confirmed by isolating a single
+		     chord-diagram SVG in a minimal reproduction outside the app
+		     entirely, which rendered completely blank, not just wrongly
+		     colored. Every chord diagram had only ever been drawn by a real
+		     browser before the personalized-songbook PDF (see
+		     com.vinoigitare.pdf.SongbookPdfRenderer) started asking
+		     openhtmltopdf itself to render one. This add-on (Apache Batik
+		     under the hood) is what actually gives openhtmltopdf an SVG
+		     drawer to register via builder.useSVGDrawer(...). -->
+		<dependency>
+			<groupId>com.openhtmltopdf</groupId>
+			<artifactId>openhtmltopdf-svg-support</artifactId>
+			<version>1.0.10</version>
+		</dependency>
+
 		<!-- Phase 4a: embedded H2 database (file-mode in production, in-memory
 		     in tests) plus plain Spring JDBC (JdbcTemplate) rather than full
 		     JPA/Hibernate: this app's query needs are simple CRUD plus a few
