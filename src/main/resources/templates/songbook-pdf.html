@@ -129,8 +129,18 @@
            restated with hardcoded colors/units for the same reason every
            other rule in this file is, and using inline-block instead of
            CSS grid: openhtmltopdf's CSS-grid support is not something to
-           rely on, inline-block is a much safer bet for a fixed 4-column
-           layout. */
+           rely on, inline-block is a much safer bet for a fixed-column
+           layout.
+
+           Card width halved (2026-07-15, Nino's request): these are a
+           printed reference, not the primary content the way they'd be
+           on a phone screen mid-performance, so smaller is fine here.
+           The SVG itself needs no separate scaling for this -- it has a
+           fixed viewBox and width:100%/height:auto below, so shrinking
+           the card's CSS width alone proportionally shrinks every stroke/
+           dot/line inside it too. Only .chord-diagram-name (plain HTML
+           text, not part of the SVG) needed an explicit smaller
+           font-size to match. */
         .chord-diagram-section-heading {
             font-size: 10pt;
             text-transform: uppercase;
@@ -140,13 +150,13 @@
 
         .chord-diagram-card {
             display: inline-block;
-            width: 22%;
-            margin: 0 1% 8pt 1%;
+            width: 11%;
+            margin: 0 0.5% 4pt 0.5%;
             vertical-align: top;
             background-color: #fdfbf5;
             border: 1px solid #d9d2ba;
-            border-radius: 4pt;
-            padding: 4pt;
+            border-radius: 2pt;
+            padding: 2pt;
             text-align: center;
         }
 
@@ -154,7 +164,8 @@
             font-family: "DejaVu Serif", serif;
             font-weight: 700;
             font-style: italic;
-            margin-bottom: 2pt;
+            font-size: 7pt;
+            margin-bottom: 1pt;
         }
 
         .chord-diagram-svg {
