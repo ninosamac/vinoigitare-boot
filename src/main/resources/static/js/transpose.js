@@ -174,9 +174,14 @@
 
         var originalChords = chordsBlock.getAttribute("data-original-chords");
         var offset = 0;
+        chordsBlock.setAttribute("data-current-transpose", "0");
 
         function render() {
             chordsBlock.innerHTML = renderHighlighted(transpose(originalChords, offset));
+            // Read by static/js/songbook.js's "add to my songbook" toggle --
+            // offset itself is a closure-local var, not otherwise reachable
+            // from another script without a shared module.
+            chordsBlock.setAttribute("data-current-transpose", String(offset));
             if (display) {
                 display.textContent = offset > 0 ? "+" + offset : String(offset);
             }

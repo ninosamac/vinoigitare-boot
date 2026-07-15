@@ -9,11 +9,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 import com.vinoigitare.chords.ChordDiagram;
 import com.vinoigitare.chords.ChordDiagramCatalog;
 import com.vinoigitare.chords.ChordDiagramRenderer;
+import com.vinoigitare.chords.RenderedChordDiagram;
+import com.vinoigitare.chords.RenderedChordSection;
 
 /**
  * Static chord-diagram reference page (Phase 7, per the migration plan --
  * mirrors pesmarica.rs's {@code /dijagramiakorda}). No database, no
  * per-song state: just the fixed catalog in {@link ChordDiagramCatalog}.
+ *
+ * <p>{@link RenderedChordSection}/{@link RenderedChordDiagram} used to be
+ * nested here, but the personalized-songbook PDF's chord-reference section
+ * (see {@code com.vinoigitare.pdf.SongbookPdfRenderer}) needs the exact
+ * same rendered shape, and a {@code pdf}-package class depending on
+ * nested types from this {@code web}-package controller would be backwards
+ * layering -- moved to the {@code chords} package instead, where both
+ * consumers can reach them cleanly.
  */
 @Controller
 public class ChordDiagramController {
@@ -22,17 +32,6 @@ public class ChordDiagramController {
 
     public ChordDiagramController(ChordDiagramRenderer chordDiagramRenderer) {
         this.chordDiagramRenderer = chordDiagramRenderer;
-    }
-
-    /**
-     * @param name chord name, for the template's label
-     * @param svg  pre-rendered SVG markup for that chord
-     */
-    public record RenderedDiagram(String name, String svg) {
-    }
-
-    /** @param labelKey message-bundle key for the section heading, resolved in the template via {@code #{...}} */
-    public record RenderedSection(String labelKey, List<RenderedDiagram> diagrams) {
     }
 
     @GetMapping("/chord-diagrams")
@@ -44,15 +43,15 @@ public class ChordDiagramController {
         // did (see ChordDiagramRenderer's Javadoc) -- so the template
         // just gets a plain list of already-rendered (name, svg) pairs,
         // grouped into sections.
-        List<RenderedSection> sections = ChordDiagramCatalog.sections().stream()
-                .map(section -> new RenderedSection(section.labelKey(),
+        List<RenderedChordSection> sections = ChordDiagramCatalog.sections().stream()
+                .map(section -> new RenderedChordSection(section.labelKey(),
                         section.chords().stream().map(this::render).toList()))
                 .toList();
         model.addAttribute("sections", sections);
         return "chord-diagrams";
     }
 
-    private RenderedDiagram render(ChordDiagram diagram) {
-        return new RenderedDiagram(diagram.name(), chordDiagramRenderer.render(diagram));
+    private RenderedChordDiagram render(ChordDiagram diagram) {
+        return new RenderedChordDiagram(diagram.name(), chordDiagramRenderer.render(diagram));
     }
 }

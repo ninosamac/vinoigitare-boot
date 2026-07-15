@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(#{songbook.title})}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <h1 class="h4 mb-3" th:text="#{songbook.title}">My Songbook</h1>
+    <p class="text-muted small" th:text="#{songbook.intro}">Placeholder intro text.</p>
+
+    <p data-songbook-empty th:text="#{songbook.empty}" hidden>No songs added yet.</p>
+
+    <ul class="list-unstyled" data-songbook-list></ul>
+
+    <p class="text-muted small">
+        <span th:text="#{songbook.countLabel}">Songs:</span>
+        <span data-songbook-count>0</span>
+    </p>
+
+    <!--
+      A real form POST, not a GET link: the selection (id+transpose
+      pairs) travels as a single form field, since a large songbook could
+      realistically exceed a comfortable URL length as a query string.
+      static/js/songbook.js populates the hidden input from localStorage
+      right before submit and disables the button when empty -- a plain
+      disabled attribute, not the Bootstrap-CSS-only trick song.html's
+      "Add to my songbook" area uses, since this is a real <button>, not
+      an <a>. th:action means the CSRF token auto-injects the same way
+      every other form in this app already does.
+    -->
+    <form method="post" th:action="@{/songbook/generate}" data-songbook-generate-form>
+        <input type="hidden" name="selection" data-songbook-selection-field/>
+        <button type="submit" class="btn btn-primary" data-songbook-generate th:text="#{songbook.generatePdf}" disabled>Generate PDF</button>
+    </form>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/songbook.js}"></script>
+<script th:src="@{/js/theme-toggle.js}"></script>
+<script th:src="@{/js/preferences-menu.js}"></script>
+</body>
+</html>

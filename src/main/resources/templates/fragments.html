@@ -228,5 +228,26 @@
     <pre class="song-chords" th:utext="${highlightedChords}"
          th:attr="data-original-chords=${song.chords()}">Chords go here.</pre>
 </div>
+
+<!--
+  Shared between the on-screen /chord-diagrams page and the personalized
+  songbook PDF's chord-reference section (2026-07-15) -- extracted so the
+  section/diagram markup isn't duplicated between the two. sections is a
+  List<com.vinoigitare.chords.RenderedChordSection>, already rendered to
+  SVG in plain Java by whichever controller/renderer calls this (same
+  Thymeleaf restricted-expression reasoning as songContent above -- see
+  ChordDiagramController's own comment on this).
+-->
+<div th:fragment="chordDiagramSections(sections)">
+    <div th:each="section : ${sections}" class="chord-diagram-section">
+        <h2 class="chord-diagram-section-heading" th:text="#{${section.labelKey()}}">Section</h2>
+        <div class="chord-diagram-grid">
+            <div th:each="diagram : ${section.diagrams()}" class="chord-diagram-card">
+                <div class="chord-diagram-name" th:text="${diagram.name()}">C</div>
+                <div th:utext="${diagram.svg()}"></div>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>

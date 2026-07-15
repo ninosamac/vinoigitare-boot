@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  Personalized songbook PDF (Phase A, admin-gated: see
+  ~/knowledge/projects/vinoigitare/personalized-songbook-pdf-plan.md).
+  Standalone template for com.vinoigitare.pdf.SongbookPdfRenderer,
+  same reasoning as song-pdf.html for not loading fragments::head/
+  Bootstrap/app.css: none of that means anything to openhtmltopdf,
+  which renders this document with no browser involved at all.
+
+  Same strict-XML-parser restriction as song-pdf.html: no literal
+  double hyphen anywhere in a comment in this file. A second, real trap
+  found writing this file, that song-pdf.html never happened to hit: a
+  literal angle-bracket tag mention inside a comment, even a CSS one
+  nested inside the style block below (not only an HTML comment), gets
+  parsed as a real element by the same strict parser and corrupts the
+  document ("must be terminated by the matching end-tag" errors,
+  confirmed live). Describe tags in plain words in comments here, never
+  in angle-bracket form.
+-->
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="'Vino i gitare - ' + #{songbook.title}">My Songbook</title>
+    <style th:inline="css">
+        @page {
+            size: A4;
+            margin: 2cm 1.6cm 2.2cm 1.6cm;
+
+            @bottom-center {
+                content: "[[#{pdf.page}]] " counter(page) " / " counter(pages);
+                font-family: "DejaVu Sans Mono", monospace;
+                font-size: 8.5pt;
+                color: #666666;
+            }
+        }
+
+        body {
+            font-family: "DejaVu Serif", serif;
+            color: #2a2822;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 16pt;
+            margin: 0 0 2pt 0;
+        }
+
+        h2 {
+            font-size: 11pt;
+            font-weight: normal;
+            color: #555555;
+            margin: 0 0 14pt 0;
+        }
+
+        /* Same monospace/highlight rules as song-pdf.html, restated here
+           for the same reason: this document loads no app.css. */
+        .song-chords {
+            font-family: "DejaVu Sans Mono", monospace;
+            white-space: pre;
+            font-size: 10.5pt;
+            line-height: 1.35;
+        }
+
+        .chord-line {
+            color: #7a2e22;
+            font-weight: bold;
+        }
+
+        .cover {
+            text-align: center;
+            padding-top: 4cm;
+        }
+
+        .cover img {
+            width: 320px;
+        }
+
+        .cover h1 {
+            font-size: 22pt;
+            margin-top: 24pt;
+        }
+
+        .cover p {
+            color: #6b675c;
+        }
+
+        .toc {
+            page-break-before: always;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .toc li {
+            margin-bottom: 6pt;
+        }
+
+        .toc li a {
+            color: #2a2822;
+            text-decoration: none;
+        }
+
+        /*
+          The ::after has to be on the anchor itself, the element that
+          actually carries href -- attr(href) reads the CURRENT element's
+          attribute, not a descendant's. Putting this on the parent list
+          item instead silently renders the dotted leader with no page
+          number at all (confirmed via the Phase A Step 2 prototype).
+          Note for anyone editing this file: this document is parsed by a
+          strict XML parser, so literal angle-bracket tag mentions inside
+          a comment (even a CSS one) get parsed as real elements -- avoid
+          them here, describe tags in plain words instead.
+        */
+        .toc li a::after {
+            content: leader(dotted) target-counter(attr(href), page);
+        }
+
+        .song {
+            page-break-before: always;
+        }
+
+        .chord-diagrams {
+            page-break-before: always;
+        }
+
+        /* Ported from app.css's .chord-diagram-* rules (2026-07-15) --
+           restated with hardcoded colors/units for the same reason every
+           other rule in this file is, and using inline-block instead of
+           CSS grid: openhtmltopdf's CSS-grid support is not something to
+           rely on, inline-block is a much safer bet for a fixed 4-column
+           layout. */
+        .chord-diagram-section-heading {
+            font-size: 10pt;
+            text-transform: uppercase;
+            color: #6b675c;
+            margin: 14pt 0 6pt 0;
+        }
+
+        .chord-diagram-card {
+            display: inline-block;
+            width: 22%;
+            margin: 0 1% 8pt 1%;
+            vertical-align: top;
+            background-color: #fdfbf5;
+            border: 1px solid #d9d2ba;
+            border-radius: 4pt;
+            padding: 4pt;
+            text-align: center;
+        }
+
+        .chord-diagram-name {
+            font-family: "DejaVu Serif", serif;
+            font-weight: 700;
+            font-style: italic;
+            margin-bottom: 2pt;
+        }
+
+        .chord-diagram-svg {
+            width: 100%;
+            height: auto;
+        }
+
+        .chord-diagram-string,
+        .chord-diagram-fret {
+            stroke: #6b675c;
+            stroke-width: 1;
+        }
+
+        .chord-diagram-nut {
+            stroke: #2a2822;
+            stroke-width: 2.5;
+        }
+
+        .chord-diagram-dot {
+            fill: #2f5d50;
+        }
+
+        .chord-diagram-barre {
+            stroke: #2f5d50;
+            stroke-width: 8;
+            stroke-linecap: round;
+            opacity: 0.55;
+        }
+
+        .chord-diagram-marker {
+            fill: #6b675c;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="cover">
+    <img th:attr="src='data:image/png;base64,' + ${logoBase64}"/>
+    <h1 th:text="#{songbook.pdfCoverTitle}">Your personal songbook</h1>
+    <p th:text="#{songbook.pdfCoverSubtitle(${generatedOn}, ${songCount})}">Generated -- 0 songs</p>
+</div>
+
+<div class="toc">
+    <h1 th:text="#{songbook.pdfTocHeading}">Table of contents</h1>
+    <ul>
+        <li th:each="entry : ${entries}">
+            <a th:href="'#song-' + ${entry.song().id()}"
+               th:text="${entry.song().artist()} + ' – ' + ${entry.song().title()}">Artist - Title</a>
+        </li>
+    </ul>
+</div>
+
+<div class="song" th:each="entry : ${entries}" th:id="'song-' + ${entry.song().id()}">
+    <div th:replace="~{fragments :: songContent(${entry.song()}, ${entry.highlightedChords()})}"></div>
+</div>
+
+<div class="chord-diagrams">
+    <h1 th:text="#{chordDiagrams.title}">Chord Diagrams</h1>
+    <div th:replace="~{fragments :: chordDiagramSections(${sections})}"></div>
+</div>
+</body>
+</html>

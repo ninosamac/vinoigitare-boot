@@ -586,6 +586,20 @@ h1, h2, h3 {
    and the SVG's stroke/fill colors, which have to be set here since an
    inline SVG's shapes don't otherwise inherit the page's CSS custom
    properties by default the way HTML text does). */
+/* Replaces "h6 text-uppercase text-muted mt-4 mb-2" utility classes
+   (2026-07-15) -- the personalized-songbook PDF's chord-reference section
+   reuses this same markup via fragments :: chordDiagramSections, and
+   that template loads no Bootstrap, so the heading needs a real class of
+   its own rather than Bootstrap utilities. Values match what those
+   utilities produced exactly, so the on-screen page looks unchanged. */
+.chord-diagram-section-heading {
+    font-size: 1rem;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
 .chord-diagram-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
