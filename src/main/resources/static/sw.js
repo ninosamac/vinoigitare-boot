@@ -10,7 +10,12 @@
 // idea they existed, so nothing it wired ever reached the server.
 // Bump this string whenever any cache-first static asset changes, or
 // returning visitors silently keep the old version.
-const CACHE_NAME = "vinoigitare-v2";
+//
+// Bumped again 2026-07-17: song pages switched from stale-while-revalidate
+// to network-first (see the fetch handler below) -- this also clears out
+// any song pages a device may have cached under the old strategy, since
+// activate's cleanup deletes every cache whose name isn't this one.
+const CACHE_NAME = "vinoigitare-v3";
 
 const PRECACHE_URLS = [
     "/offline",
@@ -67,6 +72,35 @@ function isNetworkOnly(pathname) {
     return pathname.startsWith("/admin") || pathname === "/search" || pathname.endsWith("/pdf");
 }
 
+// Real bug found 2026-07-17: song pages render Edit/Delete buttons based
+// on the visitor's Spring Security session (sec:authorize in song.html,
+// added after this file's original stale-while-revalidate strategy was
+// designed -- offline-support-plan.md predates that feature). That
+// strategy always hands back whatever's already cached before the
+// network response arrives, so an admin who'd ever opened a given song
+// page while logged out (the overwhelmingly common case -- normal
+// browsing) kept seeing that logged-out render indefinitely after
+// logging in, on the same device -- reported as "Edit/Delete buttons
+// missing on mobile after logging in," but really a caching bug, not a
+// mobile-specific one (it just surfaced there first because that's
+// where a browsing history predating the login existed).
+//
+// Tried gating on a JSESSIONID cookie's presence first -- doesn't work
+// at all: browsers deliberately omit the Cookie header from what a
+// service worker's fetch event can read via request.headers, even for
+// the request it's intercepting (confirmed directly -- always reads as
+// empty, regardless of what the browser actually sends over the wire).
+// No reliable way to ask a service worker "is this request
+// authenticated" without extra plumbing (a non-HttpOnly marker cookie
+// read via document.cookie in the page and relayed to the worker, or
+// the Cookie Store API, which isn't available outside Chromium).
+//
+// Simpler fix: song pages now share the same network-first strategy as
+// any other navigation (see below) instead of their own
+// stale-while-revalidate -- still satisfies "stays available offline"
+// (cache is the fallback when the network fetch fails), but always
+// reflects the real current session when online, for anyone, without
+// needing to know who's asking.
 function isSongPage(pathname) {
     return /^\/akordi\/\d+\/[^/]+$/.test(pathname);
 }
@@ -78,18 +112,6 @@ async function cacheFirst(request) {
     const cache = await caches.open(CACHE_NAME);
     cache.put(request, response.clone());
     return response;
-}
-
-async function staleWhileRevalidate(request) {
-    const cache = await caches.open(CACHE_NAME);
-    const cached = await cache.match(request);
-    const network = fetch(request)
-        .then((response) => {
-            cache.put(request, response.clone());
-            return response;
-        })
-        .catch(() => cached || caches.match("/offline"));
-    return cached || network;
 }
 
 async function networkFirst(request) {
@@ -113,9 +135,7 @@ self.addEventListener("fetch", (event) => {
 
     if (isStaticAsset(url.pathname)) {
         event.respondWith(cacheFirst(request));
-    } else if (isSongPage(url.pathname)) {
-        event.respondWith(staleWhileRevalidate(request));
-    } else if (request.mode === "navigate") {
+    } else if (isSongPage(url.pathname) || request.mode === "navigate") {
         event.respondWith(networkFirst(request));
     }
 });
