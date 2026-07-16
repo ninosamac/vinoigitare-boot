@@ -70,7 +70,16 @@ class LocaleSwitchTest extends AbstractSpringBootTest {
     @Test
     void cookieAloneReselectsTheLocaleOnALaterRequestWithNoQueryParam() {
         ResponseEntity<String> firstResponse = restTemplate.getForEntity("/about?lang=hr", String.class);
-        String setCookieHeader = firstResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+        // The feedback form's CSRF token is also cookie-backed (see SecurityConfig),
+        // so /about now legitimately sets a second cookie alongside the locale one --
+        // find the locale cookie by name rather than assuming it's the first
+        // Set-Cookie header.
+        List<String> setCookies = firstResponse.getHeaders().get(HttpHeaders.SET_COOKIE);
+        assertThat(setCookies).isNotNull();
+        String setCookieHeader = setCookies.stream()
+                .filter(cookie -> cookie.startsWith("vinoigitare.locale="))
+                .findFirst()
+                .orElse(null);
         assertThat(setCookieHeader).isNotNull();
         String cookieValue = setCookieHeader.split(";", 2)[0];
 

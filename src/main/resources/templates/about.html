@@ -112,6 +112,52 @@
         <a class="btn btn-primary" href="https://ko-fi.com/ninosamac" target="_blank" rel="noopener noreferrer"
            th:text="#{about.supportButton}">Buy me a coffee</a>
     </section>
+
+    <!--
+      Visitor feedback form, Tier 1 (~/knowledge/projects/vinoigitare/visitor-feedback-form-plan.md):
+      comment + optional name/email, emailed to a single address, never
+      stored or displayed anywhere on the site. ?feedbackSent/?feedbackError
+      read directly as request params, same pattern login.html already
+      uses for Spring Security's own ?error/?logout.
+    -->
+    <section class="mb-4">
+        <h2 class="h6 text-uppercase text-muted mb-2" th:text="#{feedback.heading}">Send feedback</h2>
+        <p th:text="#{feedback.intro}">Placeholder intro text.</p>
+
+        <p class="text-success small" th:if="${param.feedbackSent}" th:text="#{feedback.sentMessage}">Thanks!</p>
+        <p class="text-danger small" th:if="${param.feedbackError}" th:text="#{feedback.errorMessage}">Something went wrong.</p>
+
+        <form method="post" th:action="@{/feedback}">
+            <div class="mb-3">
+                <label class="form-label" for="feedbackComment" th:text="#{feedback.commentLabel}">Your comment</label>
+                <textarea class="form-control" id="feedbackComment" name="comment" rows="4" maxlength="2000" required="required"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="feedbackName" th:text="#{feedback.nameLabel}">Name (optional)</label>
+                <input type="text" class="form-control" id="feedbackName" name="name" maxlength="100"/>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="feedbackEmail" th:text="#{feedback.emailLabel}">Email (optional)</label>
+                <input type="email" class="form-control" id="feedbackEmail" name="email" maxlength="200"/>
+            </div>
+            <!--
+              Honeypot: a real visitor never sees this field at all --
+              hidden off-screen via CSS (not display:none/type=hidden,
+              which some bots specifically check for and skip before
+              deciding whether to fill a field) and removed from the
+              accessibility tree (aria-hidden + tabindex=-1) so a
+              screen-reader user never encounters and fills it either.
+              Any non-blank value here makes FeedbackController silently
+              drop the submission while still showing the normal success
+              message, so a bot is never tipped off that it was caught.
+            -->
+            <div style="position: absolute; left: -9999px;" aria-hidden="true">
+                <label for="feedbackWebsite">Website</label>
+                <input type="text" id="feedbackWebsite" name="website" tabindex="-1" autocomplete="off"/>
+            </div>
+            <button type="submit" class="btn btn-primary" th:text="#{feedback.submit}">Send</button>
+        </form>
+    </section>
 </main>
 <footer th:replace="~{fragments :: footer}"></footer>
 <script th:src="@{/js/theme-toggle.js}"></script>
