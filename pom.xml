@@ -47,17 +47,6 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-		<!-- Visitor feedback form (~/knowledge/projects/vinoigitare/visitor-feedback-form-plan.md):
-		     the first feature in this app that actually sends email:
-		     everything else (the personalized-songbook PDF's eventual Stripe
-		     flow included) delivers via a web link instead. Wraps
-		     JavaMailSender, auto-configured from the spring.mail.* properties
-		     in application.yml. -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-mail</artifactId>
-		</dependency>
-
 		<!-- Admin-auth plan (~/knowledge/projects/vinoigitare/admin-auth-plan.md):
 		     a single admin credential gating /admin/** only, everything else
 		     stays public. thymeleaf-extras-springsecurity6 is what makes the

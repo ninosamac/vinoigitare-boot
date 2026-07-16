@@ -5,9 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.mail.MailSendException;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -34,7 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * {@code /feedback} is genuinely public (on {@link SecurityConfig}'s
  * allowlist) -- these tests confirm CSRF is still enforced regardless,
  * and that the honeypot/validation/rate-limit paths all behave correctly
- * without ever needing real SMTP credentials (JavaMailSender is mocked).
+ * without ever needing a real Resend API key ({@link ResendEmailClient} is
+ * mocked).
  */
 @Tag("fast")
 @WebMvcTest(FeedbackController.class)
@@ -45,7 +43,7 @@ class FeedbackControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private JavaMailSender mailSender;
+    private ResendEmailClient emailClient;
 
     @MockitoSpyBean
     private FeedbackRateLimiter rateLimiter;
@@ -56,7 +54,7 @@ class FeedbackControllerTest {
                         .param("website", ""))
                 .andExpect(status().isForbidden());
 
-        then(mailSender).should(never()).send(any(SimpleMailMessage.class));
+        then(emailClient).should(never()).send(anyString(), anyString(), anyString(), any());
     }
 
     @Test
@@ -69,12 +67,14 @@ class FeedbackControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/about?feedbackSent"));
 
-        var captor = forClass(SimpleMailMessage.class);
-        then(mailSender).should().send(captor.capture());
-        SimpleMailMessage sent = captor.getValue();
-        assertThat(sent.getText()).isEqualTo("Love the site!");
-        assertThat(sent.getSubject()).contains("Marko");
-        assertThat(sent.getReplyTo()).isEqualTo("marko@example.com");
+        var subjectCaptor = forClass(String.class);
+        var textCaptor = forClass(String.class);
+        var replyToCaptor = forClass(String.class);
+        then(emailClient).should().send(anyString(), subjectCaptor.capture(), textCaptor.capture(),
+                replyToCaptor.capture());
+        assertThat(textCaptor.getValue()).isEqualTo("Love the site!");
+        assertThat(subjectCaptor.getValue()).contains("Marko");
+        assertThat(replyToCaptor.getValue()).isEqualTo("marko@example.com");
     }
 
     @Test
@@ -86,10 +86,11 @@ class FeedbackControllerTest {
                         .param("website", ""))
                 .andExpect(status().is3xxRedirection());
 
-        var captor = forClass(SimpleMailMessage.class);
-        then(mailSender).should().send(captor.capture());
-        assertThat(captor.getValue().getSubject()).contains("Anonymous");
-        assertThat(captor.getValue().getReplyTo()).isNull();
+        var subjectCaptor = forClass(String.class);
+        var replyToCaptor = forClass(String.class);
+        then(emailClient).should().send(anyString(), subjectCaptor.capture(), anyString(), replyToCaptor.capture());
+        assertThat(subjectCaptor.getValue()).contains("Anonymous");
+        assertThat(replyToCaptor.getValue()).isNull();
     }
 
     @Test
@@ -102,7 +103,7 @@ class FeedbackControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/about?feedbackSent"));
 
-        then(mailSender).should(never()).send(any(SimpleMailMessage.class));
+        then(emailClient).should(never()).send(anyString(), anyString(), anyString(), any());
     }
 
     @Test
@@ -115,7 +116,7 @@ class FeedbackControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/about?feedbackError"));
 
-        then(mailSender).should(never()).send(any(SimpleMailMessage.class));
+        then(emailClient).should(never()).send(anyString(), anyString(), anyString(), any());
     }
 
     @Test
@@ -128,7 +129,7 @@ class FeedbackControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/about?feedbackError"));
 
-        then(mailSender).should(never()).send(any(SimpleMailMessage.class));
+        then(emailClient).should(never()).send(anyString(), anyString(), anyString(), any());
     }
 
     @Test
@@ -143,12 +144,13 @@ class FeedbackControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/about?feedbackError"));
 
-        then(mailSender).should(never()).send(any(SimpleMailMessage.class));
+        then(emailClient).should(never()).send(anyString(), anyString(), anyString(), any());
     }
 
     @Test
-    void mailSenderFailureRedirectsToFeedbackErrorGracefully() throws Exception {
-        doThrow(new MailSendException("SMTP down")).when(mailSender).send(any(SimpleMailMessage.class));
+    void emailClientFailureRedirectsToFeedbackErrorGracefully() throws Exception {
+        doThrow(new ResendEmailException("Resend API down")).when(emailClient)
+                .send(anyString(), anyString(), anyString(), any());
 
         mockMvc.perform(post("/feedback").with(csrf())
                         .param("comment", "Testing failure")

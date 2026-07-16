@@ -9,9 +9,6 @@ import jakarta.validation.constraints.Size;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailException;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -34,13 +31,13 @@ public class FeedbackController {
 
     private static final Logger LOG = LoggerFactory.getLogger(FeedbackController.class);
 
-    private final JavaMailSender mailSender;
+    private final ResendEmailClient emailClient;
     private final FeedbackRateLimiter rateLimiter;
     private final String toEmail;
 
-    public FeedbackController(JavaMailSender mailSender, FeedbackRateLimiter rateLimiter,
+    public FeedbackController(ResendEmailClient emailClient, FeedbackRateLimiter rateLimiter,
             @Value("${vinoigitare.feedback-to-email}") String toEmail) {
-        this.mailSender = mailSender;
+        this.emailClient = emailClient;
         this.rateLimiter = rateLimiter;
         this.toEmail = toEmail;
     }
@@ -78,7 +75,7 @@ public class FeedbackController {
         }
         try {
             sendEmail(form);
-        } catch (MailException e) {
+        } catch (ResendEmailException e) {
             LOG.warn("Could not send visitor feedback email", e);
             return "redirect:/about?feedbackError";
         }
@@ -86,15 +83,9 @@ public class FeedbackController {
     }
 
     private void sendEmail(FeedbackForm form) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(toEmail);
         String from = form.name().isBlank() ? "Anonymous" : form.name();
-        message.setSubject("Vino i gitare feedback from " + from);
-        message.setText(form.comment());
-        if (!form.email().isBlank()) {
-            message.setReplyTo(form.email());
-        }
-        mailSender.send(message);
+        String subject = "Vino i gitare feedback from " + from;
+        emailClient.send(toEmail, subject, form.comment(), form.email().isBlank() ? null : form.email());
     }
 
     /** Matches the visible form fields in about.html exactly, plus the website honeypot. */

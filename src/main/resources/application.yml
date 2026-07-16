@@ -59,32 +59,28 @@ spring:
     user:
       name: ${VINOIGITARE_ADMIN_USER:admin}
       password: ${VINOIGITARE_ADMIN_PASSWORD:changeme}
-  # Visitor feedback form (~/knowledge/projects/vinoigitare/visitor-feedback-form-plan.md):
-  # Gmail SMTP with an App Password (2FA-enabled account), same
-  # env-var-overridable convention as VINOIGITARE_DB/VINOIGITARE_ADMIN_*
-  # above. FEEDBACK_SMTP_APP_PASSWORD has no default -- unlike
-  # VINOIGITARE_ADMIN_PASSWORD's "changeme", there's no safe placeholder
-  # for a real SMTP credential; local dev without it set simply can't
-  # send mail (FeedbackController's own error handling covers that).
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${FEEDBACK_SMTP_USERNAME:vinogitare@gmail.com}
-    password: ${FEEDBACK_SMTP_APP_PASSWORD:}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-
 vinoigitare:
   # Directory containing song files. Overridable via the VINOIGITARE_HOME
   # env var, mirroring the old app's VINOIGITARE_HOME/vinoigitare.properties
   # convention. Defaults to a local folder under the project for dev use --
   # no real song data ships with this repo (Phase 1+ territory).
   songs-dir: ${VINOIGITARE_HOME:./data/songs}
-  # Visitor feedback form: destination address, overridable the same way
-  # in case it ever needs to move again (see the plan doc's note on
-  # vinoigitare@gmail.com already being a deleted, unrecoverable account).
+  # Visitor feedback form (~/knowledge/projects/vinoigitare/visitor-feedback-form-plan.md):
+  # destination address, overridable the same way in case it ever needs to
+  # move again (see the plan doc's note on vinoigitare@gmail.com already
+  # being a deleted, unrecoverable account).
   feedback-to-email: ${FEEDBACK_TO_EMAIL:vinogitare@gmail.com}
+  # Sends via the Resend HTTP API (see ResendEmailClient), not SMTP --
+  # DigitalOcean blocks outbound SMTP ports (25/465/587) by default on
+  # Droplets, which the original Gmail-SMTP design (spring-boot-starter-mail
+  # + JavaMailSender) hit in production on first real test; an HTTP API
+  # over 443 sidesteps that entirely. RESEND_API_KEY has no default --
+  # like the SMTP app password before it, there's no safe placeholder for
+  # a real credential; without it, sending fails and FeedbackController's
+  # existing error handling covers that the same way a MailException used
+  # to. onboarding@resend.dev works unverified for testing (limited to the
+  # Resend account's own address); a real deployment should eventually
+  # verify vinoigitare.com's domain with Resend and set FEEDBACK_FROM_EMAIL
+  # to an address on it instead.
+  resend-api-key: ${RESEND_API_KEY:}
+  feedback-from-email: ${FEEDBACK_FROM_EMAIL:onboarding@resend.dev}
