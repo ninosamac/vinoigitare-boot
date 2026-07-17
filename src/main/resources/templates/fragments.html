@@ -139,8 +139,8 @@
           a bare query-only href is used rather than a Thymeleaf @{...} URL.
         -->
         <div class="preferences" data-preferences>
-            <button type="button" class="btn btn-sm preferences-toggle-btn" data-preferences-toggle
-                    aria-haspopup="true" aria-expanded="false" th:aria-label="#{nav.preferences}">&#9881;</button>
+            <button type="button" class="nav-link me-2 preferences-toggle-btn" data-preferences-toggle
+                    aria-haspopup="true" aria-expanded="false" th:text="#{nav.user}">User</button>
             <div class="preferences-panel" data-preferences-panel hidden>
                 <div class="preferences-row">
                     <span class="preferences-label" th:text="#{preferences.theme}">Theme</span>
