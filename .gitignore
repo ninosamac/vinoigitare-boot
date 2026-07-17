@@ -8,6 +8,10 @@ target/
 # Generated H2 database files (Phase 4a) -- runtime data, not source.
 /data/vinoigitare-db*
 
+# Application log file (~/knowledge/projects/vinoigitare/production-logging-plan.md,
+# 2026-07-17) -- runtime output, not source, same reasoning as the H2 files above.
+/logs/
+
 # The song collection moved to its own dedicated git repo (2026-07-12,
 # Nino's call: .tab files are the actual collection, this app's own repo
 # just reads them; see ~/knowledge/projects/vinoigitare/dev-cheatsheet.md).

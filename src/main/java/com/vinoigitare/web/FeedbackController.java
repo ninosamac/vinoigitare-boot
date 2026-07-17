@@ -59,10 +59,13 @@ public class FeedbackController {
     @PostMapping("/feedback")
     public String submit(@Valid @ModelAttribute FeedbackForm form, BindingResult bindingResult,
             HttpServletRequest request) {
+        String remoteAddr = request.getRemoteAddr();
         if (!form.website().isBlank()) {
+            LOG.info("Feedback honeypot triggered from {}", remoteAddr);
             return "redirect:/about?feedbackSent";
         }
         if (bindingResult.hasErrors()) {
+            LOG.info("Feedback submission from {} failed validation: {}", remoteAddr, bindingResult.getAllErrors());
             return "redirect:/about?feedbackError";
         }
         // Spring's forward-headers-strategy: framework (application.yml)
@@ -70,15 +73,17 @@ public class FeedbackController {
         // reverse proxy, the same forwarded-header handling that fixes
         // scheme detection for SitemapController -- no separate logic
         // needed here.
-        if (!rateLimiter.tryAcquire(request.getRemoteAddr())) {
+        if (!rateLimiter.tryAcquire(remoteAddr)) {
+            LOG.info("Feedback submission from {} rejected: rate limit exceeded", remoteAddr);
             return "redirect:/about?feedbackError";
         }
         try {
             sendEmail(form);
         } catch (ResendEmailException e) {
-            LOG.warn("Could not send visitor feedback email", e);
+            LOG.warn("Could not send visitor feedback email from {}", remoteAddr, e);
             return "redirect:/about?feedbackError";
         }
+        LOG.info("Feedback submission from {} sent successfully", remoteAddr);
         return "redirect:/about?feedbackSent";
     }
 

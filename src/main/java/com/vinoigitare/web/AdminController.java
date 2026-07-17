@@ -2,6 +2,8 @@ package com.vinoigitare.web;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -36,6 +38,8 @@ import com.vinoigitare.service.SongService;
 @RequestMapping("/admin")
 public class AdminController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(AdminController.class);
+
     private final SongService songService;
 
     public AdminController(SongService songService) {
@@ -56,7 +60,9 @@ public class AdminController {
 
     @PostMapping("/new")
     public String create(@ModelAttribute SongForm songForm) {
-        songService.store(new Song(null, songForm.artist(), songForm.title(), null, songForm.chords(), null, 0L));
+        Song created = songService
+                .store(new Song(null, songForm.artist(), songForm.title(), null, songForm.chords(), null, 0L));
+        LOG.info("Admin created song {} ({} - {})", created.id(), created.artist(), created.title());
         return "redirect:/admin";
     }
 
@@ -85,12 +91,20 @@ public class AdminController {
         Song updated = new Song(existing.id(), songForm.artist(), songForm.title(), null, songForm.chords(),
                 existing.createdAt(), existing.views());
         songService.store(updated);
+        LOG.info("Admin updated song {} ({} - {} -> {} - {})", id, existing.artist(), existing.title(),
+                updated.artist(), updated.title());
         return "redirect:/admin";
     }
 
     @PostMapping("/delete/{id}")
     public String delete(@PathVariable String id) {
+        Song existing = songService.load(id).orElse(null);
         songService.remove(id);
+        if (existing != null) {
+            LOG.info("Admin deleted song {} ({} - {})", id, existing.artist(), existing.title());
+        } else {
+            LOG.info("Admin deleted song {} (already gone)", id);
+        }
         return "redirect:/admin";
     }
 

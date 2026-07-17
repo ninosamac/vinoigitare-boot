@@ -89,6 +89,13 @@ class AdminControllerTest {
     @Test
     @WithMockUser
     void createSucceedsWhenAuthenticatedWithCsrfToken() throws Exception {
+        // AdminController now logs the persisted Song returned by store()
+        // (see production-logging-plan.md's admin audit logging), so this
+        // mock needs a real return value -- store() never returns null in
+        // production, unstubbed just happened to default to it here.
+        given(songService.store(any()))
+                .willReturn(new Song("1", "New Artist", "New Song", "new-artist-new-song", "C G", null, 0L));
+
         mockMvc.perform(post("/admin/new").with(csrf())
                         .param("artist", "New Artist").param("title", "New Song").param("chords", "C G"))
                 .andExpect(status().is3xxRedirection())

@@ -14,6 +14,27 @@
 server:
   forward-headers-strategy: framework
 
+# Application logging (~/knowledge/projects/vinoigitare/production-logging-plan.md):
+# journalctl (systemd's own capture of this app's console output) is all
+# there's ever been -- no persistent log file, and journald's own retention
+# on this VPS isn't configured generously. Spring Boot's own Logback
+# integration already supports a proper rolling file appender + retention
+# entirely through properties -- no separate Logback XML file, no swapping
+# to Log4j2 (considered and dropped: its real advantages -- async/GC-free
+# logging, higher throughput -- matter for high-volume services, not a
+# low-traffic solo hobby site, and would've meant excluding
+# spring-boot-starter-logging from five different starters for no real
+# gain here). Overridable via VINOIGITARE_LOG_DIR the same way
+# VINOIGITARE_HOME/VINOIGITARE_DB already are.
+logging:
+  file:
+    name: ${VINOIGITARE_LOG_DIR:./logs}/vinoigitare.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+      total-size-cap: 200MB
+
 spring:
   application:
     name: vinoigitare-boot
