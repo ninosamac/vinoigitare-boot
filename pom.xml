@@ -115,6 +115,20 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Personalized songbook PDF, Phase B (~/knowledge/projects/vinoigitare/personalized-songbook-pdf-plan.md):
+		     the real public paywall. Stripe Checkout Session creation + a
+		     signature-verified webhook, both via Stripe's own Java SDK rather
+		     than hand-rolling HTTP calls: webhook signature verification
+		     specifically is exactly the kind of thing not worth reimplementing
+		     (constant-time comparison, timestamp tolerance, etc. are all
+		     handled correctly by the SDK already). Version checked against
+		     Maven Central at implementation time. -->
+		<dependency>
+			<groupId>com.stripe</groupId>
+			<artifactId>stripe-java</artifactId>
+			<version>29.2.0</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>

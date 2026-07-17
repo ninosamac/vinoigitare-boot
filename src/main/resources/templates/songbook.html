@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments :: head(#{songbook.title})}"></head>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
@@ -49,13 +49,40 @@
       "Add to my songbook" area uses, since this is a real <button>, not
       an <a>. th:action means the CSRF token auto-injects the same way
       every other form in this app already does.
+
+      Two forms below, never both present at once (sec:authorize removes
+      whichever doesn't apply entirely from the rendered page, not just
+      hides it) -- Phase B (2026-07-17, see
+      ~/knowledge/projects/vinoigitare/personalized-songbook-pdf-plan.md):
+      an admin testing the feature himself still gets Phase A's original
+      free, direct /songbook/generate; every other (public) visitor now
+      goes through the real Stripe paywall at /songbook/checkout instead.
+      Both share the same data-songbook-generate/-selection-field/etc.
+      attributes, so static/js/songbook.js's existing querySelector-based
+      wiring needs no changes -- it only ever finds the one form actually
+      in the DOM.
     -->
-    <form method="post" th:action="@{/songbook/generate}" data-songbook-generate-form>
+    <form method="post" th:action="@{/songbook/generate}" data-songbook-generate-form sec:authorize="isAuthenticated()">
         <input type="hidden" name="selection" data-songbook-selection-field/>
         <input type="hidden" name="bookTitle" data-songbook-title-field/>
         <input type="hidden" name="includeChordDiagrams" data-songbook-include-diagrams-field/>
         <button type="submit" class="btn btn-primary" data-songbook-generate th:text="#{songbook.generatePdf}" disabled>Generate PDF</button>
     </form>
+
+    <div sec:authorize="!isAuthenticated()">
+        <p class="text-muted small">
+            <span th:text="#{songbook.priceLabel}">Price:</span>
+            <span data-songbook-price>$5</span>
+            <br/>
+            <span class="text-muted" style="font-size: 0.85em;" th:text="#{songbook.priceTiers}">Price tiers</span>
+        </p>
+        <form method="post" th:action="@{/songbook/checkout}" data-songbook-generate-form>
+            <input type="hidden" name="selection" data-songbook-selection-field/>
+            <input type="hidden" name="bookTitle" data-songbook-title-field/>
+            <input type="hidden" name="includeChordDiagrams" data-songbook-include-diagrams-field/>
+            <button type="submit" class="btn btn-primary" data-songbook-generate th:text="#{songbook.checkoutButton}" disabled>Buy my songbook PDF</button>
+        </form>
+    </div>
 </main>
 <footer th:replace="~{fragments :: footer}"></footer>
 <script th:src="@{/js/songbook.js}"></script>

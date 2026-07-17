@@ -1,6 +1,8 @@
 /**
- * Personalized songbook PDF (Phase A, admin-gated -- see
+ * Personalized songbook PDF -- public since Phase B (2026-07-17, see
  * ~/knowledge/projects/vinoigitare/personalized-songbook-pdf-plan.md).
+ * Loaded unconditionally now; Phase A had this admin-gated, since only
+ * the free, admin-only direct-generate flow existed yet.
  *
  * Selection lives entirely in localStorage as a JSON array of
  * {id, transpose} objects -- no accounts, same pattern as every other
@@ -164,6 +166,7 @@
         var countDisplay = document.querySelector("[data-songbook-count]");
         var generateButton = document.querySelector("[data-songbook-generate]");
         var selectionField = document.querySelector("[data-songbook-selection-field]");
+        var priceDisplay = document.querySelector("[data-songbook-price]");
         var entries = readSongbook();
 
         list.innerHTML = "";
@@ -172,6 +175,15 @@
         }
         if (generateButton) {
             generateButton.disabled = entries.length === 0;
+        }
+        if (priceDisplay) {
+            // Informational only -- mirrors com.vinoigitare.web.SongbookPricing's
+            // tiers so a visitor sees the right price before checking out, but
+            // the server always recomputes authoritatively at Checkout Session
+            // creation time (see SongbookCheckoutController#checkout), so a
+            // client/server drift here would only ever be a display glitch,
+            // never an actual pricing bug.
+            priceDisplay.textContent = entries.length < 100 ? "$5" : entries.length < 300 ? "$10" : "$15";
         }
         if (selectionField) {
             selectionField.value = JSON.stringify(entries);

@@ -140,20 +140,17 @@
            th:attr="data-pdf-base-href=@{/akordi/{id}/pdf(id=${song.id()})}" th:text="#{song.downloadPdf}">Download PDF</a>
         <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()" th:text="#{song.print}">Print</button>
         <!--
-          Personalized songbook PDF, Phase A (admin-gated -- see
-          ~/knowledge/projects/vinoigitare/personalized-songbook-pdf-plan.md):
-          sec:authorize-gated the same way the Edit/Delete span below is,
-          deliberately hiding this from the general public entirely for
-          now, not just gating the /songbook routes themselves -- an
-          anonymous visitor clicking "Add to my songbook" only to hit a
-          login wall at "Generate PDF" would be a confusing, broken-looking
-          experience for a feature that isn't public yet.
+          Personalized songbook PDF: public since Phase B (2026-07-17, see
+          ~/knowledge/projects/vinoigitare/personalized-songbook-pdf-plan.md)
+          -- was sec:authorize-gated during Phase A while only the
+          admin-only, free /songbook/generate endpoint existed, so an
+          anonymous visitor clicking this would've hit a login wall at
+          "Generate PDF". Phase B's public paywall (POST /songbook/checkout)
+          means that's no longer true, so this is unconditional now.
         -->
-        <span sec:authorize="isAuthenticated()">
-            <button type="button" class="btn btn-outline-secondary btn-sm" data-songbook-toggle
-                    th:attr="data-song-id=${song.id()}" th:data-label-add="#{songbook.addToSongbook}"
-                    th:data-label-remove="#{songbook.removeFromSongbook}" th:text="#{songbook.addToSongbook}">Add to my songbook</button>
-        </span>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-songbook-toggle
+                th:attr="data-song-id=${song.id()}" th:data-label-add="#{songbook.addToSongbook}"
+                th:data-label-remove="#{songbook.removeFromSongbook}" th:text="#{songbook.addToSongbook}">Add to my songbook</button>
         <!-- Admin-only, reusing AdminController's existing edit/delete
              routes and the same admin.edit/admin.delete/admin.confirmDelete
              message keys and data-delete-form confirmation convention as
@@ -176,7 +173,7 @@
 <script th:src="@{/js/transpose.js}"></script>
 <script th:src="@{/js/display-controls.js}"></script>
 <script th:src="@{/js/delete-confirm.js}"></script>
-<script sec:authorize="isAuthenticated()" th:src="@{/js/songbook.js}"></script>
+<script th:src="@{/js/songbook.js}"></script>
 <script th:src="@{/js/theme-toggle.js}"></script>
 <script th:src="@{/js/preferences-menu.js}"></script>
 </body>

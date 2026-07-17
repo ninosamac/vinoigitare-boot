@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.vinoigitare.model.Song;
@@ -96,7 +95,8 @@ public class SongbookController {
     public ResponseEntity<byte[]> generate(@RequestParam String selection,
             @RequestParam(required = false) String bookTitle,
             @RequestParam(defaultValue = "true") boolean includeChordDiagrams) {
-        List<SelectionEntry> entries = parseSelection(selection);
+        List<SongbookSelectionParser.SelectionEntry> entries = SongbookSelectionParser.parse(selection,
+                objectMapper);
         if (entries.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selection is empty");
         }
@@ -111,21 +111,9 @@ public class SongbookController {
                 .body(pdf);
     }
 
-    private List<SelectionEntry> parseSelection(String selection) {
-        try {
-            return List.of(objectMapper.readValue(selection, SelectionEntry[].class));
-        } catch (JsonProcessingException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Malformed selection", e);
-        }
-    }
-
     public record SongSummary(String id, String artist, String title) {
         static SongSummary from(Song song) {
             return new SongSummary(song.id(), song.artist(), song.title());
         }
-    }
-
-    /** Matches static/js/songbook.js's localStorage entry shape exactly. */
-    public record SelectionEntry(String id, int transpose) {
     }
 }

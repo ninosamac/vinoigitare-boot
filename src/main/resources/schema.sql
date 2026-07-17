@@ -14,3 +14,24 @@ CREATE TABLE IF NOT EXISTS song (
 
 CREATE INDEX IF NOT EXISTS idx_song_artist ON song (artist);
 CREATE INDEX IF NOT EXISTS idx_song_slug ON song (slug);
+
+-- Personalized songbook PDF, Phase B (~/knowledge/projects/vinoigitare/personalized-songbook-pdf-plan.md,
+-- SS2/S7): a real DB row per pending/paid purchase, not an in-memory cache
+-- with a TTL -- this box gets redeployed/restarted for every code change,
+-- and losing a pending purchase mid-checkout because the app happened to
+-- restart would be a bad visitor experience for a paid feature. id is an
+-- opaque, high-entropy random string generated in code (SecureRandom-backed,
+-- see SongbookRequestRepository) -- it IS the entire access control for a
+-- paid download, so it's the primary key directly rather than a separate
+-- auto-increment id plus a lookup column.
+CREATE TABLE IF NOT EXISTS songbook_request (
+    id VARCHAR(64) PRIMARY KEY,
+    selection CLOB NOT NULL,
+    book_title VARCHAR(200),
+    include_chord_diagrams BOOLEAN NOT NULL,
+    song_count INT NOT NULL,
+    amount_cents INT NOT NULL,
+    paid BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL,
+    paid_at TIMESTAMP
+);

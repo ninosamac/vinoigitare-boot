@@ -105,3 +105,12 @@ vinoigitare:
   # to an address on it instead.
   resend-api-key: ${RESEND_API_KEY:}
   feedback-from-email: ${FEEDBACK_FROM_EMAIL:onboarding@resend.dev}
+  # Personalized songbook PDF, Phase B (~/knowledge/projects/vinoigitare/personalized-songbook-pdf-plan.md):
+  # Stripe Checkout + a signature-verified webhook, tiered pricing by song
+  # count (SongbookPricing) rather than a fixed Stripe Dashboard Price, so
+  # no price-id config is needed here. Neither has a safe default -- like
+  # the Resend API key before them, there's no safe placeholder for a real
+  # credential; local dev without them set simply can't complete a real
+  # checkout (SongbookCheckoutController's own error handling covers that).
+  stripe-secret-key: ${STRIPE_SECRET_KEY:}
+  stripe-webhook-secret: ${STRIPE_WEBHOOK_SECRET:}

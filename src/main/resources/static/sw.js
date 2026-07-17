@@ -15,7 +15,11 @@
 // to network-first (see the fetch handler below) -- this also clears out
 // any song pages a device may have cached under the old strategy, since
 // activate's cleanup deletes every cache whose name isn't this one.
-const CACHE_NAME = "vinoigitare-v3";
+//
+// Bumped again 2026-07-17: songbook.js changed (Phase B public paywall --
+// see personalized-songbook-pdf-plan.md) -- cache-first per this file's
+// own standing discipline above.
+const CACHE_NAME = "vinoigitare-v4";
 
 const PRECACHE_URLS = [
     "/offline",

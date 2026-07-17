@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!--
+  Personalized songbook PDF, Phase B (~/knowledge/projects/vinoigitare/personalized-songbook-pdf-plan.md):
+  the post-checkout status/download page a visitor lands on after Stripe's
+  redirect (paid) or navigates to directly with a stale/invalid link
+  (not_found), or revisits after the 7-day download window (expired). The
+  "pending" state covers both a visitor who hasn't paid yet and the brief
+  window where Stripe's webhook hasn't landed yet -- same message either
+  way, since there's nothing actionable to tell them apart on.
+-->
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(#{songbook.status.title})}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <h1 class="h4 mb-3" th:text="#{songbook.status.title}">Your Songbook</h1>
+
+    <div th:if="${state == 'not_found'}">
+        <h2 class="h5" th:text="#{songbook.status.notFoundHeading}">We couldn't find that order</h2>
+        <p class="text-muted" th:text="#{songbook.status.notFoundBody}">This link doesn't match any songbook order.</p>
+    </div>
+
+    <div th:if="${state == 'pending'}">
+        <h2 class="h5" th:text="#{songbook.status.pendingHeading}">Payment processing</h2>
+        <p class="text-muted" th:text="#{songbook.status.pendingBody}">We're still confirming your payment.</p>
+    </div>
+
+    <div th:if="${state == 'expired'}">
+        <h2 class="h5" th:text="#{songbook.status.expiredHeading}">This download link has expired</h2>
+        <p class="text-muted" th:text="#{songbook.status.expiredBody}">Downloads are only available for 7 days.</p>
+    </div>
+
+    <div th:if="${state == 'paid'}">
+        <h2 class="h5" th:text="#{songbook.status.paidHeading}">Thanks! Your songbook is ready.</h2>
+        <p class="text-muted" th:text="#{songbook.status.paidBody}">This download link stays active for 7 days.</p>
+        <a class="btn btn-primary" th:href="@{/songbook/view/{id}/pdf(id=${requestId})}"
+           th:text="#{songbook.status.downloadButton}">Download your PDF</a>
+    </div>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/theme-toggle.js}"></script>
+<script th:src="@{/js/preferences-menu.js}"></script>
+</body>
+</html>

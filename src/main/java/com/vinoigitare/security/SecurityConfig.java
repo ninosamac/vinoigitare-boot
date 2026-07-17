@@ -45,6 +45,30 @@ public class SecurityConfig {
                                 // still applies regardless of permitAll -- that's authorization, a
                                 // separate concern.
                                 "/feedback",
+                                // Personalized songbook PDF, Phase B
+                                // (~/knowledge/projects/vinoigitare/personalized-songbook-pdf-plan.md):
+                                // selection-building and checkout are now public -- only
+                                // /songbook/generate (Phase A's admin-only direct-generate
+                                // endpoint, deliberately absent from this list) stays behind
+                                // login. Listed as exact/prefixed patterns specifically chosen
+                                // to never collide with /songbook/generate -- a bare
+                                // "/songbook/*" wildcard would also match it, silently making an
+                                // admin-only route public.
+                                "/songbook", "/songbook/details", "/songbook/checkout",
+                                "/songbook/stripe-webhook", "/songbook/view/**",
+                                // Real bug found 2026-07-17, while verifying Phase B's download
+                                // gating end-to-end: a ResponseStatusException thrown from ANY
+                                // public route (this app's 404s included -- not new, and not
+                                // specific to /songbook/**) triggers Spring MVC's internal
+                                // forward to /error, which Spring Security's filter chain
+                                // re-challenges on its own since /error was never on this
+                                // allowlist -- an unauthenticated visitor got redirected to
+                                // /login instead of ever seeing the actual 404/403/410, since
+                                // /error itself fell under .anyRequest().authenticated() below.
+                                // Confirmed against an existing, already-public route too
+                                // (an unknown /akordi/{id}/{slug}), not just this feature's new
+                                // ones -- a pre-existing gap this work happened to surface.
+                                "/error",
                                 "/actuator/health", "/login")
                         .permitAll()
                         .anyRequest().authenticated())
@@ -63,7 +87,13 @@ public class SecurityConfig {
                 // -- IllegalStateException: "Cannot create a session after the
                 // response has been committed". A cookie-backed repository sidesteps
                 // both problems since it never touches HttpSession.
-                .csrf(csrf -> csrf.csrfTokenRepository(new CookieCsrfTokenRepository()))
+                .csrf(csrf -> csrf.csrfTokenRepository(new CookieCsrfTokenRepository())
+                        // Stripe calls this webhook server-to-server -- no browser, no
+                        // cookies, no CSRF token to send. Signature verification (see
+                        // SongbookCheckoutController#webhook, via the Stripe SDK) is
+                        // this route's actual authenticity check, filling the same
+                        // role CSRF protection fills for a real browser form post.
+                        .ignoringRequestMatchers("/songbook/stripe-webhook"))
                 // Even cookie-based, the token is deferred -- not resolved (and its
                 // Set-Cookie written) until something reads it, which for Thymeleaf's
                 // automatic hidden field is whenever the template engine reaches the

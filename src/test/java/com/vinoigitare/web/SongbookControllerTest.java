@@ -35,14 +35,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Personalized songbook PDF, Phase A -- confirms every {@code /songbook/**}
- * route actually requires login (these are deliberately absent from {@code
- * SecurityConfig}'s allowlist, so they should fall under the existing
- * {@code .anyRequest().authenticated()} catch-all, same as {@code
- * /admin/**} -- see {@code AdminControllerTest}'s own comment on why {@link
- * SecurityConfig} needs importing explicitly here) and that the generate
- * endpoint behaves correctly once authenticated.
- * See {@code ~/knowledge/projects/vinoigitare/personalized-songbook-pdf-plan.md}.
+ * Personalized songbook PDF -- {@code /songbook} and {@code
+ * /songbook/details} are public since Phase B (2026-07-17, selection
+ * building is free for anyone; see {@code
+ * ~/knowledge/projects/vinoigitare/personalized-songbook-pdf-plan.md}).
+ * {@code /songbook/generate} stays Phase A's admin-only, free direct-generate
+ * endpoint (deliberately absent from {@code SecurityConfig}'s allowlist, so
+ * it falls under the existing {@code .anyRequest().authenticated()}
+ * catch-all, same as {@code /admin/**} -- see {@code
+ * AdminControllerTest}'s own comment on why {@link SecurityConfig} needs
+ * importing explicitly here) -- the real public paywall
+ * ({@code /songbook/checkout} etc.) lives in {@code
+ * SongbookCheckoutControllerTest} instead.
  */
 @Tag("fast")
 @WebMvcTest(SongbookController.class)
@@ -59,10 +63,9 @@ class SongbookControllerTest {
     private SongbookPdfRenderer pdfRenderer;
 
     @Test
-    void songbookPageRedirectsToLoginWhenNotAuthenticated() throws Exception {
+    void songbookPageIsPublic() throws Exception {
         mockMvc.perform(get("/songbook"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("http://localhost/login"));
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -73,10 +76,9 @@ class SongbookControllerTest {
     }
 
     @Test
-    void detailsRedirectsToLoginWhenNotAuthenticated() throws Exception {
+    void detailsIsPublic() throws Exception {
         mockMvc.perform(get("/songbook/details").param("ids", "1"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("http://localhost/login"));
+                .andExpect(status().isOk());
     }
 
     @Test
