@@ -91,6 +91,19 @@
         </div>
     </section>
 
+    <!--
+      Nino's request (2026-07-19): the About page said nothing about the
+      paid personalized songbook at all -- only discoverable from inside
+      a song page's "Add to my songbook" button otherwise. Placed right
+      after the free original-edition download as a natural companion to
+      it, not before/instead of it.
+    -->
+    <section class="mb-4">
+        <h2 class="h6 text-uppercase text-muted mb-2" th:text="#{about.personalizedSongbookHeading}">Build your own songbook</h2>
+        <p th:text="#{about.personalizedSongbookBody}">Placeholder personalized-songbook text.</p>
+        <a class="btn btn-outline-primary" th:href="@{/songbook}" th:text="#{about.personalizedSongbookButton}">Start building my songbook</a>
+    </section>
+
     <section class="mb-4">
         <h2 class="h6 text-uppercase text-muted mb-2" th:text="#{about.installHeading}">Install and use offline</h2>
         <p th:text="#{about.installBody}">Placeholder install text.</p>

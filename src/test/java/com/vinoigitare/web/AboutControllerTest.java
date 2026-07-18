@@ -26,7 +26,7 @@ class AboutControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    void pageIsPubliclyReachableAndListsAllFiveSections() throws Exception {
+    void pageIsPubliclyReachableAndListsAllSixSections() throws Exception {
         mockMvc.perform(get("/about"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Why this exists")))
@@ -45,6 +45,11 @@ class AboutControllerTest {
                 .andExpect(content().string(containsString("Original 2000 edition")))
                 .andExpect(content().string(containsString("href=\"/downloads/Vino_i_gitare.pdf\"")))
                 .andExpect(content().string(containsString("src=\"/images/vino-i-gitare-cover.png\"")))
-                .andExpect(content().string(containsString("src=\"/images/wine-and-guitar.jpg\"")));
+                .andExpect(content().string(containsString("src=\"/images/wine-and-guitar.jpg\"")))
+                // Personalized songbook mention (2026-07-19, Nino's request)
+                // -- links to the /songbook builder, previously only
+                // discoverable from inside a song page.
+                .andExpect(content().string(containsString("Build your own songbook")))
+                .andExpect(content().string(containsString("href=\"/songbook\"")));
     }
 }

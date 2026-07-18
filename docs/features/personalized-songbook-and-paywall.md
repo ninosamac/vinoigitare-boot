@@ -13,7 +13,9 @@ carries a small, unobtrusive `vinoigitare.com` credit next to the page
 number.
 
 - **Selection** happens by clicking "Add to my songbook" on any song
-  page. It's free and requires no login.
+  page. It's free and requires no login. Also mentioned on the About
+  page (2026-07-19) with a direct link to `/songbook` -- previously only
+  discoverable from inside a song page.
 - **Building/reviewing the selection** happens on `/user` → "My
   Songbook" (`/songbook`): see what's in it, remove songs, reorder them
   with ↑/↓ buttons per row, set a book title, toggle chord diagrams.
