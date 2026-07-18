@@ -64,6 +64,18 @@
         <span class="text-muted small" th:if="${totalArtists > 0}"
               th:text="#{home.treeStats(${totalArtists},${totalSongs})}">0 artists · 0 songs</span>
     </div>
+    <!--
+      Real, keyword-relevant intro sentence (2026-07-19, Nino's request:
+      wants the site to actually surface for "akordi", "tabovi", "ex yu
+      muzika" etc.) -- previously the homepage's ONLY on-page text was a
+      one-word H1 ("Zbirka"/"Collection") with zero of these terms
+      anywhere Google actually weighs (title tag + H1 + body content --
+      meta description alone only affects the search-result snippet, not
+      ranking). This is genuine, accurate description of the site, not
+      keyword stuffing -- exactly what a visitor would want to read here
+      too.
+    -->
+    <p class="text-muted small mb-3" th:text="#{home.intro}">Homepage intro.</p>
     <div th:if="${totalArtists == 0}" class="text-muted mb-3">
         <span th:text="#{home.noSongs}">No songs yet. Add the first one in the</span>
         <a th:href="@{/admin/new}" th:text="#{home.adminPanel}">admin panel</a>.
