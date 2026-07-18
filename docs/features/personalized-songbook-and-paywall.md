@@ -15,8 +15,12 @@ number.
 - **Selection** happens by clicking "Add to my songbook" on any song
   page. It's free and requires no login.
 - **Building/reviewing the selection** happens on `/user` → "My
-  Songbook" (`/songbook`): see what's in it, remove songs, set a book
-  title, toggle chord diagrams.
+  Songbook" (`/songbook`): see what's in it, remove songs, reorder them
+  with ↑/↓ buttons per row, set a book title, toggle chord diagrams.
+  The order shown here is exactly the order the finished PDF (and its
+  table of contents) comes out in -- not re-sorted alphabetically
+  (issue #9, 2026-07-19; previously it always was, a real mismatch
+  between what the builder showed and what got generated).
 - **Generating the actual PDF is a real, paid purchase** for the
   general public — priced by how many pages the finished book comes out
   to:

@@ -34,9 +34,11 @@ class SongbookPdfRendererTest extends AbstractSpringBootTest {
     private SongService songService;
 
     @Test
-    void ordersByArtistThenTitleTransposesPerItemAndDropsUnknownIds() throws IOException {
-        // Deliberately stored out of alphabetical order, to actually
-        // exercise the sort rather than have it pass by coincidence.
+    void preservesSubmissionOrderTransposesPerItemAndDropsUnknownIds() throws IOException {
+        // Deliberately requested out of alphabetical order -- this must
+        // NOT get re-sorted (songbook-reorder-plan.md, issue #9): the
+        // order a visitor arranges their selection into on /songbook is
+        // the order that has to end up in the PDF.
         Song zSong = songService.store(new Song("Zebra Band", "Zeta", "C\nZ lyrics"));
         Song aSong = songService.store(new Song("Aerodrom", "Alpha", "C\nA lyrics"));
 
@@ -54,10 +56,10 @@ class SongbookPdfRendererTest extends AbstractSpringBootTest {
         }
 
         assertThat(text).contains("Aerodrom").contains("Zebra Band");
-        // Artist-then-title order: Aerodrom's entry has to appear before
-        // Zebra Band's, even though it was stored second and requested
-        // second in the selection list.
-        assertThat(text.indexOf("Aerodrom")).isLessThan(text.indexOf("Zebra Band"));
+        // Zebra Band was requested first, Aerodrom second -- that exact
+        // order has to survive into the PDF, even though it's the
+        // reverse of alphabetical.
+        assertThat(text.indexOf("Zebra Band")).isLessThan(text.indexOf("Aerodrom"));
         // C up 2 semitones = D -- confirms the per-item transpose (not
         // just the single-song SongPdfRenderer's own offset) is really
         // wired through.

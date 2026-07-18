@@ -7,7 +7,6 @@ import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -111,16 +110,17 @@ public class SongbookPdfRenderer {
     }
 
     private String renderXhtml(List<SongbookItem> items, String bookTitle, boolean includeChordDiagrams) {
+        // Rendered in the order the visitor's selection arrived in, not
+        // re-sorted -- songbook-reorder-plan.md (2026-07-19, issue #9):
+        // /songbook now lets a visitor arrange their own selection with
+        // move-up/move-down buttons, so the order they see in the
+        // builder is the order that has to end up in the PDF. Previously
+        // this forced an alphabetical-by-artist-then-title order
+        // regardless of what was submitted -- a real, confirmed
+        // mismatch between the builder and the finished book.
         List<SongEntry> entries = items.stream()
                 .map(this::resolve)
                 .flatMap(Optional::stream)
-                // Artist then title, case-insensitive -- matches
-                // SongService.loadAllGroupedByArtist()'s own ordering
-                // (personalized-songbook-pdf-plan.md's decision), not the
-                // order songs happened to be added in.
-                .sorted(Comparator
-                        .comparing((SongEntry e) -> e.song().artist(), String.CASE_INSENSITIVE_ORDER)
-                        .thenComparing(e -> e.song().title(), String.CASE_INSENSITIVE_ORDER))
                 .toList();
 
         Context context = new Context();

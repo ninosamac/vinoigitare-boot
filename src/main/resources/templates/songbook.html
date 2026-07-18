@@ -9,7 +9,16 @@
 
     <p data-songbook-empty th:text="#{songbook.empty}" hidden>No songs added yet.</p>
 
-    <ul class="list-unstyled" data-songbook-list></ul>
+    <!--
+      data-label-move-up/-down (2026-07-19, issue #9): read by
+      static/js/songbook.js's renderRow, same reasoning/pattern as
+      song.html's data-label-add/-remove on the toggle button --
+      rows here are built entirely in JS, not server-rendered per song,
+      so translated label text has to arrive via attributes rather than
+      th:text on some per-row template that doesn't exist.
+    -->
+    <ul class="list-unstyled" data-songbook-list
+        th:data-label-move-up="#{songbook.moveUp}" th:data-label-move-down="#{songbook.moveDown}"></ul>
 
     <p class="text-muted small">
         <span th:text="#{songbook.countLabel}">Songs:</span>

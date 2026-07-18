@@ -130,7 +130,25 @@
         refresh();
     }
 
-    function renderRow(song, entry) {
+    // Swaps the entry at songId with its neighbor one position toward
+    // the front (delta -1) or back (delta +1) -- issue #9: this is the
+    // one thing that makes the visitor's own arrangement here the order
+    // that actually ends up in the PDF (SongbookPdfRenderer no longer
+    // re-sorts alphabetically, it renders entries in submission order).
+    function moveEntry(songId, delta) {
+        var entries = readSongbook();
+        var index = indexOfSong(entries, songId);
+        var target = index + delta;
+        if (index === -1 || target < 0 || target >= entries.length) {
+            return;
+        }
+        var moved = entries.splice(index, 1)[0];
+        entries.splice(target, 0, moved);
+        writeSongbook(entries);
+        initSongbookPage();
+    }
+
+    function renderRow(song, entry, index, total, labels) {
         var row = document.createElement("li");
         row.className = "songbook-row d-flex justify-content-between align-items-center mb-2";
 
@@ -138,22 +156,53 @@
         var transposeNote = entry.transpose ? " (" + (entry.transpose > 0 ? "+" : "") + entry.transpose + ")" : "";
         label.textContent = song.artist + " – " + song.title + transposeNote;
 
+        var controls = document.createElement("span");
+        controls.className = "d-flex gap-1";
+
+        // Disabled rather than omitted at the first/last row -- keeps
+        // every row's control cluster the same width/shape, and a
+        // disabled button is still a clear "there's nowhere to move
+        // this" signal rather than the button just silently vanishing.
+        var upButton = document.createElement("button");
+        upButton.type = "button";
+        upButton.className = "btn btn-outline-secondary btn-sm";
+        upButton.textContent = "↑";
+        upButton.setAttribute("aria-label", labels.moveUp);
+        upButton.disabled = index === 0;
+        upButton.addEventListener("click", function () {
+            moveEntry(song.id, -1);
+        });
+
+        var downButton = document.createElement("button");
+        downButton.type = "button";
+        downButton.className = "btn btn-outline-secondary btn-sm";
+        downButton.textContent = "↓";
+        downButton.setAttribute("aria-label", labels.moveDown);
+        downButton.disabled = index === total - 1;
+        downButton.addEventListener("click", function () {
+            moveEntry(song.id, 1);
+        });
+
         var removeButton = document.createElement("button");
         removeButton.type = "button";
         removeButton.className = "btn btn-outline-secondary btn-sm";
         removeButton.textContent = "×";
         removeButton.addEventListener("click", function () {
             var entries = readSongbook();
-            var index = indexOfSong(entries, song.id);
-            if (index !== -1) {
-                entries.splice(index, 1);
+            var removeIndex = indexOfSong(entries, song.id);
+            if (removeIndex !== -1) {
+                entries.splice(removeIndex, 1);
                 writeSongbook(entries);
             }
             initSongbookPage();
         });
 
+        controls.appendChild(upButton);
+        controls.appendChild(downButton);
+        controls.appendChild(removeButton);
+
         row.appendChild(label);
-        row.appendChild(removeButton);
+        row.appendChild(controls);
         return row;
     }
 
@@ -193,6 +242,10 @@
         var ids = entries.map(function (entry) {
             return entry.id;
         });
+        var labels = {
+            moveUp: list.getAttribute("data-label-move-up"),
+            moveDown: list.getAttribute("data-label-move-down")
+        };
         fetch("/songbook/details?ids=" + encodeURIComponent(ids.join(",")))
             .then(function (response) {
                 return response.json();
@@ -202,10 +255,10 @@
                 songs.forEach(function (song) {
                     songsById[song.id] = song;
                 });
-                entries.forEach(function (entry) {
+                entries.forEach(function (entry, index) {
                     var song = songsById[entry.id];
                     if (song) {
-                        list.appendChild(renderRow(song, entry));
+                        list.appendChild(renderRow(song, entry, index, entries.length, labels));
                     }
                 });
             });
