@@ -19,7 +19,10 @@
 // Bumped again 2026-07-17: songbook.js changed (Phase B public paywall --
 // see personalized-songbook-pdf-plan.md) -- cache-first per this file's
 // own standing discipline above.
-const CACHE_NAME = "vinoigitare-v4";
+//
+// Bumped again 2026-07-18: songbook.js changed again (page-count pricing,
+// §1c) -- same reasoning.
+const CACHE_NAME = "vinoigitare-v5";
 
 const PRECACHE_URLS = [
     "/offline",

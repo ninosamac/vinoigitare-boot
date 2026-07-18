@@ -70,12 +70,19 @@
     </form>
 
     <div sec:authorize="!isAuthenticated()">
-        <p class="text-muted small">
-            <span th:text="#{songbook.priceLabel}">Price:</span>
-            <span data-songbook-price>$5</span>
-            <br/>
-            <span class="text-muted" style="font-size: 0.85em;" th:text="#{songbook.priceTiers}">Price tiers</span>
-        </p>
+        <!--
+          No live price estimate here (2026-07-18) -- pricing switched
+          from song count to actual rendered page count (see
+          ~/knowledge/projects/vinoigitare/personalized-songbook-pdf-plan.md
+          §1c), which the client has no way to know without a full
+          server-side render. Showing a guessed price from song count
+          alone would just be wrong, especially right around the 100-page
+          cap -- the real price is computed at checkout time and shown on
+          Stripe's own checkout page before any payment details are asked
+          for, so nothing here needs to (or safely can) anticipate it.
+        -->
+        <p class="text-muted small" th:text="#{songbook.priceTiers}">Price tiers</p>
+        <p class="text-danger small" th:if="${param.tooManyPages}" th:text="#{songbook.tooManyPagesError}">Too many pages.</p>
         <form method="post" th:action="@{/songbook/checkout}" data-songbook-generate-form>
             <input type="hidden" name="selection" data-songbook-selection-field/>
             <input type="hidden" name="bookTitle" data-songbook-title-field/>

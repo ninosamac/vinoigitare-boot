@@ -166,7 +166,6 @@
         var countDisplay = document.querySelector("[data-songbook-count]");
         var generateButton = document.querySelector("[data-songbook-generate]");
         var selectionField = document.querySelector("[data-songbook-selection-field]");
-        var priceDisplay = document.querySelector("[data-songbook-price]");
         var entries = readSongbook();
 
         list.innerHTML = "";
@@ -176,15 +175,11 @@
         if (generateButton) {
             generateButton.disabled = entries.length === 0;
         }
-        if (priceDisplay) {
-            // Informational only -- mirrors com.vinoigitare.web.SongbookPricing's
-            // tiers so a visitor sees the right price before checking out, but
-            // the server always recomputes authoritatively at Checkout Session
-            // creation time (see SongbookCheckoutController#checkout), so a
-            // client/server drift here would only ever be a display glitch,
-            // never an actual pricing bug.
-            priceDisplay.textContent = entries.length < 100 ? "$5" : entries.length < 300 ? "$10" : "$15";
-        }
+        // No live price preview here (2026-07-18) -- pricing is by
+        // rendered page count now (see SongbookPricing), not song count,
+        // and page count can't be known client-side without a full
+        // server-side render. See songbook.html's comment on why nothing
+        // here tries to guess it.
         if (selectionField) {
             selectionField.value = JSON.stringify(entries);
         }

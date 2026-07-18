@@ -31,6 +31,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 class SongbookRequestRepositoryTest extends AbstractSpringBootTest {
 
+    private static final byte[] FAKE_PDF_BYTES = { 0x25, 0x50, 0x44, 0x46, 1, 2, 3 };
+
     @TempDir
     static Path emptySongsDir;
 
@@ -54,7 +56,8 @@ class SongbookRequestRepositoryTest extends AbstractSpringBootTest {
     @Test
     void saveAndFindByIdRoundTripsEveryField() {
         SongbookRequestRepository repository = newRepository();
-        SongbookRequest request = SongbookRequest.createNew("[{\"id\":\"1\",\"transpose\":2}]", "My Setlist", true, 42);
+        SongbookRequest request = SongbookRequest.createNew("[{\"id\":\"1\",\"transpose\":2}]", "My Setlist", true, 3,
+                42, FAKE_PDF_BYTES);
 
         repository.save(request);
         Optional<SongbookRequest> loaded = repository.findById(request.id());
@@ -66,7 +69,9 @@ class SongbookRequestRepositoryTest extends AbstractSpringBootTest {
         assertThat(found.bookTitle()).isEqualTo(request.bookTitle());
         assertThat(found.includeChordDiagrams()).isEqualTo(request.includeChordDiagrams());
         assertThat(found.songCount()).isEqualTo(request.songCount());
+        assertThat(found.pageCount()).isEqualTo(request.pageCount());
         assertThat(found.amountCents()).isEqualTo(request.amountCents());
+        assertThat(found.pdfBytes()).isEqualTo(request.pdfBytes());
         assertThat(found.paid()).isEqualTo(request.paid());
         // Truncated to millis: java.sql.Timestamp round-tripping through
         // H2/JDBC doesn't reliably preserve Instant.now()'s sub-millisecond
@@ -87,7 +92,7 @@ class SongbookRequestRepositoryTest extends AbstractSpringBootTest {
     @Test
     void newRequestIsUnpaidWithNoPaidAt() {
         SongbookRequestRepository repository = newRepository();
-        SongbookRequest request = SongbookRequest.createNew("[]", null, false, 5);
+        SongbookRequest request = SongbookRequest.createNew("[]", null, false, 1, 5, FAKE_PDF_BYTES);
 
         repository.save(request);
         Optional<SongbookRequest> loaded = repository.findById(request.id());
@@ -100,7 +105,7 @@ class SongbookRequestRepositoryTest extends AbstractSpringBootTest {
     @Test
     void markPaidSetsPaidTrueAndPaidAt() {
         SongbookRequestRepository repository = newRepository();
-        SongbookRequest request = SongbookRequest.createNew("[]", null, false, 5);
+        SongbookRequest request = SongbookRequest.createNew("[]", null, false, 1, 5, FAKE_PDF_BYTES);
         repository.save(request);
         Instant paidAt = Instant.now();
 
@@ -114,9 +119,9 @@ class SongbookRequestRepositoryTest extends AbstractSpringBootTest {
     }
 
     @Test
-    void createNewComputesAmountFromPricingTiers() {
-        assertThat(SongbookRequest.createNew("[]", null, true, 50).amountCents()).isEqualTo(500);
-        assertThat(SongbookRequest.createNew("[]", null, true, 150).amountCents()).isEqualTo(1000);
-        assertThat(SongbookRequest.createNew("[]", null, true, 500).amountCents()).isEqualTo(1500);
+    void createNewComputesAmountFromPageCountPricingTiers() {
+        assertThat(SongbookRequest.createNew("[]", null, true, 1, 10, FAKE_PDF_BYTES).amountCents()).isEqualTo(200);
+        assertThat(SongbookRequest.createNew("[]", null, true, 1, 30, FAKE_PDF_BYTES).amountCents()).isEqualTo(300);
+        assertThat(SongbookRequest.createNew("[]", null, true, 1, 75, FAKE_PDF_BYTES).amountCents()).isEqualTo(500);
     }
 }

@@ -9,20 +9,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SongbookPricingTest {
 
     @Test
-    void under100SongsIsFiveDollars() {
-        assertThat(SongbookPricing.amountCentsFor(1)).isEqualTo(500);
+    void under20PagesIsTwoDollars() {
+        assertThat(SongbookPricing.amountCentsFor(1)).isEqualTo(200);
+        assertThat(SongbookPricing.amountCentsFor(19)).isEqualTo(200);
+    }
+
+    @Test
+    void twentyToFortyNinePagesIsThreeDollars() {
+        assertThat(SongbookPricing.amountCentsFor(20)).isEqualTo(300);
+        assertThat(SongbookPricing.amountCentsFor(49)).isEqualTo(300);
+    }
+
+    @Test
+    void fiftyToNinetyNinePagesIsFiveDollars() {
+        assertThat(SongbookPricing.amountCentsFor(50)).isEqualTo(500);
         assertThat(SongbookPricing.amountCentsFor(99)).isEqualTo(500);
     }
 
     @Test
-    void oneHundredToTwoHundredNinetyNineSongsIsTenDollars() {
-        assertThat(SongbookPricing.amountCentsFor(100)).isEqualTo(1000);
-        assertThat(SongbookPricing.amountCentsFor(299)).isEqualTo(1000);
-    }
-
-    @Test
-    void threeHundredOrMoreSongsIsFifteenDollars() {
-        assertThat(SongbookPricing.amountCentsFor(300)).isEqualTo(1500);
-        assertThat(SongbookPricing.amountCentsFor(1000)).isEqualTo(1500);
+    void oneHundredOrMorePagesExceedsTheMax() {
+        assertThat(SongbookPricing.exceedsMaxPages(99)).isFalse();
+        assertThat(SongbookPricing.exceedsMaxPages(100)).isTrue();
+        assertThat(SongbookPricing.exceedsMaxPages(500)).isTrue();
     }
 }

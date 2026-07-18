@@ -24,13 +24,22 @@ CREATE INDEX IF NOT EXISTS idx_song_slug ON song (slug);
 -- see SongbookRequestRepository) -- it IS the entire access control for a
 -- paid download, so it's the primary key directly rather than a separate
 -- auto-increment id plus a lookup column.
+-- page_count/pdf_bytes added 2026-07-18 (personalized-songbook-pdf-plan.md
+-- §1c): pricing switched from song count to actual rendered page count,
+-- which can only be known by rendering the PDF -- so checkout now renders
+-- it before payment (see SongbookCheckoutController#checkout) and stores
+-- the resulting bytes here, rather than re-rendering at download time.
+-- This also guarantees the downloaded PDF is exactly what was priced and
+-- paid for, even if the underlying song data changes in between.
 CREATE TABLE IF NOT EXISTS songbook_request (
     id VARCHAR(64) PRIMARY KEY,
     selection CLOB NOT NULL,
     book_title VARCHAR(200),
     include_chord_diagrams BOOLEAN NOT NULL,
     song_count INT NOT NULL,
+    page_count INT NOT NULL,
     amount_cents INT NOT NULL,
+    pdf_bytes BLOB NOT NULL,
     paid BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL,
     paid_at TIMESTAMP

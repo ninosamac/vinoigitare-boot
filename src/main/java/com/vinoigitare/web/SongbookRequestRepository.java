@@ -34,9 +34,11 @@ public class SongbookRequestRepository {
         Objects.requireNonNull(request, "request must not be null");
         jdbcTemplate.update(
                 "INSERT INTO songbook_request (id, selection, book_title, include_chord_diagrams, song_count, "
-                        + "amount_cents, paid, created_at, paid_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        + "page_count, amount_cents, pdf_bytes, paid, created_at, paid_at) "
+                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 request.id(), request.selection(), request.bookTitle(), request.includeChordDiagrams(),
-                request.songCount(), request.amountCents(), request.paid(), Timestamp.from(request.createdAt()),
+                request.songCount(), request.pageCount(), request.amountCents(), request.pdfBytes(), request.paid(),
+                Timestamp.from(request.createdAt()),
                 request.paidAt() != null ? Timestamp.from(request.paidAt()) : null);
         return request;
     }
@@ -44,8 +46,8 @@ public class SongbookRequestRepository {
     public Optional<SongbookRequest> findById(String id) {
         Objects.requireNonNull(id, "id must not be null");
         List<SongbookRequest> rows = jdbcTemplate.query(
-                "SELECT id, selection, book_title, include_chord_diagrams, song_count, amount_cents, paid, "
-                        + "created_at, paid_at FROM songbook_request WHERE id = ?",
+                "SELECT id, selection, book_title, include_chord_diagrams, song_count, page_count, amount_cents, "
+                        + "pdf_bytes, paid, created_at, paid_at FROM songbook_request WHERE id = ?",
                 ROW_MAPPER, id);
         return rows.stream().findFirst();
     }
@@ -71,7 +73,9 @@ public class SongbookRequestRepository {
                 rs.getString("book_title"),
                 rs.getBoolean("include_chord_diagrams"),
                 rs.getInt("song_count"),
+                rs.getInt("page_count"),
                 rs.getInt("amount_cents"),
+                rs.getBytes("pdf_bytes"),
                 rs.getBoolean("paid"),
                 rs.getTimestamp("created_at").toInstant(),
                 paidAt != null ? paidAt.toInstant() : null);

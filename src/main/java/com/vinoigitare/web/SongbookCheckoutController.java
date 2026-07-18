@@ -1,5 +1,7 @@
 package com.vinoigitare.web;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -7,6 +9,7 @@ import java.util.Optional;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,6 +60,16 @@ import com.vinoigitare.pdf.SongbookPdfRenderer.SongbookItem;
  * SongbookRequest#id()} is the entire access control for a paid download,
  * passed to Stripe as {@code client_reference_id} so the actual selection
  * data never needs to leave this app at all.
+ *
+ * <p><b>Pricing switched to page count, 2026-07-18 (§1c):</b> {@link
+ * #checkout} now renders the PDF itself, before payment, purely to
+ * determine its real page count -- {@link SongbookPricing} prices from
+ * that, and a selection that would render 100+ pages is rejected
+ * outright. The rendered bytes are kept ({@link SongbookRequest#pdfBytes()})
+ * and served as-is by {@link #download}, rather than rendering a second
+ * time after payment -- avoids double rendering, and guarantees the
+ * downloaded file is exactly what was priced, even if the underlying
+ * song data changes in between.
  */
 @Controller
 public class SongbookCheckoutController {
@@ -87,11 +100,12 @@ public class SongbookCheckoutController {
     }
 
     /**
-     * Creates the pending {@link SongbookRequest} row, starts a Stripe
-     * Checkout Session priced from {@link SongbookPricing} (via inline
-     * {@code price_data} -- no Stripe Dashboard price configuration
-     * needed, see the plan doc §1b), and redirects to Stripe's hosted
-     * checkout page.
+     * Renders the PDF, rejects it outright if it's 100+ pages (§1c),
+     * otherwise creates the pending {@link SongbookRequest} row (keeping
+     * the rendered bytes) and starts a Stripe Checkout Session priced
+     * from the real page count via inline {@code price_data} -- no
+     * Stripe Dashboard price configuration needed -- then redirects to
+     * Stripe's hosted checkout page.
      */
     @PostMapping("/songbook/checkout")
     public String checkout(@RequestParam String selection, @RequestParam(required = false) String bookTitle,
@@ -102,12 +116,23 @@ public class SongbookCheckoutController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selection is empty");
         }
 
+        List<SongbookItem> items = entries.stream()
+                .map(entry -> new SongbookItem(entry.id(), entry.transpose()))
+                .toList();
+        byte[] pdf = pdfRenderer.render(items, bookTitle, includeChordDiagrams);
+        int pageCount = countPages(pdf);
+        if (SongbookPricing.exceedsMaxPages(pageCount)) {
+            LOG.info("Songbook checkout rejected: {} pages exceeds the {}-page max", pageCount,
+                    SongbookPricing.MAX_PAGES);
+            return "redirect:/songbook?tooManyPages";
+        }
+
         SongbookRequest request = SongbookRequest.createNew(selection, bookTitle, includeChordDiagrams,
-                entries.size());
+                entries.size(), pageCount, pdf);
         requestRepository.save(request);
 
         String baseUrl = ServletUriComponentsBuilder.fromContextPath(httpRequest).build().toUriString();
-        String productName = "Vino i gitare -- personalized songbook PDF (" + request.songCount() + " songs)";
+        String productName = "Vino i gitare -- personalized songbook PDF (" + request.pageCount() + " pages)";
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
                 .setSuccessUrl(baseUrl + "/songbook/view/" + request.id())
@@ -127,12 +152,21 @@ public class SongbookCheckoutController {
 
         try {
             Session session = sessionCreator.create(params);
-            LOG.info("Songbook checkout started: request {} ({} songs, {} cents)", request.id(),
-                    request.songCount(), request.amountCents());
+            LOG.info("Songbook checkout started: request {} ({} pages, {} cents)", request.id(),
+                    request.pageCount(), request.amountCents());
             return "redirect:" + session.getUrl();
         } catch (StripeException e) {
             LOG.warn("Could not create Stripe Checkout Session for songbook request {}", request.id(), e);
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Could not start checkout", e);
+        }
+    }
+
+    /** A malformed PDF here would be this app's own rendering bug, not recoverable input -- IOException wrapped unchecked, same as SongbookPdfRenderer does for its own PDF I/O. */
+    private static int countPages(byte[] pdf) {
+        try (PDDocument document = PDDocument.load(pdf)) {
+            return document.getNumberOfPages();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not read rendered PDF to count pages", e);
         }
     }
 
@@ -203,10 +237,10 @@ public class SongbookCheckoutController {
     }
 
     /**
-     * Regenerates the PDF fresh on every request (not cached), gated on
-     * {@code paid} and the 7-day download window -- unlimited downloads
-     * within that window (friendlier than single-use for a visitor's own
-     * personal file, per the plan's §1a decision).
+     * Serves the PDF rendered at checkout time (§1c) as-is -- no
+     * re-rendering -- gated on {@code paid} and the 7-day download window
+     * (unlimited downloads within it, friendlier than single-use for a
+     * visitor's own personal file, per the plan's §1a decision).
      */
     @GetMapping(value = "/songbook/view/{requestId}/pdf", produces = "application/pdf")
     public ResponseEntity<byte[]> download(@PathVariable String requestId) {
@@ -219,18 +253,12 @@ public class SongbookCheckoutController {
             throw new ResponseStatusException(HttpStatus.GONE, "Download window has expired");
         }
 
-        List<SongbookSelectionParser.SelectionEntry> entries = SongbookSelectionParser.parse(request.selection(),
-                objectMapper);
-        List<SongbookItem> items = entries.stream()
-                .map(entry -> new SongbookItem(entry.id(), entry.transpose()))
-                .toList();
-        byte[] pdf = pdfRenderer.render(items, request.bookTitle(), request.includeChordDiagrams());
         String fileName = (request.bookTitle() == null || request.bookTitle().isBlank() ? "Vino i gitare"
                 : request.bookTitle().trim()) + ".pdf";
         return ResponseEntity.ok()
                 .header("Content-Disposition", PdfDownloadFilenames.contentDispositionFor(fileName))
                 .contentType(MediaType.APPLICATION_PDF)
-                .body(pdf);
+                .body(request.pdfBytes());
     }
 
     private static boolean isExpired(SongbookRequest request) {
