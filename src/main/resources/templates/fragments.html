@@ -139,11 +139,11 @@
           consolidated into one button + a small anchored dropdown panel
           (not a modal/full-screen popup, deliberately -- see
           static/js/preferences-menu.js's header comment), so the navbar
-          itself only has one extra item instead of four. Named "User"
-          briefly (2026-07-17) before the User *tab* above existed --
-          reverted to "Preferences" (2026-07-18) once that name was needed
-          for the real page instead, to avoid two different nav items both
-          reading "User".
+          itself only has one extra item instead of four. Briefly a
+          "User" text label (2026-07-17) before the User *tab* above
+          existed -- back to the original gear icon (2026-07-18) once
+          that name was needed for the real page instead, to avoid two
+          different nav items both reading "User".
 
           static/js/preferences-menu.js owns open/close/outside-click/
           escape-key handling only. The actual controls inside are
@@ -155,7 +155,7 @@
         -->
         <div class="preferences" data-preferences>
             <button type="button" class="nav-link me-2 preferences-toggle-btn" data-preferences-toggle
-                    aria-haspopup="true" aria-expanded="false" th:text="#{nav.preferences}">Preferences</button>
+                    aria-haspopup="true" aria-expanded="false" th:aria-label="#{nav.preferences}">&#9881;</button>
             <div class="preferences-panel" data-preferences-panel hidden>
                 <div class="preferences-row">
                     <span class="preferences-label" th:text="#{preferences.theme}">Theme</span>

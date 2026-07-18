@@ -163,20 +163,21 @@ h1, h2, h3 {
     position: relative;
 }
 
-/* Renamed from a gear-icon-only toggle to a plain "User" text label
-   (2026-07-17) -- now just a <button> made to look and behave exactly
-   like the other nav-links (Chords/About/Admin, plain <a class="nav-link">
-   elements): .navbar .nav-link above already supplies the right
-   color/padding (!important, so it wins over Bootstrap's own .btn
-   styling that used to apply here). This rule now only resets the
-   default browser <button> chrome a plain <a> never had in the first
-   place -- border, background, font -- so nothing but that chrome
-   differs from its sibling links. */
+/* Briefly a plain "User" text label instead of an icon (2026-07-17),
+   reverted back to the gear icon (2026-07-18) once "User" became the
+   name of the new nav tab instead (see fragments.html's comment) --
+   .navbar .nav-link above still supplies color/padding (!important, so
+   it wins over Bootstrap's own .btn styling that used to apply here);
+   this rule resets the default browser <button> chrome a plain <a>
+   never had (border, background, font), plus sizes the glyph itself
+   (font-size/line-height), which the text-label version didn't need. */
 .preferences-toggle-btn {
     background: none;
     border: none;
     font: inherit;
     cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
 }
 
 .preferences-panel {
