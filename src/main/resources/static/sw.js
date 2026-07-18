@@ -27,7 +27,13 @@
 // grew the high-contrast/large-text rules, theme-toggle.js was rewritten
 // for the 3-way Light/Dark/High-Contrast switch, and font-size-toggle.js
 // is a brand-new precached file.
-const CACHE_NAME = "vinoigitare-v6";
+//
+// Bumped again 2026-07-19: missed this when deploying songbook.js's
+// reorder buttons (issue #9) -- exactly the same class of bug this
+// file's own history above already documents happening to songbook.js
+// twice before. Nino reported not seeing the feature in production;
+// this was why.
+const CACHE_NAME = "vinoigitare-v7";
 
 const PRECACHE_URLS = [
     "/offline",
