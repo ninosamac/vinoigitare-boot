@@ -1,5 +1,15 @@
 User-agent: *
 Disallow: /admin
 Disallow: /login
+# Added 2026-07-19 (SEO check-up): none of these are content anyone
+# would search for -- /search and /songbook are per-visitor/dynamic
+# (the latter also covers checkout, the paid-download status page, and
+# the PDF endpoints, all under this one prefix), /user is a personal
+# nav landing page with nothing unique to it, /offline is the PWA
+# fallback shown with no network, not a real page.
+Disallow: /search
+Disallow: /songbook
+Disallow: /user
+Disallow: /offline
 
 Sitemap: https://vinoigitare.com/sitemap.xml

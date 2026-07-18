@@ -15,6 +15,14 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title th:text="${song.artist()} + ' - ' + ${song.title()} + ' - Vino i gitare'">Song - Vino i gitare</title>
+    <!-- SEO (2026-07-19): this page is the exact same song's chords/lyrics
+         as the real /akordi/{id}/{slug} page, just in a different (full-
+         screen, minimal-chrome) layout for reading off a music stand --
+         a canonical here tells search engines to treat the two as one
+         page rather than duplicate content, without needing to block
+         this one from being crawled or shared (it's a real, useful page
+         on its own, just not the one that should rank). -->
+    <link rel="canonical" th:href="'https://vinoigitare.com' + @{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}"/>
     <!-- Every page needs its own copy of this restore script if it doesn't
          go through fragments :: head -- see song.html's comment for the
          real bug this fixes (a stored theme choice being silently ignored

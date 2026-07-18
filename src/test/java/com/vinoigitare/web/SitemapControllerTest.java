@@ -51,6 +51,8 @@ class SitemapControllerTest {
                 // generated from any repository, so it needs its own
                 // explicit sitemap entry -- see SitemapController's comment.
                 .andExpect(content().string(containsString("<loc>http://localhost/about</loc>")))
+                // /chord-diagrams: same reasoning as /about, added 2026-07-19.
+                .andExpect(content().string(containsString("<loc>http://localhost/chord-diagrams</loc>")))
                 .andExpect(content().string(containsString("/akordi/1/marko-markovic--probna-pesma")))
                 .andExpect(content().string(containsString("/akordi/2/dorde-dokic--sasava-prica")));
     }

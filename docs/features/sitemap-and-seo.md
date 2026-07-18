@@ -12,12 +12,25 @@ being crawlable.
 - **`/sitemap.xml`** (`SitemapController`) — generated fresh from the
   database on every request (the catalog is small enough that caching
   this isn't worth the complexity), listing the homepage, the About page
-  (the only static page hosting a download not otherwise generated from
-  the song repository, so it's listed explicitly), and every song's
-  canonical `/akordi/{id}/{slug}` URL. Absolute URLs are built from the
-  incoming request's own scheme/host/port, not a hardcoded base URL, so
-  this works correctly whether it's running on localhost or behind its
-  real production hostname.
+  and the chord-diagrams page (the only pages hosting content not
+  otherwise generated from the song repository, so they're listed
+  explicitly), and every song's canonical `/akordi/{id}/{slug}` URL.
+  Absolute URLs are built from the incoming request's own scheme/host/
+  port, not a hardcoded base URL, so this works correctly whether it's
+  running on localhost or behind its real production hostname.
+- **`robots.txt`** disallows crawling of anything that isn't real,
+  indexable content: `/admin`, `/login` (not public), and (added
+  2026-07-19, during an SEO check-up) `/search`, `/songbook`, `/user`,
+  `/offline` — dynamic/per-visitor pages, or pages with nothing unique
+  to say to a search engine. `/songbook` as a prefix also covers
+  checkout, the paid-download status page, and the PDF endpoints
+  underneath it, without needing a line each.
+- **The live-view page** (`/akordi/{id}/live`) carries a `<link
+  rel="canonical">` back to the same song's real `/akordi/{id}/{slug}`
+  page (added 2026-07-19) — same chords/lyrics, different (full-screen)
+  layout for reading off a music stand, so it's told to search engines
+  as the same content rather than a duplicate, without blocking it from
+  being crawled or shared on its own.
 - **Per-song meta descriptions**: `"{Artist} - {Title}: chords and
   lyrics."` (localized via the `seo.chordsAndLyrics` message key) plus,
   where available, the song's actual first lyric line — skipping any
@@ -34,5 +47,16 @@ being crawlable.
   sitemap (and everything else building an absolute URL from the
   request) report the correct scheme in production.
 - **Canonical links + Open Graph tags** on individual pages (About,
-  song pages) reduce duplicate-content risk and improve how the page
-  looks when shared/linked elsewhere.
+  Chord Diagrams, song pages) reduce duplicate-content risk and improve
+  how the page looks when shared/linked elsewhere. Chord Diagrams got
+  this treatment 2026-07-19 (it went through the shared
+  `fragments :: head(title)` fragment before, which has no room for a
+  page-specific description/canonical — found missing during an SEO
+  check-up despite being genuinely valuable, evergreen content).
+- **Google Search Console**: domain ownership verified via a DNS TXT
+  record (durable — not tied to any page's `<head>`, unlike a meta-tag
+  verification would be). Sitemap submission and per-URL "Request
+  Indexing" are manual steps inside Search Console itself, outside this
+  codebase — see `~/knowledge/projects/vinoigitare/progress.md`'s SEO
+  pass entry for why on-page fixes alone don't get a brand-new domain
+  with zero backlinks indexed quickly.

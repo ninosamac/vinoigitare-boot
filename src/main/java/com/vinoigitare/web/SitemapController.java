@@ -47,6 +47,12 @@ public class SitemapController {
         // generated from any repository) so it's actually discoverable via
         // the sitemap, not just reachable by nav link.
         appendUrl(xml, baseUrl + "/about");
+        // /chord-diagrams is genuinely valuable, evergreen static content
+        // (every open-position chord fingering) -- listed explicitly for
+        // the same reason /about is: it isn't generated from the song
+        // repository below, so nothing else would surface it here. Found
+        // missing during an SEO check-up (2026-07-19).
+        appendUrl(xml, baseUrl + "/chord-diagrams");
         for (Song song : songs) {
             appendUrl(xml, baseUrl + "/akordi/" + song.id() + "/" + song.slug());
         }
