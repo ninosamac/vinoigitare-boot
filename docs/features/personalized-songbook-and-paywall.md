@@ -5,9 +5,12 @@
 A visitor can build their own selection of songs from across the whole
 catalog (in any order, from any artists), give it a custom title,
 choose whether to include the chord-diagrams reference section, and
-generate one combined PDF: a cover page, a table of contents with real
-page numbers, each selected song at whatever transposition they'd set
-it to, and (optionally) the chord-diagram reference pages.
+generate one combined PDF: a cover page (the same wine-and-guitar photo
+used on the About page, not a logo), a table of contents with real page
+numbers, each selected song at whatever transposition they'd set it to,
+and (optionally) the chord-diagram reference pages. Every page's footer
+carries a small, unobtrusive `vinoigitare.com` credit next to the page
+number.
 
 - **Selection** happens by clicking "Add to my songbook" on any song
   page. It's free and requires no login.

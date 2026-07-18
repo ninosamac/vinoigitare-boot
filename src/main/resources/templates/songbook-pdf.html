@@ -32,6 +32,18 @@
                 font-size: 8.5pt;
                 color: #666666;
             }
+
+            /* Small, deliberately unobtrusive website credit (2026-07-19,
+               Nino's call) -- one size smaller and lighter than the page
+               number beside it, so it reads as a quiet footer detail, not
+               a second thing competing for attention on the page. Plain
+               text, not a link: nothing clicks in a printed/PDF page. */
+            @bottom-left {
+                content: "vinoigitare.com";
+                font-family: "DejaVu Sans Mono", monospace;
+                font-size: 7.5pt;
+                color: #999999;
+            }
         }
 
         body {
@@ -68,11 +80,16 @@
 
         .cover {
             text-align: center;
-            padding-top: 4cm;
+            padding-top: 3cm;
         }
 
+        /* The wine-and-guitar photo (2026-07-19, replacing the original
+           text-logo cover) is landscape, not the roughly-square logo
+           this replaced -- sized by width with auto height so it keeps
+           its own aspect ratio rather than being stretched/cropped. */
         .cover img {
-            width: 320px;
+            width: 15cm;
+            border-radius: 4pt;
         }
 
         .cover h1 {
@@ -203,7 +220,7 @@
 </head>
 <body>
 <div class="cover">
-    <img th:attr="src='data:image/png;base64,' + ${logoBase64}"/>
+    <img th:attr="src='data:image/jpeg;base64,' + ${coverImageBase64}"/>
     <h1 th:text="${bookTitle} ?: #{songbook.pdfCoverTitle}">Your personal songbook</h1>
     <p th:text="#{songbook.pdfCoverSubtitle(${generatedOn}, ${songCount})}">Generated -- 0 songs</p>
 </div>

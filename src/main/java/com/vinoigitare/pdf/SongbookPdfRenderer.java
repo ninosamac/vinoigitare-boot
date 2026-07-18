@@ -59,9 +59,15 @@ public class SongbookPdfRenderer {
     private static final String SERIF_REGULAR_RESOURCE = "/fonts/DejaVuSerif.ttf";
     private static final String SERIF_BOLD_RESOURCE = "/fonts/DejaVuSerif-Bold.ttf";
 
-    private static final String LOGO_RESOURCE = "/pdf/lockup-light.png";
+    // The wine-and-guitar photo from the About page (2026-07-19, Nino's
+    // call) replaces the original text-logo cover -- reuses the exact
+    // same static/images/ file the About page already serves, rather
+    // than duplicating a copy under pdf/, since nothing about it needs
+    // to differ for print (unlike the logo before it, which needed a
+    // light-background variant specifically for this white page).
+    private static final String COVER_IMAGE_RESOURCE = "/static/images/wine-and-guitar.jpg";
 
-    // No relative resources are loaded via a URL (the cover logo is
+    // No relative resources are loaded via a URL (the cover image is
     // inlined as a base64 data URI instead -- see the prototype note in
     // the plan doc), so this is just a placeholder base URI, same as
     // SongPdfRenderer's.
@@ -123,7 +129,7 @@ public class SongbookPdfRenderer {
         context.setVariable("sections", includeChordDiagrams ? renderedChordSections() : List.of());
         context.setVariable("songCount", entries.size());
         context.setVariable("generatedOn", DateTimeFormatter.ofPattern("d MMMM yyyy").format(LocalDate.now()));
-        context.setVariable("logoBase64", logoBase64());
+        context.setVariable("coverImageBase64", coverImageBase64());
         context.setVariable("bookTitle", (bookTitle == null || bookTitle.isBlank()) ? null : bookTitle.trim());
         return templateEngine.process("songbook-pdf", context);
     }
@@ -153,11 +159,11 @@ public class SongbookPdfRenderer {
         return new RenderedChordDiagram(diagram.name(), chordDiagramRenderer.render(diagram));
     }
 
-    private String logoBase64() {
-        try (InputStream stream = classpathStream(LOGO_RESOURCE)) {
+    private String coverImageBase64() {
+        try (InputStream stream = classpathStream(COVER_IMAGE_RESOURCE)) {
             return Base64.getEncoder().encodeToString(stream.readAllBytes());
         } catch (IOException e) {
-            throw new UncheckedIOException("Could not read cover logo resource: " + LOGO_RESOURCE, e);
+            throw new UncheckedIOException("Could not read cover image resource: " + COVER_IMAGE_RESOURCE, e);
         }
     }
 

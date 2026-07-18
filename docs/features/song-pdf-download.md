@@ -31,3 +31,7 @@ currently showing on screen. Free, instant, no login, no payment.
   the actual title/artist/chords block, are both reused as-is by the
   multi-song [personalized songbook PDF](personalized-songbook-and-paywall.md)
   — not duplicated.
+- **Footer credit**: the same small, unobtrusive `vinoigitare.com`
+  mention next to the page number as the songbook PDF's footer — added
+  here too even though this download is free, so every PDF that leaves
+  the site (paid or not) carries it.
