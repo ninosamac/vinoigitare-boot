@@ -21,12 +21,17 @@
       song page, falling back to default (previously prefers-color-scheme,
       now always light) instead. Every page needs this script, so it's
       duplicated here rather than only living in the shared fragment.
+      Also restores a stored large-text preference the same way
+      (accessibility-preferences-plan.md, 2026-07-18).
     -->
     <script>
         (function () {
             var stored = localStorage.getItem("vinoigitare.theme");
-            if (stored === "dark") {
-                document.documentElement.setAttribute("data-bs-theme", "dark");
+            if (stored === "dark" || stored === "high-contrast") {
+                document.documentElement.setAttribute("data-bs-theme", stored);
+            }
+            if (localStorage.getItem("vinoigitare.fontSize") === "large") {
+                document.documentElement.setAttribute("data-font-size", "large");
             }
         })();
     </script>
@@ -35,6 +40,10 @@
          being hardcoded in JS, which has no access to Thymeleaf messages. -->
     <meta name="i18n-auto-scroll-start" th:content="#{song.autoScrollStart}"/>
     <meta name="i18n-auto-scroll-stop" th:content="#{song.autoScrollStop}"/>
+    <!-- Read by static/js/font-size-toggle.js, same reasoning as the
+         auto-scroll meta tags just above. -->
+    <meta name="i18n-font-size-enable-large" th:content="#{fontSize.enableLarge}"/>
+    <meta name="i18n-font-size-disable-large" th:content="#{fontSize.disableLarge}"/>
     <meta name="description" th:content="${metaDescription}"/>
     <!-- Absolute, not relative -- Google tolerates a relative canonical
          but recommends absolute for clarity; cheap to get right since the
@@ -175,6 +184,7 @@
 <script th:src="@{/js/delete-confirm.js}"></script>
 <script th:src="@{/js/songbook.js}"></script>
 <script th:src="@{/js/theme-toggle.js}"></script>
+<script th:src="@{/js/font-size-toggle.js}"></script>
 <script th:src="@{/js/preferences-menu.js}"></script>
 </body>
 </html>

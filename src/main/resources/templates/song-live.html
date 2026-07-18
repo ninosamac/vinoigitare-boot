@@ -17,17 +17,20 @@
     <title th:text="${song.artist()} + ' - ' + ${song.title()} + ' - Vino i gitare'">Song - Vino i gitare</title>
     <!-- Every page needs its own copy of this restore script if it doesn't
          go through fragments :: head -- see song.html's comment for the
-         real bug this fixes (a stored dark/light choice being silently
-         ignored on a page missing it). -->
+         real bug this fixes (a stored theme choice being silently ignored
+         on a page missing it). Large text is deliberately NOT restored
+         here -- this page already has its own separate, bigger base font
+         size (data-base-font-rem below) plus its own zoom stepper; layering
+         the site-wide large-text multiplier on top would compound both,
+         not match either's intent. -->
     <script>
         (function () {
-            if (localStorage.getItem("vinoigitare.theme") === "dark") {
-                document.documentElement.setAttribute("data-bs-theme", "dark");
+            var theme = localStorage.getItem("vinoigitare.theme");
+            if (theme === "dark" || theme === "high-contrast") {
+                document.documentElement.setAttribute("data-bs-theme", theme);
             }
         })();
     </script>
-    <meta name="i18n-theme-switch-to-dark" th:content="#{theme.switchToDark}"/>
-    <meta name="i18n-theme-switch-to-light" th:content="#{theme.switchToLight}"/>
     <meta name="i18n-auto-scroll-start" th:content="#{song.autoScrollStart}"/>
     <meta name="i18n-auto-scroll-stop" th:content="#{song.autoScrollStop}"/>
     <meta name="i18n-fullscreen-enter" th:content="#{song.fullscreenEnter}"/>
@@ -68,7 +71,17 @@
        th:text="'&larr; ' + #{song.exitLiveView}">&larr; Exit live view</a>
     <div class="d-flex align-items-center gap-2">
         <button type="button" class="btn btn-sm btn-outline-light" data-fullscreen-toggle th:text="#{song.fullscreenEnter}">Fullscreen</button>
-        <button type="button" class="btn btn-sm theme-toggle-btn" data-theme-toggle>&#9789;</button>
+        <!-- Same three-option theme switch as the Preferences dropdown
+             (fragments.html), just inline here since this page has no
+             dropdown chrome at all -- see that fragment's comment. -->
+        <div class="theme-switch" th:aria-label="#{preferences.theme}">
+            <button type="button" class="btn btn-sm theme-toggle-btn" data-theme-option="light"
+                    th:text="#{theme.light}">Light</button>
+            <button type="button" class="btn btn-sm theme-toggle-btn" data-theme-option="dark"
+                    th:text="#{theme.dark}">Dark</button>
+            <button type="button" class="btn btn-sm theme-toggle-btn" data-theme-option="high-contrast"
+                    th:text="#{theme.highContrast}">High Contrast</button>
+        </div>
     </div>
 </div>
 <main class="container">

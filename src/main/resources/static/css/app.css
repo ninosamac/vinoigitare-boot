@@ -81,6 +81,50 @@
     --bs-primary-rgb: 111, 191, 159;
 }
 
+/* High Contrast (2026-07-18, accessibility-preferences-plan.md) -- a
+   third, standalone value for the same data-bs-theme attribute Light/
+   Dark already use, not a toggle combined with them (decided during
+   scoping: simpler than a high-contrast variant of both existing
+   palettes). Every color below was picked and checked against real
+   contrast ratios, not eyeballed -- --ink-muted at #333 on #fff is
+   ~12.6:1 (WCAG AAA needs 7:1 for normal text), --accent/--accent-2
+   are both above 7:1 on white too. --paper-rule matches --paper exactly
+   on purpose: the faint ruled-notebook-line background effect (see
+   body's background-image below) is a decorative touch that adds
+   visual noise without function for exactly the visitors this theme is
+   for, so it's effectively turned off here rather than left faint. */
+:root[data-bs-theme="high-contrast"] {
+    --paper: #ffffff;
+    --paper-rule: #ffffff;
+    --card: #ffffff;
+    --ink: #000000;
+    --ink-muted: #333333;
+    --accent: #0000cc;
+    --accent-2: #b30000;
+    --line: #000000;
+    --nav-bg: #000000;
+    --nav-ink: #ffffff;
+    --nav-ink-muted: rgba(255, 255, 255, 0.85);
+    --bs-primary-rgb: 0, 0, 204;
+}
+
+/* Large Text (2026-07-18, accessibility-preferences-plan.md) -- a
+   site-wide font-size bump, independent of the theme/contrast choice
+   above. Effective because font-size in this file is almost entirely
+   rem-based already (confirmed by checking every font-size rule before
+   choosing this approach, not assumed) -- scaling the root size cascades
+   through body text, headings, and controls together, proportionally,
+   with no changes needed to the individual rules themselves.
+   Deliberately independent of the song page's own separate chord-zoom
+   control (static/js/display-controls.js, data-font-display) -- that's
+   a narrower preference for the chords block on one page specifically;
+   this is everything else, site-wide. 125% is a plain, testable
+   default -- see the plan doc's open item on this if it ever needs
+   revisiting against real layouts. */
+:root[data-font-size="large"] {
+    font-size: 125%;
+}
+
 body {
     padding-bottom: 2rem;
     font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -218,13 +262,19 @@ h1, h2, h3 {
    page's own --ink tokens instead, for the same reason .lang-link does
    above. */
 .preferences-panel .theme-toggle-btn {
-    color: var(--ink);
+    color: var(--ink-muted);
 }
 
 .preferences-panel .theme-toggle-btn:hover,
 .preferences-panel .theme-toggle-btn:focus {
     color: var(--ink);
     opacity: 0.8;
+}
+
+.preferences-panel .theme-toggle-btn.active {
+    color: var(--accent);
+    background-color: color-mix(in srgb, var(--accent) 15%, transparent);
+    opacity: 1;
 }
 
 @media (max-width: 767.98px) {
@@ -321,21 +371,68 @@ h1, h2, h3 {
     font-weight: 700;
 }
 
-/* Dark/light toggle (static/js/theme-toggle.js sets its glyph/aria-label).
-   Sits in the always-dark nav bar in both modes, so it's styled against
-   --nav-ink rather than the page's --ink, which would be invisible-ish on
-   a dark navbar in light mode. */
+/* Light/Dark/High Contrast switch (static/js/theme-toggle.js toggles
+   .active + aria-pressed per button) -- three small text buttons in a
+   row, same shape as .lang-switch/.lang-link right below it in the same
+   dropdown (accessibility-preferences-plan.md, 2026-07-18), not the
+   single glyph-cycling icon button this used to be. Used both inside
+   the Preferences dropdown (fragments.html) and inline in song-live.html's
+   own minimal chrome, which sits directly on the always-dark bar there --
+   so the base rule is styled against --nav-ink rather than the page's
+   --ink, which would be invisible-ish on a dark bar in light mode; see
+   .preferences-panel .theme-toggle-btn below for the dropdown's own
+   override, same reasoning as .lang-link's split. */
+.theme-switch {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+}
+
 .theme-toggle-btn {
     color: var(--nav-ink);
-    font-size: 1.1rem;
-    line-height: 1;
-    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.25rem 0.35rem;
+    border-radius: 0.25rem;
+    background: none;
+    border: none;
 }
 
 .theme-toggle-btn:hover,
 .theme-toggle-btn:focus {
     color: var(--nav-ink);
     opacity: 0.8;
+}
+
+.theme-toggle-btn.active {
+    color: var(--nav-ink);
+    background-color: rgba(255, 255, 255, 0.15);
+    opacity: 1;
+}
+
+/* Large text toggle (static/js/font-size-toggle.js) -- lives in the
+   Preferences dropdown only, next to Theme, so it only ever needs the
+   dropdown's light/dark-adaptive --ink styling, not a --nav-ink base
+   variant like .theme-toggle-btn above. */
+.font-size-toggle-btn {
+    color: var(--ink);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.25rem;
+    background: none;
+    border: 1px solid var(--line);
+}
+
+.font-size-toggle-btn:hover,
+.font-size-toggle-btn:focus {
+    opacity: 0.8;
+}
+
+.font-size-toggle-btn[aria-pressed="true"] {
+    color: var(--accent);
+    border-color: var(--accent);
 }
 
 /* Song page control rows (Transpose/Zoom/Auto-scroll): real feedback --

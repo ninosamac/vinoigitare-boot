@@ -26,13 +26,17 @@
     <meta property="og:description" th:content="#{home.metaDescription}"/>
     <script>
         (function () {
-            if (localStorage.getItem("vinoigitare.theme") === "dark") {
-                document.documentElement.setAttribute("data-bs-theme", "dark");
+            var theme = localStorage.getItem("vinoigitare.theme");
+            if (theme === "dark" || theme === "high-contrast") {
+                document.documentElement.setAttribute("data-bs-theme", theme);
+            }
+            if (localStorage.getItem("vinoigitare.fontSize") === "large") {
+                document.documentElement.setAttribute("data-font-size", "large");
             }
         })();
     </script>
-    <meta name="i18n-theme-switch-to-dark" th:content="#{theme.switchToDark}"/>
-    <meta name="i18n-theme-switch-to-light" th:content="#{theme.switchToLight}"/>
+    <meta name="i18n-font-size-enable-large" th:content="#{fontSize.enableLarge}"/>
+    <meta name="i18n-font-size-disable-large" th:content="#{fontSize.disableLarge}"/>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}"/>
     <link rel="stylesheet" th:href="@{/css/app.css}"/>
     <!-- Duplicated from fragments :: head -- see that fragment's comment. -->
@@ -135,6 +139,7 @@
 </main>
 <footer th:replace="~{fragments :: footer}"></footer>
 <script th:src="@{/js/theme-toggle.js}"></script>
+<script th:src="@{/js/font-size-toggle.js}"></script>
 <script th:src="@{/js/preferences-menu.js}"></script>
 <script th:src="@{/js/artist-tree.js}"></script>
 </body>

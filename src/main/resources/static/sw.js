@@ -22,13 +22,19 @@
 //
 // Bumped again 2026-07-18: songbook.js changed again (page-count pricing,
 // §1c) -- same reasoning.
-const CACHE_NAME = "vinoigitare-v5";
+//
+// Bumped again 2026-07-18: accessibility-preferences-plan.md -- app.css
+// grew the high-contrast/large-text rules, theme-toggle.js was rewritten
+// for the 3-way Light/Dark/High-Contrast switch, and font-size-toggle.js
+// is a brand-new precached file.
+const CACHE_NAME = "vinoigitare-v6";
 
 const PRECACHE_URLS = [
     "/offline",
     "/css/app.css",
     "/webjars/bootstrap/5.3.8/css/bootstrap.min.css",
     "/js/theme-toggle.js",
+    "/js/font-size-toggle.js",
     "/js/preferences-menu.js",
     "/js/display-controls.js",
     "/js/live-view.js",

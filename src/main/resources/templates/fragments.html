@@ -18,35 +18,42 @@
     <link rel="manifest" th:href="@{/manifest.json}"/>
     <meta name="theme-color" content="#2f5d50"/>
     <!--
-      Applies a stored dark override (if any) to <html> before first paint
+      Applies a stored theme override (if any) to <html> before first paint
       -- inline and synchronous, not in theme-toggle.js (which loads at
-      the end of <body>), specifically so there's no flash of dark while
-      that loads. No stored value = light, always -- there's no
-      prefers-color-scheme detection; the theme only ever changes via the
-      toggle button, on purpose (see theme-toggle.js's header comment for
-      why that changed from the first version of this feature).
+      the end of <body>), specifically so there's no flash of the wrong
+      theme while that loads. No stored value = light, always -- there's no
+      prefers-color-scheme detection; the theme only ever changes via one
+      of the three explicit buttons below, on purpose (see theme-toggle.js's
+      header comment for why that changed from the first version of this
+      feature). Also restores a stored large-text preference the same way
+      (accessibility-preferences-plan.md, 2026-07-18) -- independent
+      attribute, independent localStorage key, same pre-paint reasoning.
 
       IMPORTANT if you're duplicating this script elsewhere (song.html
       has its own copy, since it doesn't use this fragment's <head> --
       see its comment for why): every page needs this, not just the ones
-      that go through this fragment, or a stored dark preference will be
+      that go through this fragment, or a stored preference will be
       silently ignored on any page missing it -- exactly the bug this
       script's introduction into song.html separately was fixing.
     -->
     <script>
         (function () {
-            if (localStorage.getItem("vinoigitare.theme") === "dark") {
-                document.documentElement.setAttribute("data-bs-theme", "dark");
+            var theme = localStorage.getItem("vinoigitare.theme");
+            if (theme === "dark" || theme === "high-contrast") {
+                document.documentElement.setAttribute("data-bs-theme", theme);
+            }
+            if (localStorage.getItem("vinoigitare.fontSize") === "large") {
+                document.documentElement.setAttribute("data-font-size", "large");
             }
         })();
     </script>
-    <!-- Read by static/js/theme-toggle.js, same reasoning as the
-         auto-scroll button's i18n-* meta tags in song.html: the toggle's
-         label/aria-label text depends on which theme is CURRENTLY active,
-         and plain JS has no access to Spring's MessageSource to look that
-         up itself. -->
-    <meta name="i18n-theme-switch-to-dark" th:content="#{theme.switchToDark}"/>
-    <meta name="i18n-theme-switch-to-light" th:content="#{theme.switchToLight}"/>
+    <!-- Read by static/js/font-size-toggle.js: the toggle's aria-label
+         text depends on which state is CURRENTLY active, and plain JS has
+         no access to Spring's MessageSource to look that up itself (same
+         reasoning as the auto-scroll button's i18n-* meta tags in
+         song.html). -->
+    <meta name="i18n-font-size-enable-large" th:content="#{fontSize.enableLarge}"/>
+    <meta name="i18n-font-size-disable-large" th:content="#{fontSize.disableLarge}"/>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}"/>
     <link rel="stylesheet" th:href="@{/css/app.css}"/>
     <!--
@@ -147,8 +154,8 @@
 
           static/js/preferences-menu.js owns open/close/outside-click/
           escape-key handling only. The actual controls inside are
-          untouched: static/js/theme-toggle.js still just looks up
-          [data-theme-toggle] wherever that button now lives, and the
+          untouched: static/js/theme-toggle.js still just looks up every
+          [data-theme-option] button wherever they now live, and the
           language links are still plain "?lang=xx" anchor navigation,
           not JS -- see the original comment on that (kept below) for why
           a bare query-only href is used rather than a Thymeleaf @{...} URL.
@@ -160,12 +167,36 @@
                 <div class="preferences-row">
                     <span class="preferences-label" th:text="#{preferences.theme}">Theme</span>
                     <!--
-                      static/js/theme-toggle.js sets the glyph/aria-label on
-                      load (reflecting whatever theme is actually active,
-                      whether that came from the stored override above or
-                      prefers-color-scheme) and again on every click.
+                      Three always-visible options, not a single cycling
+                      icon button -- matches the Language pattern right
+                      below (EN/HR/SR shown at once), decided during
+                      accessibility-preferences-plan.md scoping (2026-07-18)
+                      for discoverability. static/js/theme-toggle.js toggles
+                      each button's own "active" class + aria-pressed on
+                      load and on every click; each button's own translated
+                      text is its accessible name, no separate aria-label
+                      needed.
                     -->
-                    <button type="button" class="btn btn-sm theme-toggle-btn" data-theme-toggle>&#9789;</button>
+                    <div class="theme-switch" th:aria-label="#{preferences.theme}">
+                        <button type="button" class="btn btn-sm theme-toggle-btn" data-theme-option="light"
+                                th:text="#{theme.light}">Light</button>
+                        <button type="button" class="btn btn-sm theme-toggle-btn" data-theme-option="dark"
+                                th:text="#{theme.dark}">Dark</button>
+                        <button type="button" class="btn btn-sm theme-toggle-btn" data-theme-option="high-contrast"
+                                th:text="#{theme.highContrast}">High Contrast</button>
+                    </div>
+                </div>
+                <div class="preferences-row">
+                    <span class="preferences-label" th:text="#{preferences.largeText}">Large Text</span>
+                    <!--
+                      static/js/font-size-toggle.js sets aria-pressed and an
+                      aria-label (via the i18n-font-size-* meta tags below)
+                      on load and on every click -- a single on/off toggle,
+                      not a set of options, so it needs its own label the
+                      same way theme-toggle.js's old single-button version
+                      did (accessibility-preferences-plan.md, 2026-07-18).
+                    -->
+                    <button type="button" class="btn btn-sm font-size-toggle-btn" data-font-size-toggle>A<span style="font-size: 1.3em;">A</span></button>
                 </div>
                 <div class="preferences-row">
                     <span class="preferences-label" th:text="#{preferences.language}">Language</span>
