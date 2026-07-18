@@ -126,9 +126,6 @@
                th:placeholder="#{search.placeholder}" th:value="${query != null ? query : ''}"/>
     </form>
     <div class="navbar-nav flex-row align-items-center">
-        <a class="nav-link me-2" th:href="@{/chord-diagrams}" th:text="#{nav.chordDiagrams}">Chords</a>
-        <a class="nav-link me-2" th:href="@{/about}" th:text="#{nav.about}">About</a>
-        <a class="nav-link me-2" th:href="@{/admin}" th:text="#{nav.admin}">Admin</a>
         <!--
           User tab (2026-07-18) -- a real page, styled/linked exactly like
           Admin, not a dropdown: houses the Songbook checkout link (and
@@ -137,9 +134,15 @@
           explicitly shelved the same day pending more thought on overall
           menu structure -- this is Nino's own smaller resolution of it,
           landing here instead of a dropdown specifically so it behaves
-          like Admin, not like Preferences below.
+          like Admin, not like Preferences below. Moved to the front of
+          the nav (2026-07-19), ahead of Chords/About/Admin, per Nino's
+          own ordering call -- Preferences stays last either way, it's a
+          quick-access control rather than a real destination tab.
         -->
         <a class="nav-link me-2" th:href="@{/user}" th:text="#{nav.user}">User</a>
+        <a class="nav-link me-2" th:href="@{/chord-diagrams}" th:text="#{nav.chordDiagrams}">Chords</a>
+        <a class="nav-link me-2" th:href="@{/about}" th:text="#{nav.about}">About</a>
+        <a class="nav-link me-2" th:href="@{/admin}" th:text="#{nav.admin}">Admin</a>
         <!--
           Preferences dropdown (2026-07-12): the theme toggle and language
           switcher used to be two separate always-visible nav controls --
