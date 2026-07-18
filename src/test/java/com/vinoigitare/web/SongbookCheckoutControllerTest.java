@@ -102,7 +102,7 @@ class SongbookCheckoutControllerTest {
     }
 
     @Test
-    void checkoutUnder20PagesSavesRequestAndChargesTwoDollars() throws Exception {
+    void checkoutUnder20PagesSavesRequestAndChargesThreeDollars() throws Exception {
         given(pdfRenderer.render(any(), any(), anyBoolean())).willReturn(pdfWithPages(10));
         Session fakeSession = mock(Session.class);
         given(fakeSession.getUrl()).willReturn("https://checkout.stripe.com/c/pay/cs_test_abc123");
@@ -116,11 +116,11 @@ class SongbookCheckoutControllerTest {
         then(requestRepository).should().save(any());
         var paramsCaptor = forClass(SessionCreateParams.class);
         then(sessionCreator).should().create(paramsCaptor.capture());
-        assertThat(paramsCaptor.getValue().getLineItems().get(0).getPriceData().getUnitAmount()).isEqualTo(200L);
+        assertThat(paramsCaptor.getValue().getLineItems().get(0).getPriceData().getUnitAmount()).isEqualTo(300L);
     }
 
     @Test
-    void checkoutTwentyToFortyNinePagesChargesThreeDollars() throws Exception {
+    void checkoutTwentyToFortyNinePagesChargesFiveDollars() throws Exception {
         given(pdfRenderer.render(any(), any(), anyBoolean())).willReturn(pdfWithPages(30));
         Session fakeSession = mock(Session.class);
         given(fakeSession.getUrl()).willReturn("https://checkout.stripe.com/c/pay/cs_test_abc123");
@@ -131,11 +131,11 @@ class SongbookCheckoutControllerTest {
 
         var paramsCaptor = forClass(SessionCreateParams.class);
         then(sessionCreator).should().create(paramsCaptor.capture());
-        assertThat(paramsCaptor.getValue().getLineItems().get(0).getPriceData().getUnitAmount()).isEqualTo(300L);
+        assertThat(paramsCaptor.getValue().getLineItems().get(0).getPriceData().getUnitAmount()).isEqualTo(500L);
     }
 
     @Test
-    void checkoutFiftyToNinetyNinePagesChargesFiveDollars() throws Exception {
+    void checkoutFiftyToNinetyNinePagesChargesSevenDollars() throws Exception {
         given(pdfRenderer.render(any(), any(), anyBoolean())).willReturn(pdfWithPages(75));
         Session fakeSession = mock(Session.class);
         given(fakeSession.getUrl()).willReturn("https://checkout.stripe.com/c/pay/cs_test_abc123");
@@ -146,7 +146,7 @@ class SongbookCheckoutControllerTest {
 
         var paramsCaptor = forClass(SessionCreateParams.class);
         then(sessionCreator).should().create(paramsCaptor.capture());
-        assertThat(paramsCaptor.getValue().getLineItems().get(0).getPriceData().getUnitAmount()).isEqualTo(500L);
+        assertThat(paramsCaptor.getValue().getLineItems().get(0).getPriceData().getUnitAmount()).isEqualTo(700L);
     }
 
     @Test

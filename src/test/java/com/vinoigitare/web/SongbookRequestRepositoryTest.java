@@ -120,8 +120,8 @@ class SongbookRequestRepositoryTest extends AbstractSpringBootTest {
 
     @Test
     void createNewComputesAmountFromPageCountPricingTiers() {
-        assertThat(SongbookRequest.createNew("[]", null, true, 1, 10, FAKE_PDF_BYTES).amountCents()).isEqualTo(200);
-        assertThat(SongbookRequest.createNew("[]", null, true, 1, 30, FAKE_PDF_BYTES).amountCents()).isEqualTo(300);
-        assertThat(SongbookRequest.createNew("[]", null, true, 1, 75, FAKE_PDF_BYTES).amountCents()).isEqualTo(500);
+        assertThat(SongbookRequest.createNew("[]", null, true, 1, 10, FAKE_PDF_BYTES).amountCents()).isEqualTo(300);
+        assertThat(SongbookRequest.createNew("[]", null, true, 1, 30, FAKE_PDF_BYTES).amountCents()).isEqualTo(500);
+        assertThat(SongbookRequest.createNew("[]", null, true, 1, 75, FAKE_PDF_BYTES).amountCents()).isEqualTo(700);
     }
 }

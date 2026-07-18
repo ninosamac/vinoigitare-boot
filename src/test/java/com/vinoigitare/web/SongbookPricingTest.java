@@ -9,21 +9,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SongbookPricingTest {
 
     @Test
-    void under20PagesIsTwoDollars() {
-        assertThat(SongbookPricing.amountCentsFor(1)).isEqualTo(200);
-        assertThat(SongbookPricing.amountCentsFor(19)).isEqualTo(200);
+    void under20PagesIsThreeDollars() {
+        assertThat(SongbookPricing.amountCentsFor(1)).isEqualTo(300);
+        assertThat(SongbookPricing.amountCentsFor(19)).isEqualTo(300);
     }
 
     @Test
-    void twentyToFortyNinePagesIsThreeDollars() {
-        assertThat(SongbookPricing.amountCentsFor(20)).isEqualTo(300);
-        assertThat(SongbookPricing.amountCentsFor(49)).isEqualTo(300);
+    void twentyToFortyNinePagesIsFiveDollars() {
+        assertThat(SongbookPricing.amountCentsFor(20)).isEqualTo(500);
+        assertThat(SongbookPricing.amountCentsFor(49)).isEqualTo(500);
     }
 
     @Test
-    void fiftyToNinetyNinePagesIsFiveDollars() {
-        assertThat(SongbookPricing.amountCentsFor(50)).isEqualTo(500);
-        assertThat(SongbookPricing.amountCentsFor(99)).isEqualTo(500);
+    void fiftyToNinetyNinePagesIsSevenDollars() {
+        assertThat(SongbookPricing.amountCentsFor(50)).isEqualTo(700);
+        assertThat(SongbookPricing.amountCentsFor(99)).isEqualTo(700);
     }
 
     @Test

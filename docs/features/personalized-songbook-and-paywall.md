@@ -23,15 +23,18 @@ number.
 
   | Page count | Price |
   |---|---|
-  | Under 20 | $2 |
-  | 20–49 | $3 |
-  | 50–99 | $5 |
+  | Under 20 | $3 |
+  | 20–49 | $5 |
+  | 50–99 | $7 |
   | 100 or more | Not sold — rejected outright |
 
-  Payment is a real Stripe Checkout session (currently in **test mode**
-  — real cards don't work yet). After paying, the visitor lands on a
-  status page with a download link, valid for **7 days**, unlimited
-  downloads within that window.
+  (Raised from $2/$3/$5 to $3/$5/$7 on 2026-07-19, same tier
+  boundaries — see `SongbookPricing`'s Javadoc.)
+
+  Payment is a real Stripe Checkout session, **live mode** since
+  2026-07-19 (GitHub issue #1) — real cards are charged. After paying,
+  the visitor lands on a status page with a download link, valid for
+  **7 days**, unlimited downloads within that window.
 - **The site admin** (logged in) gets a separate, free, instant
   "Generate PDF" button instead of the paywall — a leftover convenience
   from before the paywall existed, kept deliberately rather than making
