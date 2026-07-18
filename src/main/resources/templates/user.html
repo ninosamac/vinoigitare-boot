@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  The "User" nav tab (2026-07-18) -- see UserController's Javadoc. Just
+  a Songbook link for now; room for genuinely account-ish content later
+  if this app ever grows any.
+-->
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(#{user.title})}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <h1 class="h4 mb-3" th:text="#{user.title}">User</h1>
+
+    <section class="mb-4">
+        <h2 class="h6 text-uppercase text-muted mb-2" th:text="#{songbook.title}">My Songbook</h2>
+        <p th:text="#{songbook.intro}">Songbook intro text.</p>
+        <a class="btn btn-primary" th:href="@{/songbook}" th:text="#{user.viewSongbookButton}">View my songbook</a>
+    </section>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/theme-toggle.js}"></script>
+<script th:src="@{/js/preferences-menu.js}"></script>
+</body>
+</html>

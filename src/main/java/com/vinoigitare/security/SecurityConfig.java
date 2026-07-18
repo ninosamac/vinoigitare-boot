@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 "/", "/artists/**", "/akordi/**", "/search",
-                                "/chord-diagrams", "/about", "/offline", "/sitemap.xml", "/robots.txt",
+                                "/chord-diagrams", "/about", "/user", "/offline", "/sitemap.xml", "/robots.txt",
                                 "/css/**", "/js/**", "/webjars/**", "/icons/**", "/downloads/**", "/images/**",
                                 "/manifest.json", "/sw.js",
                                 // Visitor feedback form -- this app's first genuinely public,

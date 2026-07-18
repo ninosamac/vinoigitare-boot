@@ -123,12 +123,27 @@
         <a class="nav-link me-2" th:href="@{/about}" th:text="#{nav.about}">About</a>
         <a class="nav-link me-2" th:href="@{/admin}" th:text="#{nav.admin}">Admin</a>
         <!--
+          User tab (2026-07-18) -- a real page, styled/linked exactly like
+          Admin, not a dropdown: houses the Songbook checkout link (and
+          whatever else ends up being "account-ish" later). A separate,
+          bigger nav-tab idea covering this same need was scoped then
+          explicitly shelved the same day pending more thought on overall
+          menu structure -- this is Nino's own smaller resolution of it,
+          landing here instead of a dropdown specifically so it behaves
+          like Admin, not like Preferences below.
+        -->
+        <a class="nav-link me-2" th:href="@{/user}" th:text="#{nav.user}">User</a>
+        <!--
           Preferences dropdown (2026-07-12): the theme toggle and language
           switcher used to be two separate always-visible nav controls --
           consolidated into one button + a small anchored dropdown panel
           (not a modal/full-screen popup, deliberately -- see
           static/js/preferences-menu.js's header comment), so the navbar
-          itself only has one extra item instead of four.
+          itself only has one extra item instead of four. Named "User"
+          briefly (2026-07-17) before the User *tab* above existed --
+          reverted to "Preferences" (2026-07-18) once that name was needed
+          for the real page instead, to avoid two different nav items both
+          reading "User".
 
           static/js/preferences-menu.js owns open/close/outside-click/
           escape-key handling only. The actual controls inside are
@@ -140,7 +155,7 @@
         -->
         <div class="preferences" data-preferences>
             <button type="button" class="nav-link me-2 preferences-toggle-btn" data-preferences-toggle
-                    aria-haspopup="true" aria-expanded="false" th:text="#{nav.user}">User</button>
+                    aria-haspopup="true" aria-expanded="false" th:text="#{nav.preferences}">Preferences</button>
             <div class="preferences-panel" data-preferences-panel hidden>
                 <div class="preferences-row">
                     <span class="preferences-label" th:text="#{preferences.theme}">Theme</span>
