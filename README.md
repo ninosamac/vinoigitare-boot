@@ -1,9 +1,8 @@
 # vinoigitare-boot
 
 Spring Boot rewrite of the old Vaadin/OSGi Vinoigitare guitar-chord songbook
-("Vino i gitare" — wine and guitars) for ex-Yugoslav songs, aiming for
-feature parity with [pesmarica.rs](https://www.pesmarica.rs/) on a modern,
-mobile-first stack.
+("Vino i gitare" — wine and guitars) for ex-Yugoslav songs, on a modern,
+mobile-first stack. Live at [vinoigitare.com](https://vinoigitare.com).
 
 ## Prerequisites
 
@@ -111,7 +110,7 @@ files for mangled š/đ/č/ć/ž before trusting the whole batch.**
 
 ## Project status
 
-This is a phased rewrite in progress. **Done so far:** project skeleton,
-song display & browse, and search. Not yet implemented: PDF export, chord
-transposition, and the rest of the pesmarica.rs feature set — don't be
-surprised that they're missing, they're simply later phases.
+Live in production at [vinoigitare.com](https://vinoigitare.com). This
+file stays focused on building/running the project locally — see
+`docs/README.md` and `docs/features/*.md` for what the app actually does
+today.
