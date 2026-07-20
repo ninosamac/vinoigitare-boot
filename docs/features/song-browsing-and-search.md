@@ -35,11 +35,7 @@ artist and title, returning matching songs on a results page.
   matching pesmarica.rs's own URL convention, and isn't validated
   against the song's real slug. Every successful load also records a
   view (`SongService.recordView`) — a simple aggregate counter per song,
-  not tied to any visitor or device. The page also carries a visible
-  "chords and lyrics" caption (2026-07-20, SEO — see
-  `docs/features/sitemap-and-seo.md`), deliberately placed in
-  `song.html` itself rather than the shared `songContent` fragment so it
-  doesn't leak into the PDF templates that fragment also feeds.
+  not tied to any visitor or device.
 - **Search** (`SearchController`, `GET /search?q=...`) delegates to
   `SearchService` (`com.vinoigitare.search`). A blank query renders the
   page with an empty-state message rather than redirecting away, so the

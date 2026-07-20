@@ -132,27 +132,6 @@
     </div>
 
     <!--
-      SEO (2026-07-20): a real, visible caption mentioning chords/lyrics
-      -- previously this page had ZERO text anywhere actually saying what
-      it is (just the title, artist name, then straight into the chords
-      block), which only weakened its own on-page relevance for exactly
-      the kind of searches ("{song} akordi", "{song} stihovi") people
-      already use to find it. A meta-description-only fix (see
-      seo.chordsAndLyrics below) only affects the search-result snippet,
-      not actual ranking, which weighs real page content far more heavily
-      -- same lesson as fixing the homepage's bare one-word H1 earlier.
-
-      Deliberately placed here in song.html itself, NOT inside
-      fragments :: songContent below -- that fragment is also reused by
-      song-pdf.html (both the single-song download and the personalized
-      songbook PDF), and repeating this caption on every song of every
-      generated PDF would be real, needless print clutter nobody
-      downloading a PDF needs telling what it is. This is a web-page
-      discoverability fix, not a print-content change.
-    -->
-    <p class="text-muted small mb-2" th:text="#{song.chordsAndLyricsCaption}">Chords and lyrics</p>
-
-    <!--
       th:with and th:replace can't go on the SAME element here: th:replace
       has higher precedence (runs first) in Thymeleaf's standard attribute
       processing order, so by the time it evaluates its own expression the

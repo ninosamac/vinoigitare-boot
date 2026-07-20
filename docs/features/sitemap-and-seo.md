@@ -51,20 +51,6 @@ being crawlable.
   song count fills the role the per-song description's excerpted lyric
   line plays: a real, concrete fact about the page, not padding, since
   there's no single lyric line to pull from an artist listing.
-- **A real, visible caption on the song page** (`song.html`, not the
-  shared `fragments :: songContent` fragment — see below) mentioning
-  chords/lyrics/stihovi, added 2026-07-20 alongside the meta-description
-  change above: the page previously had zero visible text anywhere
-  actually saying what it was (just the title, artist name, then
-  straight into the chords block), which weakened its own on-page
-  relevance for exactly the searches ("{song} akordi", "{song} stihovi")
-  people already use to find it — a meta-description-only fix only
-  affects the search-result snippet, not actual ranking, which weighs
-  real page content far more heavily. Deliberately kept out of
-  `fragments :: songContent` (shared with `song-pdf.html`, both the
-  single-song download and the personalized songbook PDF) so it doesn't
-  repeat on every song of every generated PDF — this is a web-page
-  discoverability fix, not a print-content change.
 - **`forward-headers-strategy: framework`**: in production the app sits
   behind Caddy, which terminates HTTPS and proxies to the app over plain
   HTTP on localhost. Without this setting, Spring Boot ignores the

@@ -158,22 +158,6 @@ class SongBrowseControllerTest {
     }
 
     @Test
-    void songViewIncludesAVisibleChordsAndLyricsCaption() throws Exception {
-        // SEO (2026-07-20, "{song} stihovi" searches): previously this
-        // page had zero visible text anywhere mentioning chords/lyrics --
-        // just the title, artist, and the chords block itself. Asserting
-        // the caption renders in the body (not just as a meta tag) is the
-        // whole point of this fix -- real page content, not just a
-        // search-snippet-only tweak.
-        Song song = new Song("Marko Markovic", "Probna pesma", "chords");
-        given(songService.load(song.id())).willReturn(Optional.of(song));
-
-        mockMvc.perform(get("/akordi/{id}/{slug}", song.id(), song.slug()))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Chords and lyrics")));
-    }
-
-    @Test
     void songViewRendersChordsInPreformattedBlock() throws Exception {
         Song song = new Song("Marko Markovic", "Probna pesma", "C G\nline one");
         given(songService.load(song.id())).willReturn(Optional.of(song));
