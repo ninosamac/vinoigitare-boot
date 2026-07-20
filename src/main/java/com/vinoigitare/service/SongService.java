@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.vinoigitare.model.CroatianCollator;
 import com.vinoigitare.model.Song;
 import com.vinoigitare.storage.SongRepository;
 import com.vinoigitare.storage.TabFileMirror;
@@ -80,29 +81,35 @@ public class SongService {
     }
 
     /**
-     * All songs grouped by artist, artists in case-insensitive alphabetical
-     * order and each artist's songs sorted by title. Replaces the old
-     * {@code SongTree}'s {@code TreeMap<String, TreeSet<Song>>}.
+     * All songs grouped by artist, artists in real alphabetical order (per
+     * {@link CroatianCollator}, not raw character code) and each artist's
+     * songs sorted by title. Replaces the old {@code SongTree}'s
+     * {@code TreeMap<String, TreeSet<Song>>}.
      *
-     * <p>Case-insensitive on purpose: a plain {@code TreeMap::new} (natural
-     * {@code String} ordering) sorts by raw character code, so any
-     * inconsistently-cased artist name would land in the wrong place
-     * relative to its neighbors (all-uppercase names sort before any
-     * lowercase one, even alphabetically later) -- exactly the kind of
-     * thing that only becomes visible once there are enough artists for it
-     * to matter, per the homepage artist-tree redesign this feeds.
+     * <p>Locale-aware collation on purpose, not just case-insensitive: a
+     * plain {@code TreeMap::new} (natural {@code String} ordering) sorts by
+     * raw character code, so any inconsistently-cased artist name would
+     * land in the wrong place relative to its neighbors (all-uppercase
+     * names sort before any lowercase one, even alphabetically later) --
+     * exactly the kind of thing that only becomes visible once there are
+     * enough artists for it to matter, per the homepage artist-tree
+     * redesign this feeds. {@code String.CASE_INSENSITIVE_ORDER} fixed
+     * that but introduced a second, real bug of its own: it's still raw
+     * code-point comparison, which sorts every {@code č ć đ š ž} name after
+     * every plain-Z one instead of where the real alphabet places them --
+     * see {@link CroatianCollator}'s own Javadoc.
      */
     public Map<String, List<Song>> loadAllGroupedByArtist() {
         return repository.findAll().stream()
-                .sorted(Comparator.comparing(Song::title, String.CASE_INSENSITIVE_ORDER))
-                .collect(Collectors.groupingBy(Song::artist, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER),
+                .sorted(Comparator.comparing(Song::title, CroatianCollator.stringComparator()))
+                .collect(Collectors.groupingBy(Song::artist, () -> new TreeMap<>(CroatianCollator.stringComparator()),
                         Collectors.toList()));
     }
 
     public List<Song> loadByArtist(String artist) {
         return repository.findAll().stream()
                 .filter(song -> song.artist().equals(artist))
-                .sorted(Comparator.comparing(Song::title, String.CASE_INSENSITIVE_ORDER))
+                .sorted(Comparator.comparing(Song::title, CroatianCollator.stringComparator()))
                 .collect(Collectors.toList());
     }
 

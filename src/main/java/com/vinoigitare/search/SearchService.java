@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.vinoigitare.model.CroatianCollator;
 import com.vinoigitare.model.Song;
 import com.vinoigitare.service.SongService;
 
@@ -73,8 +74,8 @@ public class SearchService {
 
         return songService.loadAll().stream()
                 .filter(matchesAllTerms)
-                .sorted(Comparator.comparing(Song::artist, String.CASE_INSENSITIVE_ORDER)
-                        .thenComparing(Song::title, String.CASE_INSENSITIVE_ORDER))
+                .sorted(Comparator.comparing(Song::artist, CroatianCollator.stringComparator())
+                        .thenComparing(Song::title, CroatianCollator.stringComparator()))
                 .collect(Collectors.toList());
     }
 

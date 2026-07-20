@@ -14,12 +14,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import com.vinoigitare.chords.ChordLineHighlighter;
 import com.vinoigitare.model.Song;
 import com.vinoigitare.security.SecurityConfig;
 import com.vinoigitare.service.SongService;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -84,6 +86,43 @@ class SongBrowseControllerTest {
                 .andExpect(content().string(containsString("letter-heading\">M<")))
                 .andExpect(content().string(containsString("2 artists")))
                 .andExpect(content().string(containsString("3 songs")));
+    }
+
+    @Test
+    void indexOrdersDiacriticLetterHeadingsByRealAlphabetPositionNotCodePoint() throws Exception {
+        // Real bug found 2026-07-19 (Nino): TreeMap's default Character
+        // ordering is raw code-point comparison, which put Č/Đ/Š/Ž letter
+        // headings all after Z (their code points are in the Latin
+        // Extended-A block, well past 'z') instead of where the real
+        // alphabet places them -- Č right after C, Đ right after D, Š
+        // right after S; only Ž genuinely belongs at the very end. See
+        // CroatianCollator's own Javadoc.
+        Map<String, List<Song>> byArtist = new LinkedHashMap<>();
+        byArtist.put("Cune", List.of(new Song("Cune", "Song", "chords")));
+        byArtist.put("Čola", List.of(new Song("Čola", "Song", "chords")));
+        byArtist.put("Sarajevo", List.of(new Song("Sarajevo", "Song", "chords")));
+        byArtist.put("Šaban Šaulić", List.of(new Song("Šaban Šaulić", "Song", "chords")));
+        byArtist.put("Zana", List.of(new Song("Zana", "Song", "chords")));
+        byArtist.put("Žan", List.of(new Song("Žan", "Song", "chords")));
+        given(songService.loadAllGroupedByArtist()).willReturn(byArtist);
+
+        MvcResult result = mockMvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String html = result.getResponse().getContentAsString();
+
+        int cHeading = html.indexOf("letter-heading\">C<");
+        int cWithCaronHeading = html.indexOf("letter-heading\">Č<");
+        int sHeading = html.indexOf("letter-heading\">S<");
+        int sWithCaronHeading = html.indexOf("letter-heading\">Š<");
+        int zHeading = html.indexOf("letter-heading\">Z<");
+        int zWithCaronHeading = html.indexOf("letter-heading\">Ž<");
+
+        assertThat(cHeading).isGreaterThan(-1).isLessThan(cWithCaronHeading);
+        assertThat(cWithCaronHeading).isLessThan(sHeading);
+        assertThat(sHeading).isLessThan(sWithCaronHeading);
+        assertThat(sWithCaronHeading).isLessThan(zHeading);
+        assertThat(zHeading).isLessThan(zWithCaronHeading);
     }
 
     @Test

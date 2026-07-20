@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.vinoigitare.chords.ChordTransposer;
+import com.vinoigitare.model.CroatianCollator;
 import com.vinoigitare.model.Song;
 import com.vinoigitare.service.SongService;
 
@@ -84,11 +85,20 @@ public class SongBrowseController {
      * Groups an already-artist-sorted {@code Map<String, List<Song>>} (see
      * {@link SongService#loadAllGroupedByArtist}) by first letter, without
      * disturbing that existing order -- iterating the source map in its
-     * own (case-insensitive alphabetical) order and appending to each
+     * own (locale-collated alphabetical) order and appending to each
      * letter's list means every per-letter list comes out sorted for free.
+     *
+     * <p>The letter groups themselves also need {@link CroatianCollator},
+     * not {@code TreeMap}'s default {@code Character} ordering -- a real
+     * bug found 2026-07-19 (Nino): plain {@code Character} comparison is
+     * raw code-point order, which put the {@code Č}/{@code Ć}/{@code Đ}/
+     * {@code Š}/{@code Ž} letter-group headings all the way at the bottom
+     * of the homepage tree, after {@code Z}, instead of {@code Č}/{@code Ć}
+     * right after {@code C}, {@code Đ} right after {@code D}, and {@code Š}
+     * right after {@code S} (only {@code Ž} genuinely belongs at the end).
      */
     private static List<LetterGroup> buildArtistTree(Map<String, List<Song>> songsByArtist) {
-        Map<Character, List<ArtistEntry>> byLetter = new TreeMap<>();
+        Map<Character, List<ArtistEntry>> byLetter = new TreeMap<>(CroatianCollator.charComparator());
         songsByArtist.forEach((artist, songs) -> byLetter
                 .computeIfAbsent(AlphabeticalIndex.firstLetter(artist), letter -> new ArrayList<>())
                 .add(new ArtistEntry(artist, songs)));

@@ -96,6 +96,33 @@ class SongServiceTest {
     }
 
     @Test
+    void loadAllGroupedByArtistOrdersDiacriticLettersByRealAlphabetPositionNotCodePoint() {
+        // Real bug found 2026-07-19 (Nino): String.CASE_INSENSITIVE_ORDER
+        // fixed the case-sensitivity bug above but is still raw code-point
+        // comparison, which sorts č/ć/đ/š/ž after every plain-Z name --
+        // their code points are all in the Latin Extended-A block, well
+        // past 'z'. The real Croatian/Serbian (Latin-script) alphabet
+        // places Č/Ć right after C, Đ right after D, and Š right after S;
+        // only Ž genuinely belongs at the very end. See
+        // CroatianCollator's own Javadoc.
+        InMemorySongRepository repository = new InMemorySongRepository();
+        repository.save(new Song(null, "Cune", "Song", null, "chords", null, 0L));
+        repository.save(new Song(null, "Čola", "Song", null, "chords", null, 0L));
+        repository.save(new Song(null, "Dino Merlin", "Song", null, "chords", null, 0L));
+        repository.save(new Song(null, "Đorđe Balašević", "Song", null, "chords", null, 0L));
+        repository.save(new Song(null, "Sarajevo", "Song", null, "chords", null, 0L));
+        repository.save(new Song(null, "Šaban Šaulić", "Song", null, "chords", null, 0L));
+        repository.save(new Song(null, "Zana", "Song", null, "chords", null, 0L));
+        repository.save(new Song(null, "Žan", "Song", null, "chords", null, 0L));
+
+        SongService service = new SongService(repository, mirror());
+        Map<String, List<Song>> grouped = service.loadAllGroupedByArtist();
+
+        assertThat(grouped.keySet()).containsExactly(
+                "Cune", "Čola", "Dino Merlin", "Đorđe Balašević", "Sarajevo", "Šaban Šaulić", "Zana", "Žan");
+    }
+
+    @Test
     void recordViewDelegatesToRepositoryIncrementViews() {
         InMemorySongRepository repository = new InMemorySongRepository();
         Song saved = repository.save(new Song("1", "Artist", "Title", "slug", "chords", null, 0L));

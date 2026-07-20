@@ -14,13 +14,14 @@ artist and title, returning matching songs on a results page.
 ## How it works
 
 - **Homepage** (`SongBrowseController#index`, `GET /`) loads every song
-  grouped by artist (`SongService.loadAllGroupedByArtist()`, already
-  case-insensitively sorted), then groups those artists by first letter
-  in Java (`buildArtistTree`) before handing the result to the
-  `index.html` template. This grouping happens in the controller, not
-  the template, because Thymeleaf's expression sandbox blocks the kind
-  of computation (`T()`/`new`/bean access) this would otherwise need
-  inside a loop.
+  grouped by artist (`SongService.loadAllGroupedByArtist()`, sorted via
+  `CroatianCollator` -- real Croatian/Serbian alphabetical order, not
+  just case-insensitive raw character comparison), then groups those
+  artists by first letter in Java (`buildArtistTree`) before handing the
+  result to the `index.html` template. This grouping happens in the
+  controller, not the template, because Thymeleaf's expression sandbox
+  blocks the kind of computation (`T()`/`new`/bean access) this would
+  otherwise need inside a loop.
 - **Client-side filtering** (`static/js/artist-tree.js`) hides/shows
   artist and song rows against the typed filter text — no server
   round-trip, since the whole tree is already in the DOM.
@@ -40,3 +41,15 @@ artist and title, returning matching songs on a results page.
   sorting logic uses `AlphabeticalIndex.firstLetter(...)` — a small
   utility shared wherever "which letter does this artist name belong
   under" needs answering consistently.
+- **Real alphabetical order, not code-point order** (`CroatianCollator`,
+  2026-07-19): every sort in this app used to compare strings/characters
+  by raw Unicode code point (`String.CASE_INSENSITIVE_ORDER`, or plain
+  `Character` ordering for the homepage's per-letter headings), which is
+  correct for plain A-Z but wrong for `č ć đ š ž` — those code points all
+  fall after `z`, so names/letter-headings starting with any of them
+  sorted after every plain-Z one instead of where the real
+  Croatian/Serbian alphabet places them (`Č`/`Ć` right after `C`, `Đ`
+  right after `D`, `Š` right after `S`; only `Ž` genuinely belongs at the
+  very end). Fixed with a real `java.text.Collator` for the `hr` locale
+  everywhere sorting happens: `SongService`, `SearchService`'s result
+  ordering, and `SongBrowseController`'s letter-group headings.

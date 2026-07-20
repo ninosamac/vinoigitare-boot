@@ -64,6 +64,23 @@ class SearchServiceTest {
     }
 
     @Test
+    void resultsOrderDiacriticArtistsByRealAlphabetPositionNotCodePoint(@TempDir Path tempDir) {
+        // Real bug found 2026-07-19 (Nino): String.CASE_INSENSITIVE_ORDER
+        // is raw code-point comparison, which sorted every č/ć/đ/š/ž artist
+        // after every plain-Z one instead of where the real
+        // Croatian/Serbian alphabet places them. See CroatianCollator's
+        // own Javadoc.
+        SearchService search = searchServiceWithFixtures(tempDir,
+                new Song("Zana", "Neka pesma", "chords"),
+                new Song("Čola", "Neka pesma", "chords"),
+                new Song("Sarajevo", "Neka pesma", "chords"));
+
+        List<Song> results = search.search("pesma");
+
+        assertThat(results).extracting(Song::artist).containsExactly("Čola", "Sarajevo", "Zana");
+    }
+
+    @Test
     void blankOrNullQueryReturnsNoResults(@TempDir Path tempDir) {
         SearchService search = searchServiceWithFixtures(tempDir,
                 new Song("Marko Markovic", "Probna pesma", "chords"));
