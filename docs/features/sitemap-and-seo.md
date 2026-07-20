@@ -14,10 +14,17 @@ being crawlable.
   this isn't worth the complexity), listing the homepage, the About page
   and the chord-diagrams page (the only pages hosting content not
   otherwise generated from the song repository, so they're listed
-  explicitly), and every song's canonical `/akordi/{id}/{slug}` URL.
-  Absolute URLs are built from the incoming request's own scheme/host/
-  port, not a hardcoded base URL, so this works correctly whether it's
-  running on localhost or behind its real production hostname.
+  explicitly), every artist's `/artists/{artist}` page (added
+  2026-07-20 — see below), and every song's canonical
+  `/akordi/{id}/{slug}` URL. Absolute URLs are built from the incoming
+  request's own scheme/host/port, not a hardcoded base URL, so this
+  works correctly whether it's running on localhost or behind its real
+  production hostname. Artist names are raw, unslugified strings with
+  spaces and diacritics (e.g. "Đorđe Balašević"), unlike song slugs,
+  which are already guaranteed ASCII-safe — each artist URL is built via
+  `UriComponentsBuilder`'s `.encode()` rather than naive string
+  concatenation, which the song-URL loop can get away with only because
+  `Song.slug()` is already safe.
 - **`robots.txt`** disallows crawling of anything that isn't real,
   indexable content: `/admin`, `/login` (not public), and (added
   2026-07-19, during an SEO check-up) `/search`, `/songbook`, `/user`,
@@ -32,10 +39,32 @@ being crawlable.
   as the same content rather than a duplicate, without blocking it from
   being crawled or shared on its own.
 - **Per-song meta descriptions**: `"{Artist} - {Title}: chords and
-  lyrics."` (localized via the `seo.chordsAndLyrics` message key) plus,
-  where available, the song's actual first lyric line — skipping any
-  chord-only lines at the top, so the excerpt shown in search results is
-  real words, not `"C G Am F"`.
+  lyrics."` (localized via the `seo.chordsAndLyrics` message key — the
+  `hr`/`sr` locales also include "stihovi" alongside "tekst", 2026-07-20,
+  targeting the common search synonym "stihovi" [lyrics/verses]
+  distinct from "tekst") plus, where available, the song's actual first
+  lyric line — skipping any chord-only lines at the top, so the excerpt
+  shown in search results is real words, not `"C G Am F"`.
+- **Per-artist meta descriptions**: `"{Artist} - akordi i tekstovi
+  pjesama, {N} pjesama."` (the `artist.metaDescription` message key,
+  added 2026-07-20) — targets searches like "{artist name} akordi". The
+  song count fills the role the per-song description's excerpted lyric
+  line plays: a real, concrete fact about the page, not padding, since
+  there's no single lyric line to pull from an artist listing.
+- **A real, visible caption on the song page** (`song.html`, not the
+  shared `fragments :: songContent` fragment — see below) mentioning
+  chords/lyrics/stihovi, added 2026-07-20 alongside the meta-description
+  change above: the page previously had zero visible text anywhere
+  actually saying what it was (just the title, artist name, then
+  straight into the chords block), which weakened its own on-page
+  relevance for exactly the searches ("{song} akordi", "{song} stihovi")
+  people already use to find it — a meta-description-only fix only
+  affects the search-result snippet, not actual ranking, which weighs
+  real page content far more heavily. Deliberately kept out of
+  `fragments :: songContent` (shared with `song-pdf.html`, both the
+  single-song download and the personalized songbook PDF) so it doesn't
+  repeat on every song of every generated PDF — this is a web-page
+  discoverability fix, not a print-content change.
 - **`forward-headers-strategy: framework`**: in production the app sits
   behind Caddy, which terminates HTTPS and proxies to the app over plain
   HTTP on localhost. Without this setting, Spring Boot ignores the
@@ -47,12 +76,15 @@ being crawlable.
   sitemap (and everything else building an absolute URL from the
   request) report the correct scheme in production.
 - **Canonical links + Open Graph tags** on individual pages (About,
-  Chord Diagrams, song pages) reduce duplicate-content risk and improve
-  how the page looks when shared/linked elsewhere. Chord Diagrams got
-  this treatment 2026-07-19 (it went through the shared
-  `fragments :: head(title)` fragment before, which has no room for a
-  page-specific description/canonical — found missing during an SEO
-  check-up despite being genuinely valuable, evergreen content).
+  Chord Diagrams, artist pages, song pages) reduce duplicate-content
+  risk and improve how the page looks when shared/linked elsewhere.
+  Chord Diagrams got this treatment 2026-07-19, artist pages 2026-07-20
+  (both went through the shared `fragments :: head(title)` fragment
+  before, which has no room for a page-specific description/canonical —
+  found missing despite being genuinely valuable content/a real,
+  concrete search target). The artist page's canonical URL is built via
+  Thymeleaf's own `@{...}` URL syntax (same as the song page's), so the
+  artist name is automatically, correctly URL-encoded.
 - **Google Search Console**: domain ownership verified via a DNS TXT
   record (durable — not tied to any page's `<head>`, unlike a meta-tag
   verification would be). Sitemap submission and per-URL "Request

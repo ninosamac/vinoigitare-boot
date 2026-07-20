@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.vinoigitare.model.Song;
 import com.vinoigitare.service.SongService;
@@ -53,6 +54,22 @@ public class SitemapController {
         // repository below, so nothing else would surface it here. Found
         // missing during an SEO check-up (2026-07-19).
         appendUrl(xml, baseUrl + "/chord-diagrams");
+        // Artist pages (SEO: findable for "{artist name} akordi" searches,
+        // 2026-07-20) -- unlike song.slug() below, which is already
+        // guaranteed ASCII-safe, artist names are raw strings with spaces
+        // and diacritics (e.g. "Đorđe Balašević") used directly as the
+        // /artists/{artist} @PathVariable, so each one needs real
+        // path-segment encoding. UriComponentsBuilder's .encode() does
+        // this correctly; naive string concatenation (as the song loop
+        // below gets away with) would not.
+        for (String artist : songService.loadAllGroupedByArtist().keySet()) {
+            String artistUrl = UriComponentsBuilder.fromUriString(baseUrl)
+                    .path("/artists/{artist}")
+                    .buildAndExpand(artist)
+                    .encode()
+                    .toUriString();
+            appendUrl(xml, artistUrl);
+        }
         for (Song song : songs) {
             appendUrl(xml, baseUrl + "/akordi/" + song.id() + "/" + song.slug());
         }

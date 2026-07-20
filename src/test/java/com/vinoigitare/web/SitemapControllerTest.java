@@ -1,6 +1,7 @@
 package com.vinoigitare.web;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,8 @@ class SitemapControllerTest {
         Song song2 = new Song("2", "Đorđe Đokić", "Šašava priča", "dorde-dokic--sasava-prica",
                 "chords", null, 0L);
         given(songService.loadAll()).willReturn(List.of(song1, song2));
+        given(songService.loadAllGroupedByArtist()).willReturn(
+                Map.of("Marko Markovic", List.of(song1), "Đorđe Đokić", List.of(song2)));
 
         mockMvc.perform(get("/sitemap.xml"))
                 .andExpect(status().isOk())
@@ -53,6 +56,12 @@ class SitemapControllerTest {
                 .andExpect(content().string(containsString("<loc>http://localhost/about</loc>")))
                 // /chord-diagrams: same reasoning as /about, added 2026-07-19.
                 .andExpect(content().string(containsString("<loc>http://localhost/chord-diagrams</loc>")))
+                // Artist pages (2026-07-20): the diacritic-heavy name must
+                // come out correctly percent-encoded via
+                // UriComponentsBuilder, not raw UTF-8 -- %C4%90 is "Đ"
+                // UTF-8-encoded.
+                .andExpect(content().string(containsString("/artists/Marko%20Markovic")))
+                .andExpect(content().string(containsString("/artists/%C4%90or%C4%91e%20%C4%90oki%C4%87")))
                 .andExpect(content().string(containsString("/akordi/1/marko-markovic--probna-pesma")))
                 .andExpect(content().string(containsString("/akordi/2/dorde-dokic--sasava-prica")));
     }
@@ -60,6 +69,7 @@ class SitemapControllerTest {
     @Test
     void sitemapIsWellFormedXmlWithNoSongs() throws Exception {
         given(songService.loadAll()).willReturn(List.of());
+        given(songService.loadAllGroupedByArtist()).willReturn(Map.of());
 
         mockMvc.perform(get("/sitemap.xml"))
                 .andExpect(status().isOk())

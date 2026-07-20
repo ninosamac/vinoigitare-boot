@@ -136,6 +136,44 @@ class SongBrowseControllerTest {
     }
 
     @Test
+    void artistPageIncludesMetaDescriptionAndCanonicalLink() throws Exception {
+        // SEO (2026-07-20, "{artist name} akordi" searches): a real
+        // diacritic-heavy artist name, not just an ASCII fixture -- this
+        // exercises Thymeleaf's own @{...} URL-encoding of the canonical
+        // link, same reasoning as this project's other diacritic tests.
+        Song song1 = new Song("Đorđe Balašević", "Prva pesma", "chords");
+        Song song2 = new Song("Đorđe Balašević", "Druga pesma", "chords");
+        given(songService.loadByArtist("Đorđe Balašević")).willReturn(List.of(song1, song2));
+
+        mockMvc.perform(get("/artists/{artist}", "Đorđe Balašević"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("<title>Đorđe Balašević - Vino i gitare</title>")))
+                .andExpect(content().string(containsString("<meta name=\"description\"")))
+                // The song count (2) is the concrete fact filling this
+                // description, same role the per-song version's first
+                // lyric line plays.
+                .andExpect(content().string(containsString("2 songs")))
+                .andExpect(content().string(containsString("<link rel=\"canonical\"")))
+                .andExpect(content().string(containsString("/artists/")));
+    }
+
+    @Test
+    void songViewIncludesAVisibleChordsAndLyricsCaption() throws Exception {
+        // SEO (2026-07-20, "{song} stihovi" searches): previously this
+        // page had zero visible text anywhere mentioning chords/lyrics --
+        // just the title, artist, and the chords block itself. Asserting
+        // the caption renders in the body (not just as a meta tag) is the
+        // whole point of this fix -- real page content, not just a
+        // search-snippet-only tweak.
+        Song song = new Song("Marko Markovic", "Probna pesma", "chords");
+        given(songService.load(song.id())).willReturn(Optional.of(song));
+
+        mockMvc.perform(get("/akordi/{id}/{slug}", song.id(), song.slug()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Chords and lyrics")));
+    }
+
+    @Test
     void songViewRendersChordsInPreformattedBlock() throws Exception {
         Song song = new Song("Marko Markovic", "Probna pesma", "C G\nline one");
         given(songService.load(song.id())).willReturn(Optional.of(song));

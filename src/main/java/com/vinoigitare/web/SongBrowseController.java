@@ -112,6 +112,7 @@ public class SongBrowseController {
         List<Song> songs = songService.loadByArtist(artist);
         model.addAttribute("artist", artist);
         model.addAttribute("songs", songs);
+        model.addAttribute("metaDescription", metaDescriptionFor(artist, songs.size()));
         return "artist";
     }
 
@@ -159,5 +160,19 @@ public class SongBrowseController {
                 .findFirst()
                 .orElse("");
         return firstLyricLine.isEmpty() ? base : base + " " + firstLyricLine;
+    }
+
+    /**
+     * SEO (2026-07-20): "{Artist} - akordi i tekstovi pjesama, {N} pjesama."
+     * via the {@code artist.metaDescription} message key -- targets
+     * "{artist name} akordi" searches, the natural way a visitor looks for
+     * a specific artist's chords. No single lyric line to excerpt here
+     * (unlike {@link #metaDescriptionFor(Song)} above), so the song count
+     * fills that role instead: a real, concrete fact about the page, not
+     * padding.
+     */
+    private String metaDescriptionFor(String artist, int songCount) {
+        return messageSource.getMessage("artist.metaDescription",
+                new Object[] {artist, songCount}, LocaleContextHolder.getLocale());
     }
 }
