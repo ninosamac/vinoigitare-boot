@@ -43,7 +43,15 @@
 // (issue #13, chords-used list + Play buttons on the song page), and
 // chord-audio.js/transpose.js both changed (closure-timing fix + newly
 // exposed window.vinoigitareChordAudio/window.vinoigitareTranspose).
-const CACHE_NAME = "vinoigitare-v9";
+//
+// Bumped again 2026-07-22: repeated this exact mistake, twice, right
+// after writing the comment above -- shipped two follow-up fixes
+// (transpose.js's "Bb" canonicalization, then song-chords.js's
+// original-spelling display fix) without bumping this, so anyone who'd
+// already cached v9 kept running the stale JS from either bug
+// indefinitely, cache-first. Reported by Nino as "still shows wrong"
+// after the second fix had already been deployed server-side.
+const CACHE_NAME = "vinoigitare-v10";
 
 const PRECACHE_URLS = [
     "/offline",
