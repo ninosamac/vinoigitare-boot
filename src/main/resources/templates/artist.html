@@ -11,7 +11,12 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title th:text="${artist} + ' - Vino i gitare'">Artist - Vino i gitare</title>
+    <!-- CTR fix (2026-07-22, issue #11): was just ${artist} + ' - Vino i
+         gitare' -- zero mention of "akordi"/"chords" in the actual
+         clickable search-result title. Now built from artist.pageTitle
+         (see SongBrowseController#pageTitleFor), same reasoning as
+         song.html's title. -->
+    <title th:text="${pageTitle} + ' - Vino i gitare'">Artist - Vino i gitare</title>
     <meta name="description" th:content="${metaDescription}"/>
     <!-- Absolute, not relative -- built via Thymeleaf's own @{...} URL
          syntax (not string concatenation) so the artist name is properly

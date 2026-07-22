@@ -12,7 +12,13 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title th:text="${song.artist()} + ' - ' + ${song.title()} + ' - Vino i gitare'">Song - Vino i gitare</title>
+    <!-- CTR fix (2026-07-22, issue #11): was ${song.artist()} + ' - ' +
+         ${song.title()} + ' - Vino i gitare' -- zero mention of "akordi"/
+         "chords" anywhere in the actual clickable search-result title.
+         Now built from song.pageTitle (see SongBrowseController#pageTitleFor),
+         with the keyword phrase still ahead of this "- Vino i gitare"
+         suffix so it survives truncation even if the tail doesn't. -->
+    <title th:text="${pageTitle} + ' - Vino i gitare'">Song - Vino i gitare</title>
     <!--
       Real bug found in testing: this page has its own <head> (see the
       comment above) instead of going through fragments :: head(title),

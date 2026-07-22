@@ -148,7 +148,11 @@ class SongBrowseControllerTest {
 
         mockMvc.perform(get("/artists/{artist}", "Đorđe Balašević"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("<title>Đorđe Balašević - Vino i gitare</title>")))
+                // CTR fix (2026-07-22, issue #11): title now includes the
+                // keyword ("Guitar Chords & Lyrics"), not just the bare
+                // artist name.
+                .andExpect(content().string(containsString(
+                        "<title>Đorđe Balašević - Guitar Chords &amp; Lyrics - Vino i gitare</title>")))
                 .andExpect(content().string(containsString("<meta name=\"description\"")))
                 // The song count (2) is the concrete fact filling this
                 // description, same role the per-song version's first
@@ -286,6 +290,10 @@ class SongBrowseControllerTest {
 
         mockMvc.perform(get("/akordi/{id}/{slug}", song.id(), song.slug()))
                 .andExpect(status().isOk())
+                // CTR fix (2026-07-22, issue #11): title now includes the
+                // keyword ("Chords & Lyrics"), not just artist/title.
+                .andExpect(content().string(containsString(
+                        "<title>Marko Markovic - Probna pesma: Chords &amp; Lyrics - Vino i gitare</title>")))
                 .andExpect(content().string(containsString("<meta name=\"description\"")))
                 .andExpect(content().string(containsString("Marko Markovic - Probna pesma")))
                 // The chord-only first line ("C G") must not leak into the

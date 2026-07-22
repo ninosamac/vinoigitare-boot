@@ -113,6 +113,7 @@ public class SongBrowseController {
         model.addAttribute("artist", artist);
         model.addAttribute("songs", songs);
         model.addAttribute("metaDescription", metaDescriptionFor(artist, songs.size()));
+        model.addAttribute("pageTitle", pageTitleFor(artist));
         return "artist";
     }
 
@@ -126,6 +127,7 @@ public class SongBrowseController {
         songService.recordView(id);
         model.addAttribute("song", song);
         model.addAttribute("metaDescription", metaDescriptionFor(song));
+        model.addAttribute("pageTitle", pageTitleFor(song));
 
         // Internal linking (2026-07-22, issue #10): "more songs by the
         // same artist" is the one linking signal actually backed by real
@@ -196,5 +198,27 @@ public class SongBrowseController {
     private String metaDescriptionFor(String artist, int songCount) {
         return messageSource.getMessage("artist.metaDescription",
                 new Object[] {artist, songCount}, LocaleContextHolder.getLocale());
+    }
+
+    /**
+     * SEO/CTR (2026-07-22, issue #11): a real 28-day Search Console export
+     * showed 189 of 198 pages getting zero clicks despite real
+     * impressions at decent positions -- the {@code <title>} tag (the
+     * actual clickable blue link text in results, the single biggest CTR
+     * lever) mentioned neither "akordi" nor "chords" anywhere, unlike the
+     * meta description. {@code song.pageTitle} ("{Artist} - {Title}:
+     * Akordi i tekst") puts the keyword before the "- Vino i gitare"
+     * suffix {@code song.html} appends, so it survives Google's ~50-60
+     * character truncation even if the tail doesn't.
+     */
+    private String pageTitleFor(Song song) {
+        return messageSource.getMessage("song.pageTitle",
+                new Object[] {song.artist(), song.title()}, LocaleContextHolder.getLocale());
+    }
+
+    /** Same reasoning as {@link #pageTitleFor(Song)}, for the artist page. */
+    private String pageTitleFor(String artist) {
+        return messageSource.getMessage("artist.pageTitle",
+                new Object[] {artist}, LocaleContextHolder.getLocale());
     }
 }

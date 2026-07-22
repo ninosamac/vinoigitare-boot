@@ -45,6 +45,17 @@ being crawlable.
   distinct from "tekst") plus, where available, the song's actual first
   lyric line — skipping any chord-only lines at the top, so the excerpt
   shown in search results is real words, not `"C G Am F"`.
+- **Song/artist page `<title>` tags** (`song.pageTitle`/`artist.pageTitle`
+  message keys, 2026-07-22, issue #11): a real 28-day Search Console
+  export showed 189 of 198 pages getting zero clicks despite real
+  impressions at decent positions — traced to the title tags (the actual
+  clickable blue link text in results, the single biggest CTR lever)
+  mentioning neither "akordi" nor "chords" anywhere, unlike the meta
+  description. Now `"{Artist} - {Title}: Akordi i tekst - Vino i
+  gitare"` / `"{Artist} - Akordi i tekstovi pjesama - Vino i gitare"` —
+  the keyword phrase sits before the `- Vino i gitare` suffix so it
+  survives Google's ~50-60 character truncation even if the tail
+  doesn't.
 - **Per-artist meta descriptions**: `"{Artist} - akordi i tekstovi
   pjesama, {N} pjesama."` (the `artist.metaDescription` message key,
   added 2026-07-20) — targets searches like "{artist name} akordi". The
