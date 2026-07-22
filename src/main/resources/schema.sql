@@ -44,3 +44,33 @@ CREATE TABLE IF NOT EXISTS songbook_request (
     created_at TIMESTAMP NOT NULL,
     paid_at TIMESTAMP
 );
+
+-- Analytics, Part 3 (analytics-plan.md): day-granularity aggregates built
+-- by com.vinoigitare.analytics.LogAnalyticsAggregator from the request log
+-- RequestLoggingFilter already writes, not raw-log parsing at read time --
+-- journald/the rotated log file itself aren't permanent, these tables are.
+-- Composite primary key doubles as the upsert key the aggregator increments
+-- against.
+CREATE TABLE IF NOT EXISTS daily_page_hit (
+    hit_date DATE NOT NULL,
+    path VARCHAR(500) NOT NULL,
+    hits BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (hit_date, path)
+);
+
+-- referrer_host is the referring URL's host only (e.g. "google.com"), not
+-- the full URL -- see LogAnalyticsAggregator for why, and for the "direct"
+-- sentinel value used when a request has no Referer header at all.
+CREATE TABLE IF NOT EXISTS daily_referrer_hit (
+    hit_date DATE NOT NULL,
+    referrer_host VARCHAR(255) NOT NULL,
+    hits BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (hit_date, referrer_host)
+);
+
+-- Single-row cursor (id is always 1) so a restart resumes aggregation from
+-- where it left off instead of re-counting the whole log file every run.
+CREATE TABLE IF NOT EXISTS log_analytics_state (
+    id INT PRIMARY KEY,
+    last_processed_at TIMESTAMP NOT NULL
+);

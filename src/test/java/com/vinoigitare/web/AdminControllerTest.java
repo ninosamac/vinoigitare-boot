@@ -1,7 +1,9 @@
 package com.vinoigitare.web;
 
+import java.util.List;
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +13,13 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.vinoigitare.analytics.LogAnalyticsRepository;
 import com.vinoigitare.model.Song;
 import com.vinoigitare.security.SecurityConfig;
 import com.vinoigitare.service.SongService;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
@@ -43,6 +47,25 @@ class AdminControllerTest {
 
     @MockitoBean
     private SongService songService;
+
+    @MockitoBean
+    private LogAnalyticsRepository logAnalyticsRepository;
+
+    /**
+     * Analytics, Part 3: every {@code /admin/stats} test below exercises
+     * {@link AdminController#stats}, which now always calls into this
+     * mock too -- an unstubbed {@code @MockitoBean} returns null for
+     * List-returning methods (unlike the 0L Mockito default for the
+     * long-returning totalHitsSince), which would NPE the template's
+     * {@code th:each} over topPaths/topReferrers. Stubbed to empty lists
+     * by default so only the Part-1 view-counter behavior under test in
+     * each method needs its own stubbing.
+     */
+    @BeforeEach
+    void stubEmptyTrafficStatsByDefault() {
+        given(logAnalyticsRepository.topPathsSince(any(), anyInt())).willReturn(List.of());
+        given(logAnalyticsRepository.topReferrersSince(any(), anyInt())).willReturn(List.of());
+    }
 
     @Test
     void listRedirectsToLoginWhenNotAuthenticated() throws Exception {
@@ -185,5 +208,36 @@ class AdminControllerTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("No views recorded yet")))
                 // The table itself must be hidden, not shown empty.
                 .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("<table"))));
+    }
+
+    @Test
+    @WithMockUser
+    void statsShowsSiteTrafficTotalsAndTopPathsAndReferrersWhenAuthenticated() throws Exception {
+        // Analytics, Part 3 (2026-07-22): the log-based traffic section --
+        // total hits, top pages, top referrers over the trailing window --
+        // sourced from LogAnalyticsRepository rather than SongService.
+        given(logAnalyticsRepository.totalHitsSince(any())).willReturn(42L);
+        given(logAnalyticsRepository.topPathsSince(any(), anyInt()))
+                .willReturn(List.of(new LogAnalyticsRepository.PathHitTotal("/akordi/1/najgledanija", 30L),
+                        new LogAnalyticsRepository.PathHitTotal("/", 12L)));
+        given(logAnalyticsRepository.topReferrersSince(any(), anyInt()))
+                .willReturn(List.of(new LogAnalyticsRepository.ReferrerHitTotal("google.com", 25L),
+                        new LogAnalyticsRepository.ReferrerHitTotal("direct", 17L)));
+
+        mockMvc.perform(get("/admin/stats"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("42")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/akordi/1/najgledanija")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("google.com")));
+    }
+
+    @Test
+    @WithMockUser
+    void statsShowsNoTrafficMessageWhenNoHitsRecordedYet() throws Exception {
+        given(logAnalyticsRepository.totalHitsSince(any())).willReturn(0L);
+
+        mockMvc.perform(get("/admin/stats"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("No site traffic recorded yet")));
     }
 }

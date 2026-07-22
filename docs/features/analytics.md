@@ -11,6 +11,10 @@ traffic, so a separate signal was worth adding):
    views across the whole catalog, and a top-20 most-viewed list.
 2. **Cloudflare Web Analytics**: a cookie-less JS beacon on every real
    page, reporting into the Cloudflare dashboard (not this app).
+3. **Log-based traffic**: the same `/admin/stats` page also shows total
+   hits, top pages, and top referrers over a trailing 7-day window --
+   built from the request log this app already writes, with no
+   third-party script and no cookies at all.
 
 ## How it works
 
@@ -37,6 +41,20 @@ traffic, so a separate signal was worth adding):
   HTML, never loaded in a real browser). No cookies, so no
   consent-banner requirement under GDPR even though the site serves EU
   (Croatian/Serbian) visitors.
+- **Log-based traffic** (Part 3, 2026-07-22): `RequestLoggingFilter`'s
+  log line now also carries Referer and User-Agent (a documented format
+  contract with the parser below -- see that class's Javadoc).
+  `com.vinoigitare.analytics.LogAnalyticsAggregator` -- an in-app
+  `@Scheduled` job (hourly), the same pattern `SongImporter` already
+  established, not an external cron script -- reads any new lines since
+  its last run (a persisted cursor, not a byte offset, so log rotation
+  needs no special-casing), excludes bot/crawler traffic via a
+  hand-maintained User-Agent substring blocklist
+  (`com.vinoigitare.analytics.BotFilter`), and writes day-granularity
+  hit/referrer counts into two small H2 tables
+  (`com.vinoigitare.analytics.LogAnalyticsRepository`). Referrers are
+  grouped by host only, and same-site navigation is folded into
+  "(direct)" rather than counted as an external referrer.
 
 ## Why this, not something else
 
@@ -50,19 +68,28 @@ to start. Both chosen options are $0 and use infrastructure already in
 place (the DB's existing view counter, the domain's existing
 Cloudflare account).
 
-**Not built in this pass**: log-based analytics (parsing
-`RequestLoggingFilter`'s existing request log for first-party
-referrer/device stats) is scoped but deliberately deferred — see
-`~/knowledge/projects/vinoigitare/analytics-plan.md`'s Part 3 for the
-full design if it's ever picked up.
+**Log-based traffic (Part 3) deliberately deviates from its own original
+sketch** in `~/knowledge/projects/vinoigitare/analytics-plan.md`, which
+assumed an external shell script on the songs-sync script's own cron
+cadence. Built as an in-app `@Scheduled` job instead, once `SongImporter`
+turned out to already be doing the same kind of thing (periodic
+reconciliation against something outside the database) — no new
+crontab entry or script to deploy/maintain on the VPS, at the cost of
+only running while the app itself is up (acceptable: nothing is being
+served to aggregate while it's down anyway).
 
 ## Known limitations
 
-- View counts exist only for song pages — `/`, `/artists/*`, and
-  `/search` have no counter today.
-- No views-over-time breakdown, only a running total (would need a
-  timestamped events table, not just a counter).
+- View counts (Part 1) exist only for song pages — `/`, `/artists/*`,
+  and `/search` have no counter today.
+- No views-over-time breakdown for the per-song counter, only a running
+  total (would need a timestamped events table, not just a counter).
 - Cloudflare Web Analytics setup requires the Cloudflare dashboard
   (manual/JS-snippet method, since the domain's DNS is not proxied
   through Cloudflare) — not something this app's own code or deploy
   process can automate.
+- Log-based traffic (Part 3) is best-effort, not exact: bot filtering is
+  a hand-maintained substring blocklist, not a complete detection
+  system; unique-visitor counts, geography, and real-time dashboards are
+  all explicitly out of scope (see the plan doc's own "Explicitly not
+  solved here").

@@ -47,6 +47,60 @@
         </tr>
         </tbody>
     </table>
+
+    <!--
+      Analytics, Part 3 (2026-07-22): log-based traffic, aggregated by
+      LogAnalyticsAggregator from the request log RequestLoggingFilter
+      already writes -- see AdminController#stats. Distinct from the
+      per-song "views" section above: this counts every logged page (not
+      just song pages) and excludes bot/crawler traffic, which the views
+      counter above does not.
+    -->
+    <h2 class="h6 text-uppercase text-muted mt-4 mb-2"
+        th:text="#{admin.stats.siteTraffic(${trafficWindowDays})}">Site traffic</h2>
+    <p th:if="${totalHits == 0}" class="text-muted" th:text="#{admin.stats.noTrafficYet}">No traffic recorded yet.</p>
+    <div th:if="${totalHits > 0}">
+        <div class="mb-3">
+            <div class="text-muted small text-uppercase" th:text="#{admin.stats.totalHits}">Total hits</div>
+            <div class="h3 mb-0" th:text="${totalHits}">0</div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <h3 class="h6 text-uppercase text-muted mb-2" th:text="#{admin.stats.topPages}">Top pages</h3>
+                <table class="table table-sm">
+                    <thead>
+                    <tr>
+                        <th th:text="#{admin.stats.pageColumn}">Page</th>
+                        <th class="text-end" th:text="#{admin.stats.hitsColumn}">Hits</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="page : ${topPaths}">
+                        <td th:text="${page.path()}">/</td>
+                        <td class="text-end" th:text="${page.hits()}">0</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h3 class="h6 text-uppercase text-muted mb-2" th:text="#{admin.stats.topReferrers}">Top referrers</h3>
+                <table class="table table-sm">
+                    <thead>
+                    <tr>
+                        <th th:text="#{admin.stats.referrerColumn}">Referrer</th>
+                        <th class="text-end" th:text="#{admin.stats.hitsColumn}">Hits</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="referrer : ${topReferrers}">
+                        <td th:text="${referrer.referrerHost() == 'direct'} ? #{admin.stats.directReferrer} : ${referrer.referrerHost()}">direct</td>
+                        <td class="text-end" th:text="${referrer.hits()}">0</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </main>
 <footer th:replace="~{fragments :: footer}"></footer>
 <script th:src="@{/js/theme-toggle.js}"></script>

@@ -1,5 +1,7 @@
 package com.vinoigitare.web;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Comparator;
 import java.util.List;
 
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.vinoigitare.analytics.LogAnalyticsRepository;
 import com.vinoigitare.model.Song;
 import com.vinoigitare.service.SongService;
 
@@ -42,9 +45,11 @@ public class AdminController {
     private static final Logger LOG = LoggerFactory.getLogger(AdminController.class);
 
     private final SongService songService;
+    private final LogAnalyticsRepository logAnalyticsRepository;
 
-    public AdminController(SongService songService) {
+    public AdminController(SongService songService, LogAnalyticsRepository logAnalyticsRepository) {
         this.songService = songService;
+        this.logAnalyticsRepository = logAnalyticsRepository;
     }
 
     @GetMapping
@@ -55,6 +60,10 @@ public class AdminController {
     /** Cap for the top-viewed list on {@code /admin/stats} -- see #stats. */
     private static final int TOP_VIEWED_LIMIT = 20;
 
+    /** Rolling window + list cap for the Part 3 traffic section below. */
+    private static final int TRAFFIC_WINDOW_DAYS = 7;
+    private static final int TOP_TRAFFIC_LIMIT = 10;
+
     /**
      * Analytics, Part 1 (2026-07-22, issue #14): surfaces the per-song
      * {@code views} counter {@link com.vinoigitare.service.SongService#recordView}
@@ -64,6 +73,13 @@ public class AdminController {
      * reason {@code SongBrowseController#buildArtistTree} already
      * documents. Falls under the existing {@code /admin/**} auth gate
      * automatically -- no new {@code SecurityConfig} entry needed.
+     *
+     * <p>Analytics, Part 3 (2026-07-22): a second section, sourced from
+     * {@link LogAnalyticsRepository}'s day-granularity hit/referrer
+     * aggregates ({@code LogAnalyticsAggregator} builds these from the
+     * request log) -- total hits, top pages, and top referrers over a
+     * trailing 7-day window. UTC day boundaries, matching the aggregator's
+     * own date bucketing.
      */
     @GetMapping("/stats")
     public String stats(Model model) {
@@ -76,6 +92,12 @@ public class AdminController {
         model.addAttribute("totalSongs", songs.size());
         model.addAttribute("totalViews", totalViews);
         model.addAttribute("topViewed", topViewed);
+
+        LocalDate since = LocalDate.now(ZoneOffset.UTC).minusDays(TRAFFIC_WINDOW_DAYS - 1);
+        model.addAttribute("trafficWindowDays", TRAFFIC_WINDOW_DAYS);
+        model.addAttribute("totalHits", logAnalyticsRepository.totalHitsSince(since));
+        model.addAttribute("topPaths", logAnalyticsRepository.topPathsSince(since, TOP_TRAFFIC_LIMIT));
+        model.addAttribute("topReferrers", logAnalyticsRepository.topReferrersSince(since, TOP_TRAFFIC_LIMIT));
         return "admin/stats";
     }
 

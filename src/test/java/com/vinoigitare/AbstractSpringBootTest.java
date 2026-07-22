@@ -32,6 +32,17 @@ import org.springframework.test.context.DynamicPropertySource;
  * file under {@code ./data/songs} with test content, since only the
  * datasource was isolated here, not the songs directory. Caught by git
  * showing that fixture file as modified after a routine test run.
+ *
+ * <p>Also points {@code logging.file.name} at a throwaway temp path
+ * (analytics Part 3, 2026-07-22): {@code LogAnalyticsAggregator}'s
+ * {@code @Scheduled} job fires once immediately at context startup and
+ * reads whatever file that property points at -- without this, every
+ * {@code @SpringBootTest} in the suite would parse the real, ever-growing
+ * {@code ./logs/vinoigitare.log} from local dev runs on every test-class
+ * startup (found by noticing that file was already 2MB+/13,000+ lines
+ * locally). Pointing at a nonexistent path is enough: {@code
+ * LogAnalyticsAggregator} no-ops when the file doesn't exist yet, same as
+ * a fresh checkout that's never actually been run.
  */
 public abstract class AbstractSpringBootTest {
 
@@ -48,6 +59,16 @@ public abstract class AbstractSpringBootTest {
             registry.add("vinoigitare.songs-dir", () -> tempDir.toString());
         } catch (IOException e) {
             throw new UncheckedIOException("Could not create isolated test songs directory", e);
+        }
+    }
+
+    @DynamicPropertySource
+    static void useIsolatedLogFile(DynamicPropertyRegistry registry) {
+        try {
+            var tempDir = Files.createTempDirectory("vinoigitare-test-logs-");
+            registry.add("logging.file.name", () -> tempDir.resolve("vinoigitare.log").toString());
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not create isolated test log directory", e);
         }
     }
 }
