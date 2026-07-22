@@ -156,7 +156,10 @@ public class SongbookPdfRenderer {
     }
 
     private RenderedChordDiagram renderDiagram(ChordDiagram diagram) {
-        return new RenderedChordDiagram(diagram.name(), chordDiagramRenderer.render(diagram));
+        // fretsCsv is unused here (only the on-screen page's chord-playback
+        // JS reads it, see RenderedChordDiagram's own Javadoc) -- still
+        // passed through since it's part of the one shared record shape.
+        return new RenderedChordDiagram(diagram.name(), chordDiagramRenderer.render(diagram), diagram.fretsCsv());
     }
 
     private String coverImageBase64() {

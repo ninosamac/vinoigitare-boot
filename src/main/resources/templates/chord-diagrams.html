@@ -58,9 +58,10 @@
 <main class="container">
     <h1 class="h4 mb-1" th:text="#{chordDiagrams.title}">Chord Diagrams</h1>
     <p class="text-muted" th:text="#{chordDiagrams.intro}">Standard open-position fingerings for the seven natural chords, major and minor.</p>
-    <div th:replace="~{fragments :: chordDiagramSections(${sections})}"></div>
+    <div th:replace="~{fragments :: chordDiagramSections(${sections}, true)}"></div>
 </main>
 <footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/chord-audio.js}"></script>
 <script th:src="@{/js/theme-toggle.js}"></script>
 <script th:src="@{/js/font-size-toggle.js}"></script>
 <script th:src="@{/js/preferences-menu.js}"></script>

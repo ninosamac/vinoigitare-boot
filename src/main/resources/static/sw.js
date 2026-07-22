@@ -33,7 +33,12 @@
 // file's own history above already documents happening to songbook.js
 // twice before. Nino reported not seeing the feature in production;
 // this was why.
-const CACHE_NAME = "vinoigitare-v7";
+//
+// Bumped again 2026-07-22: chord-audio.js is a brand-new precached file
+// (issue #12, chord playback on /chord-diagrams) -- learned the lesson
+// from the entry directly above, bumping this every time now rather
+// than after the fact.
+const CACHE_NAME = "vinoigitare-v8";
 
 const PRECACHE_URLS = [
     "/offline",
@@ -42,6 +47,7 @@ const PRECACHE_URLS = [
     "/js/theme-toggle.js",
     "/js/font-size-toggle.js",
     "/js/preferences-menu.js",
+    "/js/chord-audio.js",
     "/js/display-controls.js",
     "/js/live-view.js",
     "/js/delete-confirm.js",

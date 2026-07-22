@@ -286,14 +286,24 @@
   SVG in plain Java by whichever controller/renderer calls this (same
   Thymeleaf restricted-expression reasoning as songContent above -- see
   ChordDiagramController's own comment on this).
+
+  interactive (issue #12, 2026-07-22): true only for the on-screen page --
+  adds a "Play" button + a data-frets attribute for static/js/
+  chord-audio.js to read. The PDF caller passes false: a Play button with
+  no JS behind it in a static, printed document would be dead, confusing
+  UI, same reasoning the chords/lyrics caption was kept out of the
+  fragment shared with song-pdf.html.
 -->
-<div th:fragment="chordDiagramSections(sections)">
+<div th:fragment="chordDiagramSections(sections, interactive)">
     <div th:each="section : ${sections}" class="chord-diagram-section">
         <h2 class="chord-diagram-section-heading" th:text="#{${section.labelKey()}}">Section</h2>
         <div class="chord-diagram-grid">
             <div th:each="diagram : ${section.diagrams()}" class="chord-diagram-card">
                 <div class="chord-diagram-name" th:text="${diagram.name()}">C</div>
                 <div th:utext="${diagram.svg()}"></div>
+                <button th:if="${interactive}" type="button" class="btn btn-outline-secondary btn-sm chord-play-btn"
+                        th:attr="data-frets=${diagram.fretsCsv()}"
+                        data-chord-play th:text="#{chordDiagrams.play}">&#9654; Play</button>
             </div>
         </div>
     </div>

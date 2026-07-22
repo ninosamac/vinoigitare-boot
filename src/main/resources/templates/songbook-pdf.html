@@ -241,7 +241,7 @@
 
 <div class="chord-diagrams" th:if="${includeChordDiagrams}">
     <h1 th:text="#{chordDiagrams.title}">Chord Diagrams</h1>
-    <div th:replace="~{fragments :: chordDiagramSections(${sections})}"></div>
+    <div th:replace="~{fragments :: chordDiagramSections(${sections}, false)}"></div>
 </div>
 </body>
 </html>

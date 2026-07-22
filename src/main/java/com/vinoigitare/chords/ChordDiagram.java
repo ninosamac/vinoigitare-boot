@@ -1,5 +1,8 @@
 package com.vinoigitare.chords;
 
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 /**
  * A single guitar chord fingering, as a fretboard diagram would show it.
  *
@@ -40,5 +43,15 @@ public record ChordDiagram(String name, int[] frets, int barreFret, int baseFret
 
     public ChordDiagram(String name, int[] frets, int barreFret) {
         this(name, frets, barreFret, 1);
+    }
+
+    /**
+     * {@link #frets()}, comma-joined (e.g. {@code "0,2,2,1,0,0"}, {@code
+     * -1} for muted) -- for {@link RenderedChordDiagram#fretsCsv()}, see
+     * that field's Javadoc for why this is pre-formatted here in Java
+     * rather than in a template.
+     */
+    public String fretsCsv() {
+        return IntStream.of(frets).mapToObj(String::valueOf).collect(Collectors.joining(","));
     }
 }

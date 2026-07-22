@@ -55,4 +55,16 @@ class ChordDiagramControllerTest {
                 .andExpect(content().string(containsString(">Cdim<")))
                 .andExpect(content().string(containsString("<svg")));
     }
+
+    @Test
+    void pageIncludesAPlayButtonWithFretDataForEveryDiagram() throws Exception {
+        // Chord playback (2026-07-22, issue #12): C is -1,3,2,0,1,0 --
+        // see ChordDiagramCatalog#majors -- confirms the real fret data
+        // reaches the page as a data-frets attribute, not just the SVG.
+        mockMvc.perform(get("/chord-diagrams"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-chord-play")))
+                .andExpect(content().string(containsString("data-frets=\"-1,3,2,0,1,0\"")))
+                .andExpect(content().string(containsString(">Play<")));
+    }
 }

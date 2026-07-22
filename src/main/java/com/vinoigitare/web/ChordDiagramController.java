@@ -52,6 +52,6 @@ public class ChordDiagramController {
     }
 
     private RenderedChordDiagram render(ChordDiagram diagram) {
-        return new RenderedChordDiagram(diagram.name(), chordDiagramRenderer.render(diagram));
+        return new RenderedChordDiagram(diagram.name(), chordDiagramRenderer.render(diagram), diagram.fretsCsv());
     }
 }
