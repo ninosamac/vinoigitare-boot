@@ -209,6 +209,13 @@
         }
     }
 
+    // Exposed for song-chords.js (issue #13), which transposes the song
+    // page's "chords used in this song" list's names on the exact same
+    // +/- clicks -- reuses this one algorithm rather than adding a third
+    // reimplementation (Java's ChordTransposer is the first, this file's
+    // own private copy above is the second).
+    window.vinoigitareTranspose = { transposeChord: transposeChord };
+
     // Exposed for a Node-based sanity check against the same test cases as
     // ChordTransposerTest (see the migration notes) -- harmless in the
     // browser, where `module` is undefined.

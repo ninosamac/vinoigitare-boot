@@ -174,6 +174,46 @@ class SongBrowseControllerTest {
     }
 
     @Test
+    void songViewListsChordsUsedWithPlayButtonsMatchedAgainstTheCatalog() throws Exception {
+        // Chord playback (2026-07-22, issue #13): C is -1,3,2,0,1,0 in the
+        // curated catalog (see ChordDiagramCatalog#majors) -- confirms the
+        // song's own chords reach the page with real fret data attached.
+        Song song = new Song("Marko Markovic", "Probna pesma", "C       G\nline one");
+        given(songService.load(song.id())).willReturn(Optional.of(song));
+
+        mockMvc.perform(get("/akordi/{id}/{slug}", song.id(), song.slug()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-song-chords")))
+                .andExpect(content().string(containsString("data-original-name=\"C\"")))
+                .andExpect(content().string(containsString("data-frets=\"-1,3,2,0,1,0\"")))
+                .andExpect(content().string(containsString("data-original-name=\"G\"")));
+    }
+
+    @Test
+    void songViewOmitsChordsTheCatalogDoesNotCover() throws Exception {
+        // "no fake data" (same principle as issue #10): C11 is a
+        // grammar-valid chord token ChordTransposer would happily detect,
+        // but the curated catalog has no verified fingering for it -- must
+        // be silently dropped, not shown with a broken Play button.
+        Song song = new Song("Marko Markovic", "Egzoticna pesma", "C11\nline one");
+        given(songService.load(song.id())).willReturn(Optional.of(song));
+
+        mockMvc.perform(get("/akordi/{id}/{slug}", song.id(), song.slug()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("data-song-chord-row"))));
+    }
+
+    @Test
+    void songViewHidesChordsUsedSectionWhenNoChordsAreDetected() throws Exception {
+        Song song = new Song("Marko Markovic", "Samo tekst", "Ovo je tekst pesme bez akorda");
+        given(songService.load(song.id())).willReturn(Optional.of(song));
+
+        mockMvc.perform(get("/akordi/{id}/{slug}", song.id(), song.slug()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("data-song-chords"))));
+    }
+
+    @Test
     void songViewIncludesMoreByArtistSectionListingOtherSongsNotItself() throws Exception {
         // Internal linking (2026-07-22, issue #10): the current song must
         // not list itself as "more by the artist".

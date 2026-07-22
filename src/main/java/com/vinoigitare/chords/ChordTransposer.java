@@ -1,5 +1,8 @@
 package com.vinoigitare.chords;
 
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -146,6 +149,35 @@ public final class ChordTransposer {
             }
         }
         return result.toString();
+    }
+
+    /**
+     * Every distinct chord token used in {@code text}'s chord lines, in
+     * first-appearance order (a chord used more than once appears only
+     * the one time) -- for the song page's "chords used in this song"
+     * list (issue #13). Reuses the exact same chord-line detection
+     * {@link #transpose(String, int)} uses, so this can never disagree
+     * with it about which lines/tokens actually are chords.
+     *
+     * <p>Whether a returned token is one this app can actually play a
+     * sound for (i.e. has a real, verified fingering in {@link
+     * ChordDiagramCatalog}) is a separate question the caller answers by
+     * looking each one up there -- some real songs use chord spellings
+     * outside that curated set, and this method has no opinion on that;
+     * it just reports what the song's own text says it uses.
+     */
+    public static List<String> distinctChordTokens(String text) {
+        String[] lines = text.split("\r\n|\r|\n", -1);
+        Set<String> tokens = new LinkedHashSet<>();
+        for (int i = 0; i < lines.length; i++) {
+            if (!isHighlightableChordLine(lines, i)) {
+                continue;
+            }
+            for (String token : lines[i].trim().split("\\s+")) {
+                tokens.add(token);
+            }
+        }
+        return List.copyOf(tokens);
     }
 
     /**

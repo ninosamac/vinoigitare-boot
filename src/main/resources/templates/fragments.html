@@ -302,8 +302,8 @@
                 <div class="chord-diagram-name" th:text="${diagram.name()}">C</div>
                 <div th:utext="${diagram.svg()}"></div>
                 <button th:if="${interactive}" type="button" class="btn btn-outline-secondary btn-sm chord-play-btn"
-                        th:attr="data-frets=${diagram.fretsCsv()}"
-                        data-chord-play th:text="#{chordDiagrams.play}">&#9654; Play</button>
+                        th:attr="data-frets=${diagram.fretsCsv()}" th:aria-label="#{chordDiagrams.play}"
+                        data-chord-play>&#9654;</button>
             </div>
         </div>
     </div>

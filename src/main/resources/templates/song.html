@@ -185,6 +185,29 @@
     </div>
 
     <!--
+      Chords used in this song, with Play buttons (2026-07-22, issue #13,
+      see ~/knowledge/projects/vinoigitare/song-page-chord-playback-plan.md)
+      -- chord *names* only, no fretboard diagrams (/chord-diagrams is one
+      click away for that); silently omits any chord this song uses that
+      isn't in the curated catalog, rather than showing a non-functional
+      Play button. data-original-name is the untransposed name from the
+      server -- song-chords.js always transposes from this, never from
+      whatever's currently displayed, same anti-drift reasoning
+      transpose.js itself uses for the chords/lyrics block.
+    -->
+    <div class="mt-4 no-print" th:if="${not #lists.isEmpty(songChords)}" data-song-chords>
+        <h2 class="h6 text-uppercase text-muted mb-2" th:text="#{song.chordsUsed}">Chords used in this song</h2>
+        <ul class="list-unstyled d-flex flex-wrap gap-3">
+            <li th:each="chord : ${songChords}" class="d-flex align-items-center gap-1" data-song-chord-row
+                th:attr="data-original-name=${chord.name()}">
+                <span data-song-chord-name th:text="${chord.name()}">C</span>
+                <button type="button" class="btn btn-outline-secondary btn-sm chord-play-btn" data-chord-play
+                        th:attr="data-frets=${chord.fretsCsv()}" th:aria-label="#{chordDiagrams.play}">&#9654;</button>
+            </li>
+        </ul>
+    </div>
+
+    <!--
       Internal linking (2026-07-22, issue #10, see
       ~/knowledge/projects/vinoigitare/internal-linking-plan.md) --
       deliberately at the bottom, after the chords, not above the title:
@@ -211,6 +234,8 @@
 </main>
 <footer th:replace="~{fragments :: footer}"></footer>
 <script th:src="@{/js/transpose.js}"></script>
+<script th:src="@{/js/chord-audio.js}"></script>
+<script th:src="@{/js/song-chords.js}"></script>
 <script th:src="@{/js/display-controls.js}"></script>
 <script th:src="@{/js/delete-confirm.js}"></script>
 <script th:src="@{/js/songbook.js}"></script>

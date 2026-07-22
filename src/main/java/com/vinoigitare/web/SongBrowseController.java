@@ -1,8 +1,10 @@
 package com.vinoigitare.web;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 
 import org.springframework.context.MessageSource;
@@ -14,7 +16,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.vinoigitare.chords.ChordDiagram;
+import com.vinoigitare.chords.ChordDiagramCatalog;
 import com.vinoigitare.chords.ChordTransposer;
+import com.vinoigitare.chords.SongChord;
 import com.vinoigitare.model.CroatianCollator;
 import com.vinoigitare.model.Song;
 import com.vinoigitare.service.SongService;
@@ -146,8 +151,37 @@ public class SongBrowseController {
         // all N songs by [Artist]" link promises, matching the count the
         // artist page itself will show once clicked through to.
         model.addAttribute("totalSongsByArtist", songsByArtist.size());
+        model.addAttribute("songChords", songChordsFor(song));
 
         return "song";
+    }
+
+    /** Name -&gt; diagram, built once at class-load time -- the catalog is fixed, curated data (see {@link ChordDiagramCatalog}). */
+    private static final Map<String, ChordDiagram> CHORD_DIAGRAMS_BY_NAME = buildChordDiagramsByName();
+
+    private static Map<String, ChordDiagram> buildChordDiagramsByName() {
+        Map<String, ChordDiagram> byName = new LinkedHashMap<>();
+        for (ChordDiagram diagram : ChordDiagramCatalog.all()) {
+            byName.put(diagram.name(), diagram);
+        }
+        return byName;
+    }
+
+    /**
+     * The song page's "chords used in this song" list (issue #13, 2026-07-22):
+     * every distinct chord {@link ChordTransposer#distinctChordTokens} finds
+     * in the song's own text, matched against the curated catalog by exact
+     * name -- any token with no match (an exotic spelling the catalog
+     * doesn't cover) is silently dropped rather than shown with a
+     * non-functional Play button, same "no fake data" principle as issue
+     * #10's "More by Artist" list.
+     */
+    private static List<SongChord> songChordsFor(Song song) {
+        return ChordTransposer.distinctChordTokens(song.chords()).stream()
+                .map(CHORD_DIAGRAMS_BY_NAME::get)
+                .filter(Objects::nonNull)
+                .map(diagram -> new SongChord(diagram.name(), diagram.fretsCsv()))
+                .toList();
     }
 
     /**

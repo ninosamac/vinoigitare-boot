@@ -5,12 +5,14 @@ import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.vinoigitare.chords.ChordDiagram;
 import com.vinoigitare.chords.ChordDiagramCatalog;
 import com.vinoigitare.chords.ChordDiagramRenderer;
 import com.vinoigitare.chords.RenderedChordDiagram;
 import com.vinoigitare.chords.RenderedChordSection;
+import com.vinoigitare.chords.SongChord;
 
 /**
  * Static chord-diagram reference page (Phase 7, per the migration plan --
@@ -53,5 +55,24 @@ public class ChordDiagramController {
 
     private RenderedChordDiagram render(ChordDiagram diagram) {
         return new RenderedChordDiagram(diagram.name(), chordDiagramRenderer.render(diagram), diagram.fretsCsv());
+    }
+
+    /**
+     * The whole catalog as {@code [{name, fretsCsv}, ...]} (issue #13,
+     * 2026-07-22) -- for {@code song-chords.js}'s name -&gt; fret-data
+     * lookup on the song page, which needs to resolve a chord's fret data
+     * *after* transposing it client-side (the transposed name might be one
+     * the song never originally used, e.g. G transposed +2 becomes A, so
+     * the song page can't just carry its own few chords' data down with
+     * it -- see the plan doc's decision on this). Small, static, and
+     * identical for every page, so it's a good fit for the browser's/service
+     * worker's own HTTP caching rather than embedding it inline per song page.
+     */
+    @GetMapping("/chord-diagrams/catalog.json")
+    @ResponseBody
+    public List<SongChord> catalogJson() {
+        return ChordDiagramCatalog.all().stream()
+                .map(diagram -> new SongChord(diagram.name(), diagram.fretsCsv()))
+                .toList();
     }
 }

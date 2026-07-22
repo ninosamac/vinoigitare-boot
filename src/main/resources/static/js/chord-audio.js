@@ -151,11 +151,15 @@
     function initChordAudio() {
         var buttons = document.querySelectorAll("[data-chord-play]");
         buttons.forEach(function (button) {
-            var frets = parseFrets(button.getAttribute("data-frets"));
             button.addEventListener("click", function () {
                 if (button.disabled) {
                     return;
                 }
+                // Read data-frets fresh on every click, not once at init
+                // time: fine for /chord-diagrams, where it never changes,
+                // but wrong for the song page (issue #13), where transpose
+                // rewrites it after the page has already loaded.
+                var frets = parseFrets(button.getAttribute("data-frets"));
                 button.disabled = true;
                 var totalSeconds = playChord(frets);
                 setTimeout(function () {
@@ -164,6 +168,14 @@
             });
         });
     }
+
+    // Exposed for song-chords.js (issue #13), which needs to trigger
+    // synthesis directly for its own dynamically-updated Play buttons
+    // rather than relying solely on this file's own click binding above.
+    window.vinoigitareChordAudio = {
+        playChord: playChord,
+        parseFrets: parseFrets
+    };
 
     if (typeof document !== "undefined") {
         if (document.readyState === "loading") {

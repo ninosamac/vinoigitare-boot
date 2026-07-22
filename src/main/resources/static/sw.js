@@ -38,7 +38,12 @@
 // (issue #12, chord playback on /chord-diagrams) -- learned the lesson
 // from the entry directly above, bumping this every time now rather
 // than after the fact.
-const CACHE_NAME = "vinoigitare-v8";
+//
+// Bumped again 2026-07-22: song-chords.js is a brand-new precached file
+// (issue #13, chords-used list + Play buttons on the song page), and
+// chord-audio.js/transpose.js both changed (closure-timing fix + newly
+// exposed window.vinoigitareChordAudio/window.vinoigitareTranspose).
+const CACHE_NAME = "vinoigitare-v9";
 
 const PRECACHE_URLS = [
     "/offline",
@@ -48,6 +53,7 @@ const PRECACHE_URLS = [
     "/js/font-size-toggle.js",
     "/js/preferences-menu.js",
     "/js/chord-audio.js",
+    "/js/song-chords.js",
     "/js/display-controls.js",
     "/js/live-view.js",
     "/js/delete-confirm.js",

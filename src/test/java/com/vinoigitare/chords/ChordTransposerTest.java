@@ -137,4 +137,28 @@ class ChordTransposerTest {
         String transposed = ChordTransposer.transpose(text, 1);
         assertThat(transposed).startsWith("B");
     }
+
+    @Test
+    void distinctChordTokensListsEachChordOnceInFirstAppearanceOrder() {
+        // Song page "chords used in this song" list (issue #13): G repeats
+        // (line 1 and 3) but must only appear once, at its first position.
+        String text = "G       Em\n"
+                + "Uzmi me sa sobom i povedi me\n"
+                + "G       C          D\n"
+                + "I povedi me, i povedi me";
+
+        assertThat(ChordTransposer.distinctChordTokens(text)).containsExactly("G", "Em", "C", "D");
+    }
+
+    @Test
+    void distinctChordTokensIgnoresLyricLines() {
+        String text = "G Em\nOvo je tekst pesme, ne akordi";
+
+        assertThat(ChordTransposer.distinctChordTokens(text)).containsExactly("G", "Em");
+    }
+
+    @Test
+    void distinctChordTokensEmptyWhenTextHasNoChordLines() {
+        assertThat(ChordTransposer.distinctChordTokens("Samo tekst\nBez ijednog akorda")).isEmpty();
+    }
 }
