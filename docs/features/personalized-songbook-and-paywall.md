@@ -29,13 +29,15 @@ number.
 
   | Page count | Price |
   |---|---|
-  | Under 20 | $3 |
-  | 20–49 | $5 |
-  | 50–99 | $7 |
+  | Under 20 | €3 |
+  | 20–49 | €5 |
+  | 50–99 | €7 |
   | 100 or more | Not sold — rejected outright |
 
   (Raised from $2/$3/$5 to $3/$5/$7 on 2026-07-19, same tier
-  boundaries — see `SongbookPricing`'s Javadoc.)
+  boundaries — see `SongbookPricing`'s Javadoc. Switched from USD to EUR
+  on 2026-07-22, Nino's own call for an EU-serving site — same numeric
+  amounts, just relabeled, since USD/EUR trade near parity.)
 
   Payment is a real Stripe Checkout session, **live mode** since
   2026-07-19 (GitHub issue #1) — real cards are charged. After paying,

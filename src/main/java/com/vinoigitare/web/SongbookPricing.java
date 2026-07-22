@@ -20,6 +20,14 @@ package com.vinoigitare.web;
  * itself undefined by either statement) as: 50-99 pages is the top paid
  * tier, 100+ is rejected outright -- an assumption, not explicitly
  * confirmed, same as §1b's own boundary assumption before it.
+ *
+ * <p>Currency switched from USD to EUR (2026-07-22, Nino's own call --
+ * the site serves an EU/Croatian-Serbian audience) -- see {@code
+ * SongbookCheckoutController#checkout}'s {@code setCurrency("eur")}.
+ * The tier amounts below were kept as-is rather than converted (USD and
+ * EUR trade near parity), so every {@code $} in this Javadoc is now a
+ * historical artifact of the amounts being decided in USD terms, not a
+ * literal current price.
  */
 public final class SongbookPricing {
 
