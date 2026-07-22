@@ -81,6 +81,19 @@
             });
         }
     </script>
+    <!--
+      Cloudflare Web Analytics (analytics-plan.md Part 2, 2026-07-22):
+      cookie-free JS beacon, no consent banner needed for EU visitors.
+      Manual-snippet method (not Cloudflare's "automatic" setup) since this
+      zone is deliberately DNS-only/grey-cloud, not proxied -- Caddy manages
+      its own Let's Encrypt certs. Same own-head duplication trap as the
+      service-worker script above: duplicated verbatim into about.html,
+      artist.html, chord-diagrams.html, index.html, song.html, and
+      song-live.html's own <head>; deliberately excluded from song-pdf.html
+      and songbook-pdf.html (PDF-render input, never loaded in a browser).
+    -->
+    <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon='{"token": "b24acf8d028c430697495321be1eede8"}'></script>
 </head>
 <body>
 <!--

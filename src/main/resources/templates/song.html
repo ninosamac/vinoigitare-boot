@@ -80,6 +80,11 @@
             });
         }
     </script>
+    <!-- Duplicated from fragments :: head -- see that fragment's comment
+         on the Cloudflare Web Analytics beacon; same "own <head>"
+         duplication trap as the service-worker script above. -->
+    <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon='{"token": "b24acf8d028c430697495321be1eede8"}'></script>
 </head>
 <body>
 <nav th:replace="~{fragments :: nav}"></nav>
