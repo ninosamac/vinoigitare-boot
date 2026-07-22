@@ -2,9 +2,10 @@ package com.vinoigitare.web;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.springframework.context.MessageSource;
@@ -170,30 +171,41 @@ public class SongBrowseController {
     /**
      * The song page's "chords used in this song" list (issue #13, 2026-07-22):
      * every distinct chord {@link ChordTransposer#distinctChordTokens} finds
-     * in the song's own text, matched against the curated catalog by exact
-     * name -- any token with no match (an exotic spelling the catalog
-     * doesn't cover) is silently dropped rather than shown with a
-     * non-functional Play button, same "no fake data" principle as issue
-     * #10's "More by Artist" list.
+     * in the song's own text, matched against the curated catalog -- any
+     * token with no match (an exotic spelling the catalog doesn't cover)
+     * is silently dropped rather than shown with a non-functional Play
+     * button, same "no fake data" principle as issue #10's "More by
+     * Artist" list.
      *
-     * <p>Each token is run through {@link ChordTransposer#canonicalize}
-     * before the lookup -- a real bug found 2026-07-22 (Nino, via a live
-     * song page): a song spelling a chord "Bb" (a common alternate
-     * spelling for this convention's own "B", which already means the
-     * same flat note) matched nothing by exact string, silently dropping
-     * a chord the catalog actually has real, verified data for.
-     * {@code .distinct()} covers the rare case where a song uses both
-     * spellings of the same chord (e.g. "Bb" and "B") -- canonicalizing
-     * would otherwise produce a duplicate row for what's really one chord.
+     * <p>{@link ChordTransposer#canonicalize} is used ONLY to look the
+     * token up in the catalog, never as the displayed name -- a real bug
+     * found 2026-07-22 (Nino, via two live song pages): the first version
+     * of this method displayed the canonicalized spelling itself (e.g.
+     * "D#" for a song that plainly wrote "Eb"), which matched nothing the
+     * song's own chords/lyrics block above it shows, since that block
+     * always renders the untransposed text verbatim -- confusing, even
+     * though "D#"/"Eb" are the same pitch. Showing the token exactly as
+     * the song wrote it, while still finding its real fingering via the
+     * canonicalized lookup, keeps this list visually consistent with the
+     * chords/lyrics block right above it. {@code LinkedHashSet} covers the
+     * rare case where a song uses two spellings of the same chord (e.g.
+     * both "Eb" and "D#") -- canonicalizing for the dedup key (not the
+     * display name) means that still only produces one row.
      */
     private static List<SongChord> songChordsFor(Song song) {
-        return ChordTransposer.distinctChordTokens(song.chords()).stream()
-                .map(ChordTransposer::canonicalize)
-                .distinct()
-                .map(CHORD_DIAGRAMS_BY_NAME::get)
-                .filter(Objects::nonNull)
-                .map(diagram -> new SongChord(diagram.name(), diagram.fretsCsv()))
-                .toList();
+        List<SongChord> result = new ArrayList<>();
+        Set<String> seenCanonical = new LinkedHashSet<>();
+        for (String token : ChordTransposer.distinctChordTokens(song.chords())) {
+            String canonical = ChordTransposer.canonicalize(token);
+            if (!seenCanonical.add(canonical)) {
+                continue;
+            }
+            ChordDiagram diagram = CHORD_DIAGRAMS_BY_NAME.get(canonical);
+            if (diagram != null) {
+                result.add(new SongChord(token, diagram.fretsCsv()));
+            }
+        }
+        return result;
     }
 
     /**

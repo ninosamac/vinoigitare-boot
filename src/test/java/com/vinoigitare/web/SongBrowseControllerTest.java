@@ -190,7 +190,7 @@ class SongBrowseControllerTest {
     }
 
     @Test
-    void songViewMatchesBbSpelledChordAgainstTheCatalogsBEntry() throws Exception {
+    void songViewMatchesBbSpelledChordAgainstTheCatalogsBEntryButDisplaysItAsWritten() throws Exception {
         // Real bug found 2026-07-22 (Nino, via a live song page): "Bb" is
         // a common alternate spelling for this convention's own "B"
         // (already the flat note), but the catalog only has an entry
@@ -201,9 +201,32 @@ class SongBrowseControllerTest {
 
         mockMvc.perform(get("/akordi/{id}/{slug}", song.id(), song.slug()))
                 .andExpect(status().isOk())
-                // Shown as the catalog's own canonical "B", not the raw "Bb" spelling.
-                .andExpect(content().string(containsString("data-original-name=\"B\"")))
+                // Displayed exactly as the song wrote it ("Bb"), matching
+                // the chords/lyrics block above -- a second real bug found
+                // the same day: showing the canonicalized "B" here instead
+                // didn't match that block, which always renders the
+                // untransposed text verbatim. Canonicalizing is used only
+                // internally, to find the right catalog fingering.
+                .andExpect(content().string(containsString("data-original-name=\"Bb\"")))
                 .andExpect(content().string(containsString("data-frets=\"-1,1,3,3,3,1\"")));
+    }
+
+    @Test
+    void songViewDisplaysFlatSpelledChordsAsWrittenNotCanonicalized() throws Exception {
+        // Same bug, different symptom (Nino, via a live song page): "Eb"
+        // and "Ab" are real, playable chords (the catalog has them under
+        // its own sharp-only canonical spellings "D#"/"G#"), but showing
+        // those canonical spellings instead of "Eb"/"Ab" didn't match
+        // what the song's own chords/lyrics block above plainly showed.
+        Song song = new Song("Marko Markovic", "Pesma sa Eb i Ab akordima", "Eb      Ab\nline one");
+        given(songService.load(song.id())).willReturn(Optional.of(song));
+
+        mockMvc.perform(get("/akordi/{id}/{slug}", song.id(), song.slug()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-original-name=\"Eb\"")))
+                .andExpect(content().string(containsString("data-frets=\"-1,6,8,8,8,6\"")))
+                .andExpect(content().string(containsString("data-original-name=\"Ab\"")))
+                .andExpect(content().string(containsString("data-frets=\"4,6,6,5,4,4\"")));
     }
 
     @Test

@@ -39,29 +39,63 @@
     }
 
     /**
-     * Transposes each row's ORIGINAL chord name (kept in a data attribute,
-     * never overwritten) by `offset`, looks the result up in the fetched
-     * catalog, and updates the row's visible name + Play button's
-     * data-frets -- or hides the row if the transposed name isn't in the
-     * catalog (rare, but possible; same "no fake data" principle as the
-     * rest of this feature, applied per-row instead of only at page load).
+     * At offset 0, every row is restored to EXACTLY what the server
+     * rendered (original spelling, e.g. "Eb", and its original
+     * data-frets) -- no transposeChord call, no catalog lookup. Real bug
+     * found 2026-07-22 (Nino, via two live song pages): always running
+     * the original name through transposeChord (even at offset 0)
+     * canonicalized it to this app's sharp-only spelling (e.g. "Eb" ->
+     * "D#") immediately on page load, which no longer matched the
+     * chords/lyrics block right above it -- that block always renders
+     * the untransposed text verbatim at offset 0, so this list must too.
+     * Captured once at init, before any transpose click, specifically so
+     * a later click back to offset 0 (e.g. +1 then -1) can restore this
+     * exact original state, not just skip re-transposing from whatever's
+     * currently displayed.
      */
-    function updateRows(rows, byName, offset) {
+    function originalStateOf(rows) {
+        return rows.map(function (row) {
+            return {
+                name: row.getAttribute("data-original-name"),
+                frets: row.querySelector("[data-chord-play]").getAttribute("data-frets")
+            };
+        });
+    }
+
+    /**
+     * Transposes each row's ORIGINAL chord name by `offset`, looks the
+     * result up in the fetched catalog, and updates the row's visible
+     * name + Play button's data-frets -- or hides the row if the
+     * transposed name isn't in the catalog (rare, but possible; same "no
+     * fake data" principle as the rest of this feature, applied per-row
+     * instead of only at page load). At offset 0, restores the pristine
+     * original instead (see originalStateOf's comment).
+     */
+    function updateRows(rows, originals, byName, offset) {
         var transposeChord = window.vinoigitareTranspose && window.vinoigitareTranspose.transposeChord;
-        rows.forEach(function (row) {
-            var originalName = row.getAttribute("data-original-name");
-            var name = transposeChord ? transposeChord(originalName, offset) : originalName;
+        rows.forEach(function (row, i) {
+            var nameEl = row.querySelector("[data-song-chord-name]");
+            var playButton = row.querySelector("[data-chord-play]");
+            if (offset === 0) {
+                row.style.display = "";
+                if (nameEl) {
+                    nameEl.textContent = originals[i].name;
+                }
+                if (playButton) {
+                    playButton.setAttribute("data-frets", originals[i].frets);
+                }
+                return;
+            }
+            var name = transposeChord ? transposeChord(originals[i].name, offset) : originals[i].name;
             var fretsCsv = byName[name];
             if (!fretsCsv) {
                 row.style.display = "none";
                 return;
             }
             row.style.display = "";
-            var nameEl = row.querySelector("[data-song-chord-name]");
             if (nameEl) {
                 nameEl.textContent = name;
             }
-            var playButton = row.querySelector("[data-chord-play]");
             if (playButton) {
                 playButton.setAttribute("data-frets", fretsCsv);
             }
@@ -78,9 +112,10 @@
         if (rows.length === 0) {
             return;
         }
+        var originals = originalStateOf(rows);
 
         fetchCatalog().then(function (byName) {
-            updateRows(rows, byName, currentOffset(chordsBlock));
+            updateRows(rows, originals, byName, currentOffset(chordsBlock));
 
             // Registered after transpose.js's own listeners on these same
             // buttons (song.html loads this script after transpose.js), so
@@ -90,12 +125,12 @@
             var upButton = document.querySelector("[data-transpose-up]");
             if (downButton) {
                 downButton.addEventListener("click", function () {
-                    updateRows(rows, byName, currentOffset(chordsBlock));
+                    updateRows(rows, originals, byName, currentOffset(chordsBlock));
                 });
             }
             if (upButton) {
                 upButton.addEventListener("click", function () {
-                    updateRows(rows, byName, currentOffset(chordsBlock));
+                    updateRows(rows, originals, byName, currentOffset(chordsBlock));
                 });
             }
         });
