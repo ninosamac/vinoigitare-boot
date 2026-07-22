@@ -140,4 +140,50 @@ class AdminControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("http://localhost/login"));
     }
+
+    @Test
+    void statsRedirectsToLoginWhenNotAuthenticated() throws Exception {
+        mockMvc.perform(get("/admin/stats"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("http://localhost/login"));
+
+        then(songService).should(never()).loadAll();
+    }
+
+    @Test
+    @WithMockUser
+    void statsShowsTotalsAndTopViewedSongsInDescendingOrderWhenAuthenticated() throws Exception {
+        // Analytics, Part 1 (2026-07-22, issue #14): surfaces the per-song
+        // "views" counter -- this test is the one place that counter's
+        // actual arithmetic (sum + descending sort) gets exercised.
+        Song mostViewed = new Song("1", "Marko Markovic", "Najgledanija pesma", "najgledanija", "C G", null, 100L);
+        Song leastViewed = new Song("2", "Marko Markovic", "Malo gledana pesma", "malo-gledana", "C G", null, 5L);
+        given(songService.loadAll()).willReturn(java.util.List.of(leastViewed, mostViewed));
+
+        mockMvc.perform(get("/admin/stats"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("105")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Najgledanija pesma")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Malo gledana pesma")));
+
+        // Most-viewed must appear before least-viewed in the rendered HTML
+        // (descending order), not just "both present somewhere".
+        String body = mockMvc.perform(get("/admin/stats")).andReturn().getResponse().getContentAsString();
+        int mostIndex = body.indexOf("Najgledanija pesma");
+        int leastIndex = body.indexOf("Malo gledana pesma");
+        org.assertj.core.api.Assertions.assertThat(mostIndex).isLessThan(leastIndex);
+    }
+
+    @Test
+    @WithMockUser
+    void statsShowsNoViewsMessageWhenCatalogHasZeroViews() throws Exception {
+        Song neverViewed = new Song("1", "Marko Markovic", "Nova pesma", "nova-pesma", "C G", null, 0L);
+        given(songService.loadAll()).willReturn(java.util.List.of(neverViewed));
+
+        mockMvc.perform(get("/admin/stats"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("No views recorded yet")))
+                // The table itself must be hidden, not shown empty.
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("<table"))));
+    }
 }

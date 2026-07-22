@@ -1,5 +1,6 @@
 package com.vinoigitare.web;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -49,6 +50,33 @@ public class AdminController {
     @GetMapping
     public String list() {
         return "admin/list";
+    }
+
+    /** Cap for the top-viewed list on {@code /admin/stats} -- see #stats. */
+    private static final int TOP_VIEWED_LIMIT = 20;
+
+    /**
+     * Analytics, Part 1 (2026-07-22, issue #14): surfaces the per-song
+     * {@code views} counter {@link com.vinoigitare.service.SongService#recordView}
+     * has been incrementing since Phase 4e, never shown anywhere until
+     * now. Total across the whole catalog + a top-20 list, computed here
+     * (not in the template) for the same restricted-expression-guard
+     * reason {@code SongBrowseController#buildArtistTree} already
+     * documents. Falls under the existing {@code /admin/**} auth gate
+     * automatically -- no new {@code SecurityConfig} entry needed.
+     */
+    @GetMapping("/stats")
+    public String stats(Model model) {
+        List<Song> songs = songService.loadAll();
+        long totalViews = songs.stream().mapToLong(Song::views).sum();
+        List<Song> topViewed = songs.stream()
+                .sorted(Comparator.comparingLong(Song::views).reversed())
+                .limit(TOP_VIEWED_LIMIT)
+                .toList();
+        model.addAttribute("totalSongs", songs.size());
+        model.addAttribute("totalViews", totalViews);
+        model.addAttribute("topViewed", topViewed);
+        return "admin/stats";
     }
 
     @GetMapping("/new")

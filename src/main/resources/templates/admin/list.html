@@ -8,6 +8,8 @@
         <h1 class="h4 mb-0" th:text="#{nav.admin}">Admin</h1>
         <div class="d-flex gap-2">
             <a class="btn btn-primary btn-sm" th:href="@{/admin/new}" th:text="#{admin.newSong}">New Song</a>
+            <!-- Analytics, Part 1 (2026-07-22, issue #14). -->
+            <a class="btn btn-outline-primary btn-sm" th:href="@{/admin/stats}" th:text="#{admin.stats}">Stats</a>
             <!-- Personalized songbook PDF, Phase A: no public nav entry for
                  /songbook on purpose (kept invisible to visitors until Phase
                  B ships) -- this admin page is the one reachable entry

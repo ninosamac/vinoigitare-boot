@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(#{admin.stats})}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h4 mb-0" th:text="#{admin.stats}">Stats</h1>
+        <a class="btn btn-outline-secondary btn-sm" th:href="@{/admin}" th:text="#{nav.admin}">Admin</a>
+    </div>
+
+    <!--
+      Analytics, Part 1 (2026-07-22, issue #14): surfaces the per-song
+      "views" counter that's been tracked since Phase 4e but never shown
+      anywhere -- see AdminController#stats. No new tracking, no new
+      dependency: this is data the app already collects.
+    -->
+    <div class="d-flex flex-wrap gap-4 mb-4">
+        <div>
+            <div class="text-muted small text-uppercase" th:text="#{admin.stats.totalSongs}">Total songs</div>
+            <div class="h3 mb-0" th:text="${totalSongs}">0</div>
+        </div>
+        <div>
+            <div class="text-muted small text-uppercase" th:text="#{admin.stats.totalViews}">Total views</div>
+            <div class="h3 mb-0" th:text="${totalViews}">0</div>
+        </div>
+    </div>
+
+    <h2 class="h6 text-uppercase text-muted mb-2" th:text="#{admin.stats.topViewed}">Top viewed songs</h2>
+    <p th:if="${totalViews == 0}" class="text-muted" th:text="#{admin.stats.noViewsYet}">No views recorded yet.</p>
+    <table th:if="${totalViews > 0}" class="table table-sm">
+        <thead>
+        <tr>
+            <th th:text="#{admin.artist}">Artist</th>
+            <th th:text="#{admin.title}">Title</th>
+            <th class="text-end" th:text="#{admin.stats.viewsColumn}">Views</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="song : ${topViewed}">
+            <td th:text="${song.artist()}">Artist</td>
+            <td>
+                <a th:href="@{/akordi/{id}/{slug}(id=${song.id()},slug=${song.slug()})}"
+                   th:text="${song.title()}">Title</a>
+            </td>
+            <td class="text-end" th:text="${song.views()}">0</td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+<script th:src="@{/js/theme-toggle.js}"></script>
+<script th:src="@{/js/font-size-toggle.js}"></script>
+<script th:src="@{/js/preferences-menu.js}"></script>
+</body>
+</html>
