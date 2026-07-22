@@ -116,6 +116,9 @@ public class SongBrowseController {
         return "artist";
     }
 
+    /** Cap for the "More by [Artist]" list on the song page -- see #song. */
+    private static final int MORE_BY_ARTIST_LIMIT = 8;
+
     @GetMapping("/akordi/{id}/{slug}")
     public String song(@PathVariable String id, @PathVariable String slug, Model model) {
         Song song = songService.load(id)
@@ -123,6 +126,25 @@ public class SongBrowseController {
         songService.recordView(id);
         model.addAttribute("song", song);
         model.addAttribute("metaDescription", metaDescriptionFor(song));
+
+        // Internal linking (2026-07-22, issue #10): "more songs by the
+        // same artist" is the one linking signal actually backed by real
+        // data -- no genre/tag/similarity data exists to build a genuine
+        // "related songs" list from (see internal-linking-plan.md).
+        // Capped, not the full list -- some artists have 50+ songs, and
+        // dumping all of them here would bury the actual chords content
+        // the page exists for; a "See all" link covers the rest via the
+        // artist page, which already lists everything.
+        List<Song> songsByArtist = songService.loadByArtist(song.artist());
+        List<Song> otherSongsByArtist = songsByArtist.stream()
+                .filter(other -> !other.id().equals(song.id()))
+                .toList();
+        model.addAttribute("otherSongsByArtist", otherSongsByArtist.stream().limit(MORE_BY_ARTIST_LIMIT).toList());
+        // The artist's real total (including this song) -- what the "See
+        // all N songs by [Artist]" link promises, matching the count the
+        // artist page itself will show once clicked through to.
+        model.addAttribute("totalSongsByArtist", songsByArtist.size());
+
         return "song";
     }
 

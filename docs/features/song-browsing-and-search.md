@@ -36,6 +36,18 @@ artist and title, returning matching songs on a results page.
   against the song's real slug. Every successful load also records a
   view (`SongService.recordView`) — a simple aggregate counter per song,
   not tied to any visitor or device.
+- **"More by [Artist]" internal linking** (2026-07-22, issue #10 — see
+  `~/knowledge/projects/vinoigitare/internal-linking-plan.md`): the song
+  page lists up to 8 of the artist's other songs, plus a "See all N
+  songs by [Artist]" link to the artist page when there are more than
+  that. Reuses `SongService.loadByArtist` (already backing the artist
+  page), filtered to exclude the current song. Deliberately just "more
+  by the same artist," not a "related/similar songs" list — this app has
+  no genre/tag/similarity data to build a genuine "related" signal from
+  (genre was intentionally removed from the site entirely, see
+  `about-page-and-genre-removal-plan.md`). Placed at the bottom of the
+  page, after the chords, not above the title — same reasoning as why
+  an earlier visible SEO caption was removed from the top of this page.
 - **Search** (`SearchController`, `GET /search?q=...`) delegates to
   `SearchService` (`com.vinoigitare.search`). A blank query renders the
   page with an empty-state message rather than redirecting away, so the

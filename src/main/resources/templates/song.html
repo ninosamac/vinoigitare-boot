@@ -177,6 +177,31 @@
             </form>
         </span>
     </div>
+
+    <!--
+      Internal linking (2026-07-22, issue #10, see
+      ~/knowledge/projects/vinoigitare/internal-linking-plan.md) --
+      deliberately at the bottom, after the chords, not above the title:
+      nothing here should compete with the title or add height above
+      what someone opened the page to read. Hidden entirely when the
+      artist has no other songs (th:if), rather than showing an empty
+      "More by" heading with nothing under it.
+    -->
+    <div class="mt-4 no-print" th:if="${not #lists.isEmpty(otherSongsByArtist)}">
+        <h2 class="h6 text-uppercase text-muted mb-2" th:text="#{song.moreByArtist(${song.artist()})}">More by Artist</h2>
+        <ul class="list-unstyled">
+            <li th:each="other : ${otherSongsByArtist}" class="index-row mb-2">
+                <a th:href="@{/akordi/{id}/{slug}(id=${other.id()},slug=${other.slug()})}" th:text="${other.title()}">Title</a>
+            </li>
+        </ul>
+        <!--
+          Only shown when the cap actually hid something -- no point
+          linking to "see all 8" when all 8 are already listed above.
+        -->
+        <a th:if="${totalSongsByArtist > #lists.size(otherSongsByArtist) + 1}"
+           th:href="@{/artists/{artist}(artist=${song.artist()})}"
+           th:text="#{song.seeAllSongsByArtist(${totalSongsByArtist},${song.artist()})}">See all songs by Artist</a>
+    </div>
 </main>
 <footer th:replace="~{fragments :: footer}"></footer>
 <script th:src="@{/js/transpose.js}"></script>

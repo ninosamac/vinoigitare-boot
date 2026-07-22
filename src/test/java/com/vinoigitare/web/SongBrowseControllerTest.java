@@ -1,5 +1,6 @@
 package com.vinoigitare.web;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -166,6 +167,68 @@ class SongBrowseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("<pre")))
                 .andExpect(content().string(containsString("line one")));
+    }
+
+    @Test
+    void songViewIncludesMoreByArtistSectionListingOtherSongsNotItself() throws Exception {
+        // Internal linking (2026-07-22, issue #10): the current song must
+        // not list itself as "more by the artist".
+        Song current = new Song("Marko Markovic", "Trenutna pesma", "chords");
+        Song other1 = new Song("Marko Markovic", "Prva druga pesma", "chords");
+        Song other2 = new Song("Marko Markovic", "Druga druga pesma", "chords");
+        given(songService.load(current.id())).willReturn(Optional.of(current));
+        given(songService.loadByArtist("Marko Markovic")).willReturn(List.of(current, other1, other2));
+
+        mockMvc.perform(get("/akordi/{id}/{slug}", current.id(), current.slug()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Marko Markovic")))
+                .andExpect(content().string(containsString("Prva druga pesma")))
+                .andExpect(content().string(containsString("Druga druga pesma")))
+                // Only 2 others exist (below the cap of 8) -- no "see all" link needed.
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("See all"))));
+    }
+
+    @Test
+    void songViewCapsMoreByArtistListAndShowsSeeAllLinkWhenOverTheCap() throws Exception {
+        // Internal linking (2026-07-22, issue #10): capped at 8 -- some
+        // artists have 50+ songs (Đorđe Balašević alone), and dumping the
+        // whole list on every one of their song pages would bury the
+        // actual chords content the page exists for.
+        Song current = new Song("Marko Markovic", "Trenutna pesma", "chords");
+        List<Song> others = new ArrayList<>();
+        for (int i = 1; i <= 9; i++) {
+            others.add(new Song("Marko Markovic", "Pesma broj " + i, "chords"));
+        }
+        List<Song> all = new ArrayList<>();
+        all.add(current);
+        all.addAll(others);
+        given(songService.load(current.id())).willReturn(Optional.of(current));
+        given(songService.loadByArtist("Marko Markovic")).willReturn(all);
+
+        mockMvc.perform(get("/akordi/{id}/{slug}", current.id(), current.slug()))
+                .andExpect(status().isOk())
+                // First 8 others shown...
+                .andExpect(content().string(containsString("Pesma broj 1")))
+                .andExpect(content().string(containsString("Pesma broj 8")))
+                // ...the 9th (beyond the cap) is not.
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("Pesma broj 9"))))
+                // "See all" promises the artist's real total (10 = current + 9 others).
+                .andExpect(content().string(containsString("See all 10 songs by Marko Markovic")));
+    }
+
+    @Test
+    void songViewHidesMoreByArtistSectionWhenArtistHasNoOtherSongs() throws Exception {
+        Song song = new Song("Marko Markovic", "Jedina pesma", "chords");
+        given(songService.load(song.id())).willReturn(Optional.of(song));
+        given(songService.loadByArtist("Marko Markovic")).willReturn(List.of(song));
+
+        mockMvc.perform(get("/akordi/{id}/{slug}", song.id(), song.slug()))
+                .andExpect(status().isOk())
+                // Checks the actual interpolated heading text, not the
+                // bare phrase "More by" -- this file's own explanatory
+                // comment on the section happens to contain that phrase
+                // too, which would otherwise false-match here.
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("More by Marko Markovic"))));
     }
 
     @Test
