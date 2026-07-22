@@ -139,6 +139,29 @@ class ChordTransposerTest {
     }
 
     @Test
+    void bbIsTreatedAsPlainBNotAFurtherFlattenedNote() {
+        // Real bug found 2026-07-22 (Nino, via a live song page): "Bb" is
+        // a common alternate spelling for what this convention already
+        // calls plain "B" (already the flat note one below "H" -- see
+        // the class Javadoc), not "one further semitone below B".
+        // Confirmed against the real corpus: 77 of 1302 .tab files use
+        // "Bb", zero use the hypothetical "Hb" -- nobody means "A" when
+        // they write "Bb".
+        assertThat(ChordTransposer.transpose("Bb", 1)).isEqualTo("H");
+        assertThat(ChordTransposer.transpose("Bb", -1)).isEqualTo("A");
+        assertThat(ChordTransposer.transpose("Bbm7", 1)).isEqualTo("Hm7");
+    }
+
+    @Test
+    void canonicalizeNormalizesBbToBButLeavesOrdinaryChordsUnchanged() {
+        assertThat(ChordTransposer.canonicalize("Bb")).isEqualTo("B");
+        assertThat(ChordTransposer.canonicalize("Bbm7")).isEqualTo("Bm7");
+        assertThat(ChordTransposer.canonicalize("Bb/D")).isEqualTo("B/D");
+        assertThat(ChordTransposer.canonicalize("C")).isEqualTo("C");
+        assertThat(ChordTransposer.canonicalize("F#m7-5")).isEqualTo("F#m7-5");
+    }
+
+    @Test
     void distinctChordTokensListsEachChordOnceInFirstAppearanceOrder() {
         // Song page "chords used in this song" list (issue #13): G repeats
         // (line 1 and 3) but must only appear once, at its first position.

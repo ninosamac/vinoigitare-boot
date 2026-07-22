@@ -190,6 +190,23 @@ class SongBrowseControllerTest {
     }
 
     @Test
+    void songViewMatchesBbSpelledChordAgainstTheCatalogsBEntry() throws Exception {
+        // Real bug found 2026-07-22 (Nino, via a live song page): "Bb" is
+        // a common alternate spelling for this convention's own "B"
+        // (already the flat note), but the catalog only has an entry
+        // literally named "B" -- without canonicalizing first, this
+        // song's real, playable chord was silently dropped from the list.
+        Song song = new Song("Marko Markovic", "Pesma sa Bb akordom", "F       C            Bb         G\nline one");
+        given(songService.load(song.id())).willReturn(Optional.of(song));
+
+        mockMvc.perform(get("/akordi/{id}/{slug}", song.id(), song.slug()))
+                .andExpect(status().isOk())
+                // Shown as the catalog's own canonical "B", not the raw "Bb" spelling.
+                .andExpect(content().string(containsString("data-original-name=\"B\"")))
+                .andExpect(content().string(containsString("data-frets=\"-1,1,3,3,3,1\"")));
+    }
+
+    @Test
     void songViewOmitsChordsTheCatalogDoesNotCover() throws Exception {
         // "no fake data" (same principle as issue #10): C11 is a
         // grammar-valid chord token ChordTransposer would happily detect,

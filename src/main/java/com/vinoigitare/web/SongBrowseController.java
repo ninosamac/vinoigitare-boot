@@ -175,9 +175,21 @@ public class SongBrowseController {
      * doesn't cover) is silently dropped rather than shown with a
      * non-functional Play button, same "no fake data" principle as issue
      * #10's "More by Artist" list.
+     *
+     * <p>Each token is run through {@link ChordTransposer#canonicalize}
+     * before the lookup -- a real bug found 2026-07-22 (Nino, via a live
+     * song page): a song spelling a chord "Bb" (a common alternate
+     * spelling for this convention's own "B", which already means the
+     * same flat note) matched nothing by exact string, silently dropping
+     * a chord the catalog actually has real, verified data for.
+     * {@code .distinct()} covers the rare case where a song uses both
+     * spellings of the same chord (e.g. "Bb" and "B") -- canonicalizing
+     * would otherwise produce a duplicate row for what's really one chord.
      */
     private static List<SongChord> songChordsFor(Song song) {
         return ChordTransposer.distinctChordTokens(song.chords()).stream()
+                .map(ChordTransposer::canonicalize)
+                .distinct()
                 .map(CHORD_DIAGRAMS_BY_NAME::get)
                 .filter(Objects::nonNull)
                 .map(diagram -> new SongChord(diagram.name(), diagram.fretsCsv()))

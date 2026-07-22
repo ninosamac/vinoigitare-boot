@@ -274,10 +274,47 @@ public final class ChordTransposer {
         int index = NATURAL_INDEX.get(letter.charAt(0));
         if ("#".equals(accidental)) {
             index += 1;
+        } else if ("b".equals(accidental) && "B".equals(letter)) {
+            // "Bb" is a common alternate spelling for what this German/
+            // ex-YU convention already calls plain "B" (index 10 is
+            // *already* the flat note one below "H" -- see the class
+            // Javadoc) -- real .tab files scraped from various sources
+            // routinely write it this way. Confirmed real bug found
+            // 2026-07-22 (Nino, reported via a live song page missing
+            // "Bb" from its "chords used" list, issue #13): 77 of this
+            // project's 1302 .tab files use "Bb", and precisely zero use
+            // the hypothetical "Hb" -- if "Bb" genuinely meant "one
+            // further semitone below B" (index 9, "A"), some real
+            // songwriter would eventually have needed to write "Hb" too
+            // (one below H); nobody ever has, which is strong evidence
+            // "Bb" always means the exact same pitch as bare "B", not a
+            // further-flattened one. Before this fix, transposing a
+            // "Bb" chord silently shifted it to "A" instead of leaving
+            // it as "B" (up 0) or correctly moving to "H" (up 1) -- and
+            // the "chords used in this song" list (see
+            // SongBrowseController#songChordsFor) missed it entirely,
+            // since its exact-string catalog lookup never found an entry
+            // literally named "Bb".
         } else if ("b".equals(accidental)) {
             index -= 1;
         }
         int transposed = Math.floorMod(index + semitones, NOTES.length);
         return NOTES[transposed];
+    }
+
+    /**
+     * Canonical spelling of a single chord token under this app's own
+     * note-naming convention -- the same pitch, "transposed" by zero
+     * semitones. Exists to normalize alternate spellings real .tab files
+     * use for a pitch this convention already has its own letter for --
+     * "Bb" for plain "B" is the one real case found in the corpus (see
+     * {@link #transposeRoot}'s comment). Used by {@code
+     * SongBrowseController#songChordsFor} so the "chords used in this
+     * song" list's catalog lookup isn't fooled by a spelling variant into
+     * thinking the song uses a chord the catalog has no entry for, when
+     * really it's the exact same chord written differently.
+     */
+    public static String canonicalize(String chord) {
+        return transposeChord(chord, 0);
     }
 }

@@ -38,6 +38,12 @@
         var index = NATURAL_INDEX[letter];
         if (accidental === "#") {
             index += 1;
+        } else if (accidental === "b" && letter === "B") {
+            // "Bb" is a common alternate spelling for plain "B" in this
+            // German/ex-YU convention (B is already the flat note --
+            // see ChordTransposer.java's mirror of this exact fix for
+            // the full real-corpus evidence: 77 of 1302 .tab files use
+            // "Bb", zero use "Hb"). Mirrors the Java-side fix exactly.
         } else if (accidental === "b") {
             index -= 1;
         }

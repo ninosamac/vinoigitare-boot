@@ -8,8 +8,14 @@ package com.vinoigitare.chords;
  * not fretboard diagrams -- {@code /chord-diagrams} is one click away for
  * anyone who wants the actual fingering.
  *
- * @param name     chord name as it appears in the song's own text (not
- *                 re-cased or otherwise normalized)
+ * @param name     the catalog's own canonical spelling of this chord (see
+ *                 {@link ChordDiagramCatalog}) -- not necessarily verbatim
+ *                 from the song's own text, since {@code
+ *                 SongBrowseController#songChordsFor} normalizes an
+ *                 alternate spelling like "Bb" to this convention's own
+ *                 "B" (same pitch) before matching it against the
+ *                 catalog, so the row shown is consistent with the rest
+ *                 of the site's own note-naming convention
  * @param fretsCsv comma-joined fret positions (see {@link
  *                 ChordDiagram#fretsCsv()}), for the Play button's
  *                 {@code data-frets} attribute
